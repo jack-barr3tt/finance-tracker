@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 
 	"github.com/gofiber/fiber/v2"
@@ -8,10 +9,17 @@ import (
 )
 
 func main() {
+	context := context.Background()
+
 	// create a type that satisfies the `api.ServerInterface`, which contains an implementation of every operation from the generated code
-	server := api.NewServer()
+	server, err := api.NewServer(context)
+	if err != nil {
+		panic(err)
+	}
 
 	app := fiber.New()
+
+	app.Use(server.JWTAuthMiddleware)
 
 	api.RegisterHandlers(app, server)
 

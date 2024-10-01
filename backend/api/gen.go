@@ -4,19 +4,70 @@
 package api
 
 import (
+	"bytes"
+	"compress/gzip"
+	"encoding/base64"
+	"fmt"
+	"net/url"
+	"path"
+	"strings"
+	"time"
+
+	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/gofiber/fiber/v2"
+	"github.com/oapi-codegen/runtime"
 )
 
-// Pong defines model for Pong.
-type Pong struct {
-	Ping string `json:"ping"`
+const (
+	BearerAuthScopes = "BearerAuth.Scopes"
+)
+
+// LoginRequest defines model for LoginRequest.
+type LoginRequest struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
 }
+
+// LoginResponse defines model for LoginResponse.
+type LoginResponse struct {
+	Token string `json:"token"`
+}
+
+// SignupRequest defines model for SignupRequest.
+type SignupRequest struct {
+	Email    *string `json:"email,omitempty"`
+	Password *string `json:"password,omitempty"`
+}
+
+// SignupResponse defines model for SignupResponse.
+type SignupResponse struct {
+	Id int `json:"id"`
+}
+
+// User defines model for User.
+type User struct {
+	CreatedAt time.Time `json:"created_at"`
+	Email     string    `json:"email"`
+	Id        int       `json:"id"`
+}
+
+// PostLoginJSONRequestBody defines body for PostLogin for application/json ContentType.
+type PostLoginJSONRequestBody = LoginRequest
+
+// PostSignupJSONRequestBody defines body for PostSignup for application/json ContentType.
+type PostSignupJSONRequestBody = SignupRequest
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 
-	// (GET /ping)
-	GetPing(c *fiber.Ctx) error
+	// (POST /login)
+	PostLogin(c *fiber.Ctx) error
+
+	// (POST /signup)
+	PostSignup(c *fiber.Ctx) error
+
+	// (GET /user/{id})
+	GetUserId(c *fiber.Ctx, id int) error
 }
 
 // ServerInterfaceWrapper converts contexts to parameters.
@@ -26,10 +77,34 @@ type ServerInterfaceWrapper struct {
 
 type MiddlewareFunc fiber.Handler
 
-// GetPing operation middleware
-func (siw *ServerInterfaceWrapper) GetPing(c *fiber.Ctx) error {
+// PostLogin operation middleware
+func (siw *ServerInterfaceWrapper) PostLogin(c *fiber.Ctx) error {
 
-	return siw.Handler.GetPing(c)
+	return siw.Handler.PostLogin(c)
+}
+
+// PostSignup operation middleware
+func (siw *ServerInterfaceWrapper) PostSignup(c *fiber.Ctx) error {
+
+	return siw.Handler.PostSignup(c)
+}
+
+// GetUserId operation middleware
+func (siw *ServerInterfaceWrapper) GetUserId(c *fiber.Ctx) error {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id int
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", c.Params("id"), &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter id: %w", err).Error())
+	}
+
+	c.Context().SetUserValue(BearerAuthScopes, []string{})
+
+	return siw.Handler.GetUserId(c, id)
 }
 
 // FiberServerOptions provides options for the Fiber server.
@@ -53,6 +128,97 @@ func RegisterHandlersWithOptions(router fiber.Router, si ServerInterface, option
 		router.Use(fiber.Handler(m))
 	}
 
-	router.Get(options.BaseURL+"/ping", wrapper.GetPing)
+	router.Post(options.BaseURL+"/login", wrapper.PostLogin)
 
+	router.Post(options.BaseURL+"/signup", wrapper.PostSignup)
+
+	router.Get(options.BaseURL+"/user/:id", wrapper.GetUserId)
+
+}
+
+// Base64 encoded, gzipped, json marshaled Swagger object
+var swaggerSpec = []string{
+
+	"H4sIAAAAAAAC/7RUTW/TQBD9K9HAcYkD3HyiPRQFcahoEYcoQlt7kmwb725nx0AU+b+jGae1i52WQ3Pb",
+	"j/l48/a93UMRqhg8ek6Q7yEVG6ysLr+GtfPf8L7GxLKPFCISO9RbrKzbyoJ3ESGHxOT8GhoD0ab0O1A5",
+	"ctkYILyvHWEJ+eJQo5exNA8Z4eYWC5ZyBxgpBp9wiIPDHfqXW7VhY/Wv3NrX8eU58Y+t4lZy64T06bCd",
+	"FqEC8zwJXebjqRmBexTZsdFdn2LnGddIg8HdOKvfE9KwYkFoGcufVolYBapkBaVlfMeuwrFJjwvhf/GZ",
+	"RyH0+g9BNwYSFjU53l2JSlvI52gJ6azmjexudHfxAPzLj2swraalUnvbDbFhjtBIYedXQcE61oe6cN76",
+	"AifXZIs7pMnZ5RwM/EJKLnjI4f10Np3JjCGit9FBDh/1SF6eN4os24pyleTQKkuotuyCn5eQw2VIrOKG",
+	"lhFMfB7Knb5D8Ixec2yMW1doVnabgu9MKqu3hCvI4U3WuTg7WDh74t+maYlvtaT4Psxmr93roFTtVWIq",
+	"yEVuCdOACfUiGgNZUoU/T1HrghNx9NT8JybpHz+PsCQRkzoOeJIfJ9u7spEWaxxh6jOyWHpeqgLJVshI",
+	"CfLFHkSDqkow4K0aQU3XuZCpRtMbYmDZ5QlZ0Z9ohAs57xPRuV+n6vt+sWyWwtTfAAAA//8u+AyEzQYA",
+	"AA==",
+}
+
+// GetSwagger returns the content of the embedded swagger specification file
+// or error if failed to decode
+func decodeSpec() ([]byte, error) {
+	zipped, err := base64.StdEncoding.DecodeString(strings.Join(swaggerSpec, ""))
+	if err != nil {
+		return nil, fmt.Errorf("error base64 decoding spec: %w", err)
+	}
+	zr, err := gzip.NewReader(bytes.NewReader(zipped))
+	if err != nil {
+		return nil, fmt.Errorf("error decompressing spec: %w", err)
+	}
+	var buf bytes.Buffer
+	_, err = buf.ReadFrom(zr)
+	if err != nil {
+		return nil, fmt.Errorf("error decompressing spec: %w", err)
+	}
+
+	return buf.Bytes(), nil
+}
+
+var rawSpec = decodeSpecCached()
+
+// a naive cached of a decoded swagger spec
+func decodeSpecCached() func() ([]byte, error) {
+	data, err := decodeSpec()
+	return func() ([]byte, error) {
+		return data, err
+	}
+}
+
+// Constructs a synthetic filesystem for resolving external references when loading openapi specifications.
+func PathToRawSpec(pathToFile string) map[string]func() ([]byte, error) {
+	res := make(map[string]func() ([]byte, error))
+	if len(pathToFile) > 0 {
+		res[pathToFile] = rawSpec
+	}
+
+	return res
+}
+
+// GetSwagger returns the Swagger specification corresponding to the generated code
+// in this file. The external references of Swagger specification are resolved.
+// The logic of resolving external references is tightly connected to "import-mapping" feature.
+// Externally referenced files must be embedded in the corresponding golang packages.
+// Urls can be supported but this task was out of the scope.
+func GetSwagger() (swagger *openapi3.T, err error) {
+	resolvePath := PathToRawSpec("")
+
+	loader := openapi3.NewLoader()
+	loader.IsExternalRefsAllowed = true
+	loader.ReadFromURIFunc = func(loader *openapi3.Loader, url *url.URL) ([]byte, error) {
+		pathToFile := url.String()
+		pathToFile = path.Clean(pathToFile)
+		getSpec, ok := resolvePath[pathToFile]
+		if !ok {
+			err1 := fmt.Errorf("path not found: %s", pathToFile)
+			return nil, err1
+		}
+		return getSpec()
+	}
+	var specData []byte
+	specData, err = rawSpec()
+	if err != nil {
+		return
+	}
+	swagger, err = loader.LoadFromData(specData)
+	if err != nil {
+		return
+	}
+	return
 }

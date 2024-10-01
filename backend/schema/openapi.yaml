@@ -3,23 +3,102 @@ info:
   version: 1.0.0
   title: Finance Tracker API
 paths:
-  /ping:
-    get:
+  /login:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
       responses:
-        '200':
-          description: pet response
+        "200":
+          description: Login response
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Pong'
+                $ref: "#/components/schemas/LoginResponse"
+  /signup:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SignupRequest"
+      responses:
+        "200":
+          description: Sign up response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SignupResponse"
+  /user/{id}:
+    get:
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: User response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
 components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
   schemas:
-    # base types
-    Pong:
+    LoginRequest:
       type: object
-      required:
-        - ping
       properties:
-        ping:
+        email:
           type: string
-          example: pong
+        password:
+          type: string
+      required:
+        - email
+        - password
+    LoginResponse:
+      type: object
+      properties:
+        token:
+          type: string
+      required:
+        - token
+    SignupRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          example: user@example.com
+        password:
+          type: string
+          example: password
+    SignupResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+      required:
+        - id
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        email:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+      required:
+        - id
+        - email
+        - created_at
