@@ -26,7 +26,7 @@ func (s Server) PostUserIdCategories(ctx *fiber.Ctx, userId int) error {
 
 	err = s.DB.QueryRow(ctx.Context(), "INSERT INTO categories (user_id, name) VALUES ($1, $2) RETURNING id", userId, body.Name).Scan(&id)
 	if err != nil {
-		log.Fatalln(err)
+		log.Println(err)
 		return ctx.SendStatus(fiber.StatusInternalServerError)
 	}
 
@@ -44,7 +44,7 @@ func (s Server) GetUserIdCategories(ctx *fiber.Ctx, userId int) error {
 
 	rows, err := s.DB.Query(ctx.Context(), "SELECT id, name FROM categories WHERE user_id = $1", userId)
 	if err != nil {
-		log.Fatalln(err)
+		log.Println(err)
 		return ctx.SendStatus(fiber.StatusInternalServerError)
 	}
 
@@ -81,7 +81,7 @@ func (s Server) GetUserIdCategoriesCategoryId(ctx *fiber.Ctx, userId int, catego
 			return ctx.SendStatus(fiber.StatusNotFound)
 		}
 
-		log.Fatalln(err)
+		log.Println(err)
 		return ctx.SendStatus(fiber.StatusInternalServerError)
 	}
 
@@ -103,7 +103,7 @@ func (s Server) DeleteUserIdCategoriesCategoryId(ctx *fiber.Ctx, userId int, cat
 
 	tag, err := s.DB.Exec(ctx.Context(), "DELETE FROM categories WHERE user_id = $1 AND id = $2", userId, categoryId)
 	if err != nil {
-		log.Fatalln(err)
+		log.Println(err)
 		return ctx.SendStatus(fiber.StatusInternalServerError)
 	}
 

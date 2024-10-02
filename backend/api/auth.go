@@ -1,6 +1,8 @@
 package api
 
 import (
+	"database/sql"
+	"errors"
 	"log"
 	"net/http"
 	"time"
@@ -21,7 +23,11 @@ func (s Server) PostLogin(ctx *fiber.Ctx) error {
 	var passwordHash string
 	err = s.DB.QueryRow(ctx.Context(), "SELECT id, password_hash FROM users WHERE email = $1", body.Email).Scan(&id, &passwordHash)
 	if err != nil {
-		log.Fatal(err)
+		if errors.Is(err, sql.ErrNoRows) {
+			return ctx.SendStatus(fiber.StatusNotFound)
+		}
+
+		log.Println(err)
 		return ctx.SendStatus(fiber.StatusUnauthorized)
 	}
 
@@ -60,14 +66,14 @@ func (s Server) PostSignup(ctx *fiber.Ctx) error {
 
 	bytes, err := bcrypt.GenerateFromPassword([]byte(*body.Password), 14)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 		return ctx.SendStatus(fiber.StatusInternalServerError)
 	}
 
 	var id int
 	err = s.DB.QueryRow(ctx.Context(), "INSERT INTO users (email, password_hash) VALUES ($1, $2) RETURNING id", body.Email, string(bytes)).Scan(&id)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 		return ctx.SendStatus(fiber.StatusInternalServerError)
 	}
 

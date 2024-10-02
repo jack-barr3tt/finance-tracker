@@ -1,6 +1,8 @@
 package api
 
 import (
+	"database/sql"
+	"errors"
 	"log"
 	"net/http"
 	"time"
@@ -25,7 +27,11 @@ func (s Server) GetUserId(ctx *fiber.Ctx, reqId int) error {
 
 	err := s.DB.QueryRow(ctx.Context(), "SELECT email, created_at FROM users WHERE id = $1", userId).Scan(&email, &createdAt)
 	if err != nil {
-		log.Fatal(err)
+		if errors.Is(err, sql.ErrNoRows) {
+			return ctx.SendStatus(fiber.StatusNotFound)
+		}
+
+		log.Println(err)
 		return ctx.SendStatus(fiber.StatusInternalServerError)
 	}
 

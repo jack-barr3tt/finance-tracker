@@ -24,7 +24,7 @@ func (s Server) PostUserIdAccountsAccountIdTransactions(ctx *fiber.Ctx, userId, 
 
 	err = s.DB.QueryRow(ctx.Context(), "INSERT INTO transactions (user_id, account_id, category_id, amount, description, date) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id", userId, accountId, body.CategoryId, body.Amount, body.Description, time.Now()).Scan(&id)
 	if err != nil {
-		log.Fatalln(err)
+		log.Println(err)
 		return ctx.SendStatus(fiber.StatusInternalServerError)
 	}
 
@@ -46,7 +46,7 @@ func (s Server) GetUserIdAccountsAccountIdTransactions(ctx *fiber.Ctx, userId, a
 	LEFT JOIN categories c ON t.category_id = c.id
 	WHERE account_id = $1`, accountId)
 	if err != nil {
-		log.Fatalln(err)
+		log.Println(err)
 		return ctx.SendStatus(fiber.StatusInternalServerError)
 	}
 
@@ -61,7 +61,7 @@ func (s Server) GetUserIdAccountsAccountIdTransactions(ctx *fiber.Ctx, userId, a
 		var categoryCreatedAt *time.Time
 		err = rows.Scan(&id, &amount, &description, &date, &categoryId, &categoryName, &categoryCreatedAt)
 		if err != nil {
-			log.Fatalln(err)
+			log.Println(err)
 			return ctx.SendStatus(fiber.StatusInternalServerError)
 		}
 
@@ -95,7 +95,7 @@ func (s Server) DeleteUserIdAccountsAccountIdTransactionsTransactionId(ctx *fibe
 
 	tag, err := s.DB.Exec(ctx.Context(), "DELETE FROM transactions WHERE id = $1 AND account_id = $2", transactionId, accountId)
 	if err != nil {
-		log.Fatalln(err)
+		log.Println(err)
 		return ctx.SendStatus(fiber.StatusInternalServerError)
 	}
 

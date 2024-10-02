@@ -14,7 +14,7 @@ import (
 func (s Server) PostUserIdAccounts(ctx *fiber.Ctx, userId int) error {
 	body, err := utils.GetBody[AccountCreateRequest](ctx)
 	if err != nil {
-		log.Fatalln(err)
+		log.Println(err)
 		return ctx.SendStatus(fiber.StatusBadRequest)
 	}
 
@@ -28,7 +28,7 @@ func (s Server) PostUserIdAccounts(ctx *fiber.Ctx, userId int) error {
 
 	err = s.DB.QueryRow(ctx.Context(), "INSERT INTO accounts (user_id, name) VALUES ($1, $2) RETURNING id", userId, body.Name).Scan(&id)
 	if err != nil {
-		log.Fatalln(err)
+		log.Println(err)
 		return ctx.SendStatus(fiber.StatusInternalServerError)
 	}
 
@@ -46,7 +46,11 @@ func (s Server) GetUserIdAccounts(ctx *fiber.Ctx, userId int) error {
 
 	rows, err := s.DB.Query(ctx.Context(), "SELECT id, name, created_at FROM accounts WHERE user_id = $1", userId)
 	if err != nil {
-		log.Fatalln(err)
+		if errors.Is(err, sql.ErrNoRows) {
+			return ctx.SendStatus(fiber.StatusNotFound)
+		}
+
+		log.Println(err)
 		return ctx.SendStatus(fiber.StatusInternalServerError)
 	}
 
@@ -57,7 +61,7 @@ func (s Server) GetUserIdAccounts(ctx *fiber.Ctx, userId int) error {
 		var createdAt time.Time
 		err = rows.Scan(&id, &name, &createdAt)
 		if err != nil {
-			log.Fatalln(err)
+			log.Println(err)
 			return ctx.SendStatus(fiber.StatusInternalServerError)
 		}
 		accounts = append(accounts, Account{Id: id, Name: name, CreatedAt: createdAt})
@@ -77,7 +81,7 @@ func (s Server) DeleteUserIdAccountsAccountId(ctx *fiber.Ctx, userId int, accoun
 
 	tag, err := s.DB.Exec(ctx.Context(), "DELETE FROM accounts WHERE user_id = $1 AND id = $2", userId, accountId)
 	if err != nil {
-		log.Fatalln(err)
+		log.Println(err)
 		return ctx.SendStatus(fiber.StatusInternalServerError)
 	}
 
@@ -107,7 +111,7 @@ func (s Server) GetUserIdAccountsAccountId(ctx *fiber.Ctx, userId int, accountId
 			return ctx.SendStatus(fiber.StatusNotFound)
 		}
 
-		log.Fatalln(err)
+		log.Println(err)
 		return ctx.SendStatus(fiber.StatusInternalServerError)
 	}
 
