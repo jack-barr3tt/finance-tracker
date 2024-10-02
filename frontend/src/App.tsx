@@ -1,5 +1,5 @@
 function App() {
-  return <div>Finance Tracker</div>
+  return <div className="text-xl">Finance Tracker</div>
 }
 
 export default App
