@@ -131,6 +131,89 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/AccountDeleteResponse"
+  /user/{id}/categories:
+    post:
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CategoryCreateRequest"
+      responses:
+        "200":
+          description: Category response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CategoryCreateResponse"
+    get:
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Category response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Category"
+  /user/{id}/categories/{category_id}:
+    get:
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: category_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Category response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Category"
+    delete:
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: category_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Category response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CategoryDeleteResponse"
 components:
   securitySchemes:
     BearerAuth:
@@ -215,6 +298,45 @@ components:
         - name
         - created_at
     AccountDeleteResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+        message:
+          type: string
+      required:
+        - id
+        - message
+    CategoryCreateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "Groceries"
+      required:
+        - name
+    CategoryCreateResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+      required:
+        - id
+    Category:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - created_at
+    CategoryDeleteResponse:
       type: object
       properties:
         id:

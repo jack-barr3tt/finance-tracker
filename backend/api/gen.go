@@ -45,6 +45,29 @@ type AccountDeleteResponse struct {
 	Message string `json:"message"`
 }
 
+// Category defines model for Category.
+type Category struct {
+	CreatedAt time.Time `json:"created_at"`
+	Id        int       `json:"id"`
+	Name      string    `json:"name"`
+}
+
+// CategoryCreateRequest defines model for CategoryCreateRequest.
+type CategoryCreateRequest struct {
+	Name string `json:"name"`
+}
+
+// CategoryCreateResponse defines model for CategoryCreateResponse.
+type CategoryCreateResponse struct {
+	Id int `json:"id"`
+}
+
+// CategoryDeleteResponse defines model for CategoryDeleteResponse.
+type CategoryDeleteResponse struct {
+	Id      int    `json:"id"`
+	Message string `json:"message"`
+}
+
 // LoginRequest defines model for LoginRequest.
 type LoginRequest struct {
 	Email    string `json:"email"`
@@ -83,6 +106,9 @@ type PostSignupJSONRequestBody = SignupRequest
 // PostUserIdAccountsJSONRequestBody defines body for PostUserIdAccounts for application/json ContentType.
 type PostUserIdAccountsJSONRequestBody = AccountCreateRequest
 
+// PostUserIdCategoriesJSONRequestBody defines body for PostUserIdCategories for application/json ContentType.
+type PostUserIdCategoriesJSONRequestBody = CategoryCreateRequest
+
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 
@@ -106,6 +132,18 @@ type ServerInterface interface {
 
 	// (GET /user/{id}/accounts/{account_id})
 	GetUserIdAccountsAccountId(c *fiber.Ctx, id int, accountId int) error
+
+	// (GET /user/{id}/categories)
+	GetUserIdCategories(c *fiber.Ctx, id int) error
+
+	// (POST /user/{id}/categories)
+	PostUserIdCategories(c *fiber.Ctx, id int) error
+
+	// (DELETE /user/{id}/categories/{category_id})
+	DeleteUserIdCategoriesCategoryId(c *fiber.Ctx, id int, categoryId int) error
+
+	// (GET /user/{id}/categories/{category_id})
+	GetUserIdCategoriesCategoryId(c *fiber.Ctx, id int, categoryId int) error
 }
 
 // ServerInterfaceWrapper converts contexts to parameters.
@@ -233,6 +271,94 @@ func (siw *ServerInterfaceWrapper) GetUserIdAccountsAccountId(c *fiber.Ctx) erro
 	return siw.Handler.GetUserIdAccountsAccountId(c, id, accountId)
 }
 
+// GetUserIdCategories operation middleware
+func (siw *ServerInterfaceWrapper) GetUserIdCategories(c *fiber.Ctx) error {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id int
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", c.Params("id"), &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter id: %w", err).Error())
+	}
+
+	c.Context().SetUserValue(BearerAuthScopes, []string{})
+
+	return siw.Handler.GetUserIdCategories(c, id)
+}
+
+// PostUserIdCategories operation middleware
+func (siw *ServerInterfaceWrapper) PostUserIdCategories(c *fiber.Ctx) error {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id int
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", c.Params("id"), &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter id: %w", err).Error())
+	}
+
+	c.Context().SetUserValue(BearerAuthScopes, []string{})
+
+	return siw.Handler.PostUserIdCategories(c, id)
+}
+
+// DeleteUserIdCategoriesCategoryId operation middleware
+func (siw *ServerInterfaceWrapper) DeleteUserIdCategoriesCategoryId(c *fiber.Ctx) error {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id int
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", c.Params("id"), &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter id: %w", err).Error())
+	}
+
+	// ------------- Path parameter "category_id" -------------
+	var categoryId int
+
+	err = runtime.BindStyledParameterWithOptions("simple", "category_id", c.Params("category_id"), &categoryId, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter category_id: %w", err).Error())
+	}
+
+	c.Context().SetUserValue(BearerAuthScopes, []string{})
+
+	return siw.Handler.DeleteUserIdCategoriesCategoryId(c, id, categoryId)
+}
+
+// GetUserIdCategoriesCategoryId operation middleware
+func (siw *ServerInterfaceWrapper) GetUserIdCategoriesCategoryId(c *fiber.Ctx) error {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id int
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", c.Params("id"), &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter id: %w", err).Error())
+	}
+
+	// ------------- Path parameter "category_id" -------------
+	var categoryId int
+
+	err = runtime.BindStyledParameterWithOptions("simple", "category_id", c.Params("category_id"), &categoryId, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter category_id: %w", err).Error())
+	}
+
+	c.Context().SetUserValue(BearerAuthScopes, []string{})
+
+	return siw.Handler.GetUserIdCategoriesCategoryId(c, id, categoryId)
+}
+
 // FiberServerOptions provides options for the Fiber server.
 type FiberServerOptions struct {
 	BaseURL     string
@@ -268,24 +394,34 @@ func RegisterHandlersWithOptions(router fiber.Router, si ServerInterface, option
 
 	router.Get(options.BaseURL+"/user/:id/accounts/:account_id", wrapper.GetUserIdAccountsAccountId)
 
+	router.Get(options.BaseURL+"/user/:id/categories", wrapper.GetUserIdCategories)
+
+	router.Post(options.BaseURL+"/user/:id/categories", wrapper.PostUserIdCategories)
+
+	router.Delete(options.BaseURL+"/user/:id/categories/:category_id", wrapper.DeleteUserIdCategoriesCategoryId)
+
+	router.Get(options.BaseURL+"/user/:id/categories/:category_id", wrapper.GetUserIdCategoriesCategoryId)
+
 }
 
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/+xWTW/bOBD9K8bsHrmRt73pVCdFihQ9BE2KHgIjYKiJzMQiGXLU1jD03wuSUiTH9EcA",
-	"u8ihJ9PkkPPm8b0RlyB0ZbRCRQ7yJTgxw4qH4UQIXSvyQ2O1QUsSw4KwyAmLWx7W7rWt/AgKTvgfyQqB",
-	"AS0MQg6OrFQlNAxk4WPbaakIS7R+XvEKByvdhoaBxadaWiwgv/G721A2zD59TqTvHlCQP7BFfRaivuJT",
-	"jS5RQpcWf/HKzP0JZzMUj1KVo65stgNTOGIPBM5o5XAdQpqR9cK3pPiIc3x9CgYVOsfLfXnvolNAvuhS",
-	"qo0sY8XlPJGFgeHO/dS22A0hnjHYsQXGJh5IP6LanSqGpc6/kqWqze46eznVDu2H9u+J0FXKE0MS+p3P",
-	"sykBbkR2DJV9c2gP4/7NQtgXH3sWwlb/NwwcitpKWlz5ThYhnyK3aCc1zfy/u/DvvAP++fs1sNj3/Elx",
-	"tS9iRmSg8QdLda8DWEnhos6l4krg6Npy8Yh2NLm8AAY/0DqpFeTw/8n4ZOxr1AYVNxJyeB+m/M3TLCDL",
-	"5l65gWQdleWp5iS1uiggh0vtKIgbIiPo6FQXi3APWhHG9syNmUsRdmUPTqu+kfvRvxbvIYd/sr7TZ22b",
-	"z1b82zSR+KilgO/deHzoXK1SQ64CnbDSUCQsBIzsIKJhkLmg8O0URRcciaNV8x+ZpBd+TrDkI0a1WePJ",
-	"d5xsKYvGpygxwdQnJG/piyIo0PIKCa2D/GYJXoNBld13No+m611ItkY2KGLNstMjshI6UYILPz8kond/",
-	"qGro+5tpM13lKePxK+p2EzbpIt8icZKwcrsY7F41/TeEW8sXKVLb0NfwyrZ4808xeHjjJ5+SR/Z/+vF4",
-	"mFtKqz9btqPbtncU4VW5fpnxtbl6ne3vkVoKS57Sw307DSr9ID+UufZrTn/v4kWrO4xpmuZ3AAAA//+5",
-	"nKt1JA8AAA==",
+	"H4sIAAAAAAAC/+xYTW/jNhD9K8a0RzZy25tOdVwkSNFD0KToITAChprITCySIanuGob++4KkZMkx/bWQ",
+	"sgmQk2lxyBm+eW+G0gqYLJQUKKyBdAWGzbGgfjhhTJbCuqHSUqG2HP0E00gtZvfUzz1KXbgRZNTiL5YX",
+	"CATsUiGkYKzmIoeKAM+cbf2YC4s5avdc0AI7M82CioDGl5JrzCC9c6trU9L1Pls7kg9PyKzbsI566q3+",
+	"wZcSTeQIjVv8Sgu1cDtM58ieuchHzbHJgZj8FkdEYJQUBrdDiCOyffA9Lv7EBZ7ugkCBxtD8WNwb61gg",
+	"U2oxl3r5wUjShH0ySy61ZKjd9HfT47XvIfjR+PjxBPlb5lzsBBgLyhcRLwQUNeaL1NnhEMIenRV7wtiF",
+	"g5XPKA67Cmax/W94Lkp1+Jwtk0qD+o/67xmTRUwPXRDaleunMQrujGwImv1rUPej/N1EODY+sibCXu1X",
+	"BAyyUnO7vHGtLoR8jlSjnpR27v49+H8XTeB//XcLJDRGt1OYbQ8xt1ZB5Tbm4lH6YLn1ibrgggqGo1tN",
+	"2TPq0eT6Cgj8j9pwKSCFX8/GZ2N3RqlQUMUhhd/9I5d5O/eRJQvHXA+yDMxyUFPLpbjKIIVraawnNwRE",
+	"0Nhzmfl6zKSwGPo3VWrBmV+VPBkp2k7vRj9rfIQUfkraq0BS3wOSDf1WVQA+cMnH99t43LevmqneV4aG",
+	"aa5sAMwbjHTHoiKQGM/w/RAFFQyE0ab4BwbplZ4jKDmLUam2cHIVJ1nxrHIucowgdYnWSfoq8wzUtECL",
+	"2kB6twLHQc/KpsemQXStCq0ukXQOsSXZ2YCo+EoUwcI97wLRqt+fqqv7u1k128QpoeGaZQ4DNmks3yNw",
+	"3GJhDiHYXHvbHkK1pssYqLXpKbiSPdp8KwT7F370XWNg/cffLvrJUpz9yaoe3de1I/O3yu1khtvmZjrr",
+	"34FKConu0ob7fgpU/I2tL3EdV5w+c/Gq1A0gGhbevOqr8P68TFvbD9s21h8AjugbjW2/jeMtUOy/dcS/",
+	"QAzcO3Z8eugpVbuEkKzq8fKUBtKmtYnlTetWJ+T3U7h2fNbpTWrHlqvPjGyXv540VFXfAgAA//+Azlsn",
+	"khcAAA==",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file
