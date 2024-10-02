@@ -49,7 +49,6 @@ export function UserProvider(props: { children: ReactNode }) {
   const logout = () => {
     setUserId(null)
     Cookies.remove("access_token")
-    Cookies.remove("refresh_token")
   }
 
   const value: UserValue = {

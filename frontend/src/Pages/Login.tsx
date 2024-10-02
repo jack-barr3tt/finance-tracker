@@ -1,26 +1,30 @@
 import { FormEvent, useCallback, useState } from "react"
 import { useUser } from "../Hooks/useUser"
+import { useNavigate } from "react-router-dom"
 
 export default function Login() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
 
-  const { userId, login } = useUser()
+  const { login } = useUser()
+  const navigate = useNavigate()
 
   const handleSubmit = useCallback(
     async (e: FormEvent<HTMLFormElement>) => {
       e.preventDefault()
 
-      const result = await login(email, password)
-
-      console.log(result)
+      if (await login(email, password)) {
+        navigate("/dashboard")
+      } else {
+        alert("Login failed")
+      }
     },
-    [email, password, login]
+    [login, email, password, navigate]
   )
 
   return (
     <div className="flex flex-col gap-2">
-      <div>Current user ID is: {userId}</div>
+      <h1>Login</h1>
       <form onSubmit={handleSubmit}>
         <input
           type="email"
