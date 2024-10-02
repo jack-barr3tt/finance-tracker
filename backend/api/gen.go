@@ -22,6 +22,29 @@ const (
 	BearerAuthScopes = "BearerAuth.Scopes"
 )
 
+// Account defines model for Account.
+type Account struct {
+	CreatedAt time.Time `json:"created_at"`
+	Id        int       `json:"id"`
+	Name      string    `json:"name"`
+}
+
+// AccountCreateRequest defines model for AccountCreateRequest.
+type AccountCreateRequest struct {
+	Name string `json:"name"`
+}
+
+// AccountCreateResponse defines model for AccountCreateResponse.
+type AccountCreateResponse struct {
+	Id int `json:"id"`
+}
+
+// AccountDeleteResponse defines model for AccountDeleteResponse.
+type AccountDeleteResponse struct {
+	Id      int    `json:"id"`
+	Message string `json:"message"`
+}
+
 // LoginRequest defines model for LoginRequest.
 type LoginRequest struct {
 	Email    string `json:"email"`
@@ -57,6 +80,9 @@ type PostLoginJSONRequestBody = LoginRequest
 // PostSignupJSONRequestBody defines body for PostSignup for application/json ContentType.
 type PostSignupJSONRequestBody = SignupRequest
 
+// PostUserIdAccountsJSONRequestBody defines body for PostUserIdAccounts for application/json ContentType.
+type PostUserIdAccountsJSONRequestBody = AccountCreateRequest
+
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 
@@ -68,6 +94,18 @@ type ServerInterface interface {
 
 	// (GET /user/{id})
 	GetUserId(c *fiber.Ctx, id int) error
+
+	// (GET /user/{id}/accounts)
+	GetUserIdAccounts(c *fiber.Ctx, id int) error
+
+	// (POST /user/{id}/accounts)
+	PostUserIdAccounts(c *fiber.Ctx, id int) error
+
+	// (DELETE /user/{id}/accounts/{account_id})
+	DeleteUserIdAccountsAccountId(c *fiber.Ctx, id int, accountId int) error
+
+	// (GET /user/{id}/accounts/{account_id})
+	GetUserIdAccountsAccountId(c *fiber.Ctx, id int, accountId int) error
 }
 
 // ServerInterfaceWrapper converts contexts to parameters.
@@ -107,6 +145,94 @@ func (siw *ServerInterfaceWrapper) GetUserId(c *fiber.Ctx) error {
 	return siw.Handler.GetUserId(c, id)
 }
 
+// GetUserIdAccounts operation middleware
+func (siw *ServerInterfaceWrapper) GetUserIdAccounts(c *fiber.Ctx) error {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id int
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", c.Params("id"), &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter id: %w", err).Error())
+	}
+
+	c.Context().SetUserValue(BearerAuthScopes, []string{})
+
+	return siw.Handler.GetUserIdAccounts(c, id)
+}
+
+// PostUserIdAccounts operation middleware
+func (siw *ServerInterfaceWrapper) PostUserIdAccounts(c *fiber.Ctx) error {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id int
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", c.Params("id"), &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter id: %w", err).Error())
+	}
+
+	c.Context().SetUserValue(BearerAuthScopes, []string{})
+
+	return siw.Handler.PostUserIdAccounts(c, id)
+}
+
+// DeleteUserIdAccountsAccountId operation middleware
+func (siw *ServerInterfaceWrapper) DeleteUserIdAccountsAccountId(c *fiber.Ctx) error {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id int
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", c.Params("id"), &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter id: %w", err).Error())
+	}
+
+	// ------------- Path parameter "account_id" -------------
+	var accountId int
+
+	err = runtime.BindStyledParameterWithOptions("simple", "account_id", c.Params("account_id"), &accountId, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter account_id: %w", err).Error())
+	}
+
+	c.Context().SetUserValue(BearerAuthScopes, []string{})
+
+	return siw.Handler.DeleteUserIdAccountsAccountId(c, id, accountId)
+}
+
+// GetUserIdAccountsAccountId operation middleware
+func (siw *ServerInterfaceWrapper) GetUserIdAccountsAccountId(c *fiber.Ctx) error {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id int
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", c.Params("id"), &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter id: %w", err).Error())
+	}
+
+	// ------------- Path parameter "account_id" -------------
+	var accountId int
+
+	err = runtime.BindStyledParameterWithOptions("simple", "account_id", c.Params("account_id"), &accountId, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter account_id: %w", err).Error())
+	}
+
+	c.Context().SetUserValue(BearerAuthScopes, []string{})
+
+	return siw.Handler.GetUserIdAccountsAccountId(c, id, accountId)
+}
+
 // FiberServerOptions provides options for the Fiber server.
 type FiberServerOptions struct {
 	BaseURL     string
@@ -134,21 +260,32 @@ func RegisterHandlersWithOptions(router fiber.Router, si ServerInterface, option
 
 	router.Get(options.BaseURL+"/user/:id", wrapper.GetUserId)
 
+	router.Get(options.BaseURL+"/user/:id/accounts", wrapper.GetUserIdAccounts)
+
+	router.Post(options.BaseURL+"/user/:id/accounts", wrapper.PostUserIdAccounts)
+
+	router.Delete(options.BaseURL+"/user/:id/accounts/:account_id", wrapper.DeleteUserIdAccountsAccountId)
+
+	router.Get(options.BaseURL+"/user/:id/accounts/:account_id", wrapper.GetUserIdAccountsAccountId)
+
 }
 
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/7RUTW/TQBD9K9HAcYkD3HyiPRQFcahoEYcoQlt7kmwb725nx0AU+b+jGae1i52WQ3Pb",
-	"j/l48/a93UMRqhg8ek6Q7yEVG6ysLr+GtfPf8L7GxLKPFCISO9RbrKzbyoJ3ESGHxOT8GhoD0ab0O1A5",
-	"ctkYILyvHWEJ+eJQo5exNA8Z4eYWC5ZyBxgpBp9wiIPDHfqXW7VhY/Wv3NrX8eU58Y+t4lZy64T06bCd",
-	"FqEC8zwJXebjqRmBexTZsdFdn2LnGddIg8HdOKvfE9KwYkFoGcufVolYBapkBaVlfMeuwrFJjwvhf/GZ",
-	"RyH0+g9BNwYSFjU53l2JSlvI52gJ6azmjexudHfxAPzLj2swraalUnvbDbFhjtBIYedXQcE61oe6cN76",
-	"AifXZIs7pMnZ5RwM/EJKLnjI4f10Np3JjCGit9FBDh/1SF6eN4os24pyleTQKkuotuyCn5eQw2VIrOKG",
-	"lhFMfB7Knb5D8Ixec2yMW1doVnabgu9MKqu3hCvI4U3WuTg7WDh74t+maYlvtaT4Psxmr93roFTtVWIq",
-	"yEVuCdOACfUiGgNZUoU/T1HrghNx9NT8JybpHz+PsCQRkzoOeJIfJ9u7spEWaxxh6jOyWHpeqgLJVshI",
-	"CfLFHkSDqkow4K0aQU3XuZCpRtMbYmDZ5QlZ0Z9ohAs57xPRuV+n6vt+sWyWwtTfAAAA//8u+AyEzQYA",
-	"AA==",
+	"H4sIAAAAAAAC/+xWTW/bOBD9K8bsHrmRt73pVCdFihQ9BE2KHgIjYKiJzMQiGXLU1jD03wuSUiTH9EcA",
+	"u8ihJ9PkkPPm8b0RlyB0ZbRCRQ7yJTgxw4qH4UQIXSvyQ2O1QUsSw4KwyAmLWx7W7rWt/AgKTvgfyQqB",
+	"AS0MQg6OrFQlNAxk4WPbaakIS7R+XvEKByvdhoaBxadaWiwgv/G721A2zD59TqTvHlCQP7BFfRaivuJT",
+	"jS5RQpcWf/HKzP0JZzMUj1KVo65stgNTOGIPBM5o5XAdQpqR9cK3pPiIc3x9CgYVOsfLfXnvolNAvuhS",
+	"qo0sY8XlPJGFgeHO/dS22A0hnjHYsQXGJh5IP6LanSqGpc6/kqWqze46eznVDu2H9u+J0FXKE0MS+p3P",
+	"sykBbkR2DJV9c2gP4/7NQtgXH3sWwlb/NwwcitpKWlz5ThYhnyK3aCc1zfy/u/DvvAP++fs1sNj3/Elx",
+	"tS9iRmSg8QdLda8DWEnhos6l4krg6Npy8Yh2NLm8AAY/0DqpFeTw/8n4ZOxr1AYVNxJyeB+m/M3TLCDL",
+	"5l65gWQdleWp5iS1uiggh0vtKIgbIiPo6FQXi3APWhHG9syNmUsRdmUPTqu+kfvRvxbvIYd/sr7TZ22b",
+	"z1b82zSR+KilgO/deHzoXK1SQ64CnbDSUCQsBIzsIKJhkLmg8O0URRcciaNV8x+ZpBd+TrDkI0a1WePJ",
+	"d5xsKYvGpygxwdQnJG/piyIo0PIKCa2D/GYJXoNBld13No+m611ItkY2KGLNstMjshI6UYILPz8kond/",
+	"qGro+5tpM13lKePxK+p2EzbpIt8icZKwcrsY7F41/TeEW8sXKVLb0NfwyrZ4808xeHjjJ5+SR/Z/+vF4",
+	"mFtKqz9btqPbtncU4VW5fpnxtbl6ne3vkVoKS57Sw307DSr9ID+UufZrTn/v4kWrO4xpmuZ3AAAA//+5",
+	"nKt1JA8AAA==",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file
