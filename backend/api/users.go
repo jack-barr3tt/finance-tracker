@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/golang-jwt/jwt/v5"
+	"github.com/jack-barr3tt/finance-tracker/utils"
 )
 
 func (s Server) GetUserId(ctx *fiber.Ctx, reqId int) error {
@@ -14,9 +14,7 @@ func (s Server) GetUserId(ctx *fiber.Ctx, reqId int) error {
 		return ctx.SendStatus(fiber.StatusBadRequest)
 	}
 
-	user := ctx.Locals("user").(*jwt.Token)
-	claims := user.Claims.(jwt.MapClaims)
-	userId := claims["id"].(float64)
+	userId := utils.GetTokenClaim[int](ctx, "id")
 
 	if int(userId) != reqId {
 		return ctx.SendStatus(fiber.StatusUnauthorized)

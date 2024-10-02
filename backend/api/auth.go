@@ -7,18 +7,19 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/jack-barr3tt/finance-tracker/utils"
 	"golang.org/x/crypto/bcrypt"
 )
 
 func (s Server) PostLogin(ctx *fiber.Ctx) error {
-	var body LoginRequest
-	if err := ctx.BodyParser(&body); err != nil {
+	body, err := utils.GetBody[LoginRequest](ctx)
+	if err != nil {
 		return ctx.SendStatus(fiber.StatusBadRequest)
 	}
 
 	var id int
 	var passwordHash string
-	err := s.DB.QueryRow(ctx.Context(), "SELECT id, password_hash FROM users WHERE email = $1", body.Email).Scan(&id, &passwordHash)
+	err = s.DB.QueryRow(ctx.Context(), "SELECT id, password_hash FROM users WHERE email = $1", body.Email).Scan(&id, &passwordHash)
 	if err != nil {
 		log.Fatal(err)
 		return ctx.SendStatus(fiber.StatusUnauthorized)
@@ -49,8 +50,8 @@ func (s Server) PostLogin(ctx *fiber.Ctx) error {
 }
 
 func (s Server) PostSignup(ctx *fiber.Ctx) error {
-	var body SignupRequest
-	if err := ctx.BodyParser(&body); err != nil {
+	body, err := utils.GetBody[SignupRequest](ctx)
+	if err != nil {
 		return ctx.SendStatus(fiber.StatusBadRequest)
 	}
 
