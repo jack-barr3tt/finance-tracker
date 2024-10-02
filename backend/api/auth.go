@@ -79,5 +79,5 @@ func (s Server) PostSignup(ctx *fiber.Ctx) error {
 
 	return ctx.
 		Status(http.StatusOK).
-		JSON(SignupResponse{Id: id})
+		JSON(SignupResponse{Message: "User created successfully"})
 }

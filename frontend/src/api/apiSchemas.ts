@@ -25,7 +25,7 @@ export type SignupRequest = {
 };
 
 export type SignupResponse = {
-  id: number;
+  message: string;
 };
 
 export type User = {

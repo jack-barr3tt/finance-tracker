@@ -330,10 +330,10 @@ components:
     SignupResponse:
       type: object
       properties:
-        id:
-          type: integer
+        message:
+          type: string
       required:
-        - id
+        - message
     User:
       type: object
       properties:
