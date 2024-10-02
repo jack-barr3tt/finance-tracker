@@ -131,6 +131,83 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/AccountDeleteResponse"
+  /user/{id}/accounts/{account_id}/transactions:
+    post:
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: account_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TransactionCreateRequest"
+      responses:
+        "200":
+          description: Transaction response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransactionCreateResponse"
+    get:
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: account_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Transaction response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Transaction"
+  /user/{id}/accounts/{account_id}/transactions/{transaction_id}:
+    delete:
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: account_id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: transaction_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Transaction response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransactionDeleteResponse"
   /user/{id}/categories:
     post:
       security:
@@ -337,6 +414,60 @@ components:
         - name
         - created_at
     CategoryDeleteResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+        message:
+          type: string
+      required:
+        - id
+        - message
+    TransactionCreateRequest:
+      type: object
+      properties:
+        amount:
+          type: number
+          example: 100.00
+        category_id:
+          type: integer
+        description:
+          type: string
+          example: "Milk"
+      required:
+        - amount
+        - category_id
+    TransactionCreateResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+      required:
+        - id
+    Transaction:
+      type: object
+      properties:
+        id:
+          type: integer
+        amount:
+          type: number
+        category:
+          $ref: "#/components/schemas/Category"
+        description:
+          type: string
+        date:
+          type: string
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+      required:
+        - id
+        - amount
+        - description
+        - date
+        - created_at
+    TransactionDeleteResponse:
       type: object
       properties:
         id:
