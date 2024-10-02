@@ -313,8 +313,11 @@ components:
       properties:
         token:
           type: string
+        id:
+          type: integer
       required:
         - token
+        - id
     SignupRequest:
       type: object
       properties:

@@ -46,7 +46,10 @@ func (s Server) PostLogin(ctx *fiber.Ctx) error {
 
 	return ctx.
 		Status(http.StatusOK).
-		JSON(LoginResponse{Token: t})
+		JSON(LoginResponse{
+			Id:    id,
+			Token: t,
+		})
 }
 
 func (s Server) PostSignup(ctx *fiber.Ctx) error {
