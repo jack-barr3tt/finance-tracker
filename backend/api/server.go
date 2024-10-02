@@ -98,10 +98,14 @@ func (s Server) routeRequiresAuth(c *fiber.Ctx) bool {
 	}
 
 	if pathItem == nil {
-		return false
+		return true
 	}
 
 	op := getOperationForMethod(pathItem, c.Method())
+
+	if op == nil {
+		return true
+	}
 
 	requiresAuth := false
 	if op.Security != nil {
