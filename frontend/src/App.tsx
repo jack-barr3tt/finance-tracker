@@ -1,9 +1,12 @@
+import { UserProvider } from "./Hooks/useUser"
 import Router from "./Router"
 
 function App() {
   return (
     <>
-      <Router />
+      <UserProvider>
+        <Router />
+      </UserProvider>
     </>
   )
 }
