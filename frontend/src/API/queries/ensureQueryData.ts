@@ -1,0 +1,13 @@
+// generated with @7nohe/openapi-react-query-codegen@2.0.0-beta.3 
+
+import { type Options } from "@hey-api/client-fetch";
+import { type QueryClient } from "@tanstack/react-query";
+import { getUserById, getUserByIdAccounts, getUserByIdAccountsByAccountId, getUserByIdAccountsByAccountIdTransactions, getUserByIdCategories, getUserByIdCategoriesByCategoryId } from "../requests/services.gen";
+import { GetUserByIdAccountsByAccountIdData, GetUserByIdAccountsByAccountIdTransactionsData, GetUserByIdAccountsData, GetUserByIdCategoriesByCategoryIdData, GetUserByIdCategoriesData, GetUserByIdData } from "../requests/types.gen";
+import * as Common from "./common";
+export const ensureUseGetUserByIdData = (queryClient: QueryClient, clientOptions: Options<GetUserByIdData, true>) => queryClient.ensureQueryData({ queryKey: Common.UseGetUserByIdKeyFn(clientOptions), queryFn: () => getUserById({ ...clientOptions }).then(response => response.data) });
+export const ensureUseGetUserByIdAccountsData = (queryClient: QueryClient, clientOptions: Options<GetUserByIdAccountsData, true>) => queryClient.ensureQueryData({ queryKey: Common.UseGetUserByIdAccountsKeyFn(clientOptions), queryFn: () => getUserByIdAccounts({ ...clientOptions }).then(response => response.data) });
+export const ensureUseGetUserByIdAccountsByAccountIdData = (queryClient: QueryClient, clientOptions: Options<GetUserByIdAccountsByAccountIdData, true>) => queryClient.ensureQueryData({ queryKey: Common.UseGetUserByIdAccountsByAccountIdKeyFn(clientOptions), queryFn: () => getUserByIdAccountsByAccountId({ ...clientOptions }).then(response => response.data) });
+export const ensureUseGetUserByIdAccountsByAccountIdTransactionsData = (queryClient: QueryClient, clientOptions: Options<GetUserByIdAccountsByAccountIdTransactionsData, true>) => queryClient.ensureQueryData({ queryKey: Common.UseGetUserByIdAccountsByAccountIdTransactionsKeyFn(clientOptions), queryFn: () => getUserByIdAccountsByAccountIdTransactions({ ...clientOptions }).then(response => response.data) });
+export const ensureUseGetUserByIdCategoriesData = (queryClient: QueryClient, clientOptions: Options<GetUserByIdCategoriesData, true>) => queryClient.ensureQueryData({ queryKey: Common.UseGetUserByIdCategoriesKeyFn(clientOptions), queryFn: () => getUserByIdCategories({ ...clientOptions }).then(response => response.data) });
+export const ensureUseGetUserByIdCategoriesByCategoryIdData = (queryClient: QueryClient, clientOptions: Options<GetUserByIdCategoriesByCategoryIdData, true>) => queryClient.ensureQueryData({ queryKey: Common.UseGetUserByIdCategoriesByCategoryIdKeyFn(clientOptions), queryFn: () => getUserByIdCategoriesByCategoryId({ ...clientOptions }).then(response => response.data) });

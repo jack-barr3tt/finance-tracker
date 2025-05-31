@@ -7,18 +7,20 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "codegen": "openapi-rq -i ../backend/schema/openapi.yaml --output src/API --pageParam cursor --nextPageParam cursor --initialPageParam 0"
   },
   "dependencies": {
+    "@tanstack/react-query": "^5.79.0",
     "js-cookie": "^3.0.5",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.26.2"
   },
   "devDependencies": {
+    "@7nohe/openapi-react-query-codegen": "^2.0.0-beta.3",
     "@eslint/js": "^9.9.0",
-    "@openapi-codegen/cli": "^2.0.2",
-    "@openapi-codegen/typescript": "^8.0.2",
+    "@tanstack/eslint-plugin-query": "^5.78.0",
     "@types/js-cookie": "^3.0.6",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
@@ -30,6 +32,7 @@
     "globals": "^15.9.0",
     "postcss": "^8.4.47",
     "tailwindcss": "^3.4.13",
+    "ts-morph": "^26.0.0",
     "typescript": "^5.5.3",
     "typescript-eslint": "^8.0.1",
     "vite": "^5.4.1"

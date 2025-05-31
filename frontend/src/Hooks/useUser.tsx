@@ -1,7 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, ReactNode, useContext, useState } from "react"
-import { LoginRequest, LoginResponse } from "../api/apiSchemas"
 import Cookies from "js-cookie"
+import { usePostLogin } from "../API/queries"
 
 interface UserValue {
   userId: number | null
@@ -20,30 +20,25 @@ export function useUser() {
 export function UserProvider(props: { children: ReactNode }) {
   const [userId, setUserId] = useState<number | null>(null)
 
+  const { mutateAsync: loginReq } = usePostLogin()
+
   const login = async (email: string, password: string) => {
-    const request: LoginRequest = {
-      email,
-      password,
-    }
+    try {
+      const response = await loginReq({
+        body: {
+          email,
+          password,
+        },
+      })
 
-    const response = await fetch(import.meta.env.VITE_API_URL + "/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(request),
-    })
+      setUserId(response.data?.id || null)
 
-    if (response.ok) {
-      const data = (await response.json()) as LoginResponse
-      setUserId(data.id)
-
-      Cookies.set("access_token", data.token, {})
+      Cookies.set("access_token", response.data?.token || "", {})
 
       return true
+    } catch {
+      return false
     }
-
-    return false
   }
 
   const logout = () => {
