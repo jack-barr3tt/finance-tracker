@@ -1,6 +1,8 @@
 import { FormEvent, useCallback, useState } from "react"
 import { useUser } from "../Hooks/useUser"
 import { useNavigate } from "react-router-dom"
+import { Button, TextInput } from "flowbite-react"
+import { FiArrowRight } from "react-icons/fi"
 
 export default function Login() {
   const [email, setEmail] = useState("")
@@ -23,22 +25,29 @@ export default function Login() {
   )
 
   return (
-    <div className="flex flex-col gap-2">
-      <h1>Login</h1>
-      <form onSubmit={handleSubmit}>
-        <input
+    <div className="flex items-center justify-center pt-32">
+      <form
+        onSubmit={handleSubmit}
+        className="flex flex-col items-center gap-4 p-8 border border-gray-200 shadow-sm dark:border-gray-700 dark:bg-neutral-800 rounded-xl"
+      >
+        <h1 className="w-full text-2xl font-medium text-center">Login</h1>
+        <TextInput
           type="email"
           placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          className="w-64"
         />
-        <input
+        <TextInput
           type="password"
           placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          className="w-64"
         />
-        <button type="submit">Login</button>
+        <Button className="w-full gap-1" type="submit">
+          Submit <FiArrowRight />
+        </Button>
       </form>
     </div>
   )

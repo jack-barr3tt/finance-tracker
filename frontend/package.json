@@ -8,13 +8,16 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "codegen": "openapi-rq -i ../backend/schema/openapi.yaml --output src/API --pageParam cursor --nextPageParam cursor --initialPageParam 0"
+    "codegen": "openapi-rq -i ../backend/schema/openapi.yaml --output src/API --pageParam cursor --nextPageParam cursor --initialPageParam 0",
+    "postinstall": "flowbite-react patch"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.79.0",
+    "flowbite-react": "^0.11.7",
     "js-cookie": "^3.0.5",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-icons": "^5.5.0",
     "react-router-dom": "^6.26.2"
   },
   "devDependencies": {
