@@ -1,6 +1,8 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@plugin 'flowbite-react/plugin/tailwindcss';
+
+@source '../.flowbite-react/class-list.json';
 
 @layer base {
   html,
@@ -10,6 +12,6 @@
   }
 
   #root {
-    @apply bg-white dark:bg-neutral-900 text-black dark:text-white; 
+    @apply bg-white dark:bg-neutral-900 text-black dark:text-white;
   }
 }
