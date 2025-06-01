@@ -8,21 +8,21 @@ import (
 	"github.com/jack-barr3tt/finance-tracker/utils"
 )
 
-func (s Server) PostUserIdAccountsAccountIdTransactions(ctx *fiber.Ctx, userId, accountId int) error {
+func (s Server) PostUserIdAccountsAccountIdTransactions(ctx *fiber.Ctx, userId, accountId string) error {
 	body, err := utils.GetBody[TransactionCreateRequest](ctx)
 	if err != nil {
 		return ctx.SendStatus(fiber.StatusBadRequest)
 	}
 
-	tokenUserId := utils.GetTokenClaim[float64](ctx, "id")
+	tokenUserId := utils.GetTokenClaim[string](ctx, "id")
 
-	if int(tokenUserId) != userId {
+	if tokenUserId != userId {
 		return ctx.SendStatus(fiber.StatusUnauthorized)
 	}
 
-	var id int
+	var id string
 
-	err = s.DB.QueryRow(ctx.Context(), "INSERT INTO transactions (user_id, account_id, category_id, amount, description, date) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id", userId, accountId, body.CategoryId, body.Amount, body.Description, time.Now()).Scan(&id)
+	err = s.DB.QueryRow(ctx.Context(), "INSERT INTO transaction (user_id, account_id, category_id, amount, description, date) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id", userId, accountId, body.CategoryId, body.Amount, body.Description, time.Now()).Scan(&id)
 	if err != nil {
 		log.Println(err)
 		return ctx.SendStatus(fiber.StatusInternalServerError)
@@ -33,16 +33,16 @@ func (s Server) PostUserIdAccountsAccountIdTransactions(ctx *fiber.Ctx, userId, 
 	})
 }
 
-func (s Server) GetUserIdAccountsAccountIdTransactions(ctx *fiber.Ctx, userId, accountId int) error {
-	tokenUserId := utils.GetTokenClaim[float64](ctx, "id")
+func (s Server) GetUserIdAccountsAccountIdTransactions(ctx *fiber.Ctx, userId, accountId string) error {
+	tokenUserId := utils.GetTokenClaim[string](ctx, "id")
 
-	if int(tokenUserId) != userId {
+	if tokenUserId != userId {
 		return ctx.SendStatus(fiber.StatusUnauthorized)
 	}
 
 	rows, err := s.DB.Query(ctx.Context(), `SELECT 
 		t.id, t.amount, t.description, t.date, c.id, c.name, c.created_at
-	FROM transactions t
+	FROM transaction t
 	LEFT JOIN categories c ON t.category_id = c.id
 	WHERE account_id = $1`, accountId)
 	if err != nil {
@@ -52,11 +52,11 @@ func (s Server) GetUserIdAccountsAccountIdTransactions(ctx *fiber.Ctx, userId, a
 
 	transactions := []Transaction{}
 	for rows.Next() {
-		var id int
+		var id string
 		var amount float32
 		var description string
 		var date time.Time
-		var categoryId *int
+		var categoryId *string
 		var categoryName *string
 		var categoryCreatedAt *time.Time
 		err = rows.Scan(&id, &amount, &description, &date, &categoryId, &categoryName, &categoryCreatedAt)
@@ -86,14 +86,14 @@ func (s Server) GetUserIdAccountsAccountIdTransactions(ctx *fiber.Ctx, userId, a
 	return ctx.Status(fiber.StatusOK).JSON(transactions)
 }
 
-func (s Server) DeleteUserIdAccountsAccountIdTransactionsTransactionId(ctx *fiber.Ctx, userId, accountId, transactionId int) error {
-	tokenUserId := utils.GetTokenClaim[float64](ctx, "id")
+func (s Server) DeleteUserIdAccountsAccountIdTransactionsTransactionId(ctx *fiber.Ctx, userId, accountId, transactionId string) error {
+	tokenUserId := utils.GetTokenClaim[string](ctx, "id")
 
-	if int(tokenUserId) != userId {
+	if tokenUserId != userId {
 		return ctx.SendStatus(fiber.StatusUnauthorized)
 	}
 
-	tag, err := s.DB.Exec(ctx.Context(), "DELETE FROM transactions WHERE id = $1 AND account_id = $2", transactionId, accountId)
+	tag, err := s.DB.Exec(ctx.Context(), "DELETE FROM transaction WHERE id = $1 AND account_id = $2", transactionId, accountId)
 	if err != nil {
 		log.Println(err)
 		return ctx.SendStatus(fiber.StatusInternalServerError)

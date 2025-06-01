@@ -10,21 +10,21 @@ import (
 	"github.com/jack-barr3tt/finance-tracker/utils"
 )
 
-func (s Server) PostUserIdCategories(ctx *fiber.Ctx, userId int) error {
+func (s Server) PostUserIdCategories(ctx *fiber.Ctx, userId string) error {
 	body, err := utils.GetBody[CategoryCreateRequest](ctx)
 	if err != nil {
 		return ctx.SendStatus(fiber.StatusBadRequest)
 	}
 
-	tokUserId := utils.GetTokenClaim[float64](ctx, "id")
+	tokUserId := utils.GetTokenClaim[string](ctx, "id")
 
-	if int(tokUserId) != userId {
+	if tokUserId != userId {
 		return ctx.SendStatus(fiber.StatusUnauthorized)
 	}
 
-	var id int
+	var id string
 
-	err = s.DB.QueryRow(ctx.Context(), "INSERT INTO categories (user_id, name) VALUES ($1, $2) RETURNING id", userId, body.Name).Scan(&id)
+	err = s.DB.QueryRow(ctx.Context(), "INSERT INTO category (user_id, name) VALUES ($1, $2) RETURNING id", userId, body.Name).Scan(&id)
 	if err != nil {
 		log.Println(err)
 		return ctx.SendStatus(fiber.StatusInternalServerError)
@@ -35,14 +35,14 @@ func (s Server) PostUserIdCategories(ctx *fiber.Ctx, userId int) error {
 		JSON(CategoryCreateResponse{Id: id})
 }
 
-func (s Server) GetUserIdCategories(ctx *fiber.Ctx, userId int) error {
-	tokUserId := utils.GetTokenClaim[float64](ctx, "id")
+func (s Server) GetUserIdCategories(ctx *fiber.Ctx, userId string) error {
+	tokUserId := utils.GetTokenClaim[string](ctx, "id")
 
-	if int(tokUserId) != userId {
+	if tokUserId != userId {
 		return ctx.SendStatus(fiber.StatusUnauthorized)
 	}
 
-	rows, err := s.DB.Query(ctx.Context(), "SELECT id, name FROM categories WHERE user_id = $1", userId)
+	rows, err := s.DB.Query(ctx.Context(), "SELECT id, name FROM category WHERE user_id = $1", userId)
 	if err != nil {
 		log.Println(err)
 		return ctx.SendStatus(fiber.StatusInternalServerError)
@@ -50,7 +50,7 @@ func (s Server) GetUserIdCategories(ctx *fiber.Ctx, userId int) error {
 
 	categories := []Category{}
 	for rows.Next() {
-		var id int
+		var id string
 		var name string
 		err = rows.Scan(&id, &name)
 		if err != nil {
@@ -65,17 +65,17 @@ func (s Server) GetUserIdCategories(ctx *fiber.Ctx, userId int) error {
 		JSON(categories)
 }
 
-func (s Server) GetUserIdCategoriesCategoryId(ctx *fiber.Ctx, userId int, categoryId int) error {
-	tokUserId := utils.GetTokenClaim[float64](ctx, "id")
+func (s Server) GetUserIdCategoriesCategoryId(ctx *fiber.Ctx, userId string, categoryId string) error {
+	tokUserId := utils.GetTokenClaim[string](ctx, "id")
 
-	if int(tokUserId) != userId {
+	if tokUserId != userId {
 		return ctx.SendStatus(fiber.StatusUnauthorized)
 	}
 
 	var name string
 	var createdAt time.Time
 
-	err := s.DB.QueryRow(ctx.Context(), "SELECT name, created_at FROM categories WHERE user_id = $1 AND id = $2", userId, categoryId).Scan(&name, &createdAt)
+	err := s.DB.QueryRow(ctx.Context(), "SELECT name, created_at FROM category WHERE user_id = $1 AND id = $2", userId, categoryId).Scan(&name, &createdAt)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return ctx.SendStatus(fiber.StatusNotFound)
@@ -94,14 +94,14 @@ func (s Server) GetUserIdCategoriesCategoryId(ctx *fiber.Ctx, userId int, catego
 		})
 }
 
-func (s Server) DeleteUserIdCategoriesCategoryId(ctx *fiber.Ctx, userId int, categoryId int) error {
-	tokUserId := utils.GetTokenClaim[float64](ctx, "id")
+func (s Server) DeleteUserIdCategoriesCategoryId(ctx *fiber.Ctx, userId string, categoryId string) error {
+	tokUserId := utils.GetTokenClaim[string](ctx, "id")
 
-	if int(tokUserId) != userId {
+	if tokUserId != userId {
 		return ctx.SendStatus(fiber.StatusUnauthorized)
 	}
 
-	tag, err := s.DB.Exec(ctx.Context(), "DELETE FROM categories WHERE user_id = $1 AND id = $2", userId, categoryId)
+	tag, err := s.DB.Exec(ctx.Context(), "DELETE FROM category WHERE user_id = $1 AND id = $2", userId, categoryId)
 	if err != nil {
 		log.Println(err)
 		return ctx.SendStatus(fiber.StatusInternalServerError)

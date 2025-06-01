@@ -11,21 +11,21 @@ import (
 	"github.com/jack-barr3tt/finance-tracker/utils"
 )
 
-func (s Server) GetUserId(ctx *fiber.Ctx, reqId int) error {
+func (s Server) GetUserId(ctx *fiber.Ctx, reqId string) error {
 	if ctx.Locals("user") == nil {
 		return ctx.SendStatus(fiber.StatusBadRequest)
 	}
 
-	userId := utils.GetTokenClaim[int](ctx, "id")
+	userId := utils.GetTokenClaim[string](ctx, "id")
 
-	if int(userId) != reqId {
+	if userId != reqId {
 		return ctx.SendStatus(fiber.StatusUnauthorized)
 	}
 
 	var email string
 	var createdAt time.Time
 
-	err := s.DB.QueryRow(ctx.Context(), "SELECT email, created_at FROM users WHERE id = $1", userId).Scan(&email, &createdAt)
+	err := s.DB.QueryRow(ctx.Context(), `SELECT email, created_at FROM "user" WHERE id = $1`, userId).Scan(&email, &createdAt)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return ctx.SendStatus(fiber.StatusNotFound)
@@ -37,7 +37,7 @@ func (s Server) GetUserId(ctx *fiber.Ctx, reqId int) error {
 
 	return ctx.
 		Status(http.StatusOK).JSON(User{
-		Id:        int(userId),
+		Id:        userId,
 		Email:     email,
 		CreatedAt: createdAt,
 	})

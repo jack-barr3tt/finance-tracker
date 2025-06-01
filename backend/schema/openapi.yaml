@@ -40,7 +40,7 @@ paths:
           in: path
           required: true
           schema:
-            type: integer
+            type: string
       responses:
         "200":
           description: User response
@@ -57,7 +57,7 @@ paths:
           in: path
           required: true
           schema:
-            type: integer
+            type: string
       requestBody:
         content:
           application/json:
@@ -78,7 +78,7 @@ paths:
           in: path
           required: true
           schema:
-            type: integer
+            type: string
       responses:
         "200":
           description: Account response
@@ -97,12 +97,12 @@ paths:
           in: path
           required: true
           schema:
-            type: integer
+            type: string
         - name: account_id
           in: path
           required: true
           schema:
-            type: integer
+            type: string
       responses:
         "200":
           description: Account response
@@ -118,12 +118,12 @@ paths:
           in: path
           required: true
           schema:
-            type: integer
+            type: string
         - name: account_id
           in: path
           required: true
           schema:
-            type: integer
+            type: string
       responses:
         "200":
           description: Account response
@@ -140,12 +140,12 @@ paths:
           in: path
           required: true
           schema:
-            type: integer
+            type: string
         - name: account_id
           in: path
           required: true
           schema:
-            type: integer
+            type: string
       requestBody:
         content:
           application/json:
@@ -166,12 +166,12 @@ paths:
           in: path
           required: true
           schema:
-            type: integer
+            type: string
         - name: account_id
           in: path
           required: true
           schema:
-            type: integer
+            type: string
       responses:
         "200":
           description: Transaction response
@@ -190,17 +190,17 @@ paths:
           in: path
           required: true
           schema:
-            type: integer
+            type: string
         - name: account_id
           in: path
           required: true
           schema:
-            type: integer
+            type: string
         - name: transaction_id
           in: path
           required: true
           schema:
-            type: integer
+            type: string
       responses:
         "200":
           description: Transaction response
@@ -217,7 +217,7 @@ paths:
           in: path
           required: true
           schema:
-            type: integer
+            type: string
       requestBody:
         content:
           application/json:
@@ -238,7 +238,7 @@ paths:
           in: path
           required: true
           schema:
-            type: integer
+            type: string
       responses:
         "200":
           description: Category response
@@ -257,12 +257,12 @@ paths:
           in: path
           required: true
           schema:
-            type: integer
+            type: string
         - name: category_id
           in: path
           required: true
           schema:
-            type: integer
+            type: string
       responses:
         "200":
           description: Category response
@@ -278,12 +278,12 @@ paths:
           in: path
           required: true
           schema:
-            type: integer
+            type: string
         - name: category_id
           in: path
           required: true
           schema:
-            type: integer
+            type: string
       responses:
         "200":
           description: Category response
@@ -298,6 +298,7 @@ components:
       scheme: bearer
       bearerFormat: JWT
   schemas:
+    # Requests
     LoginRequest:
       type: object
       properties:
@@ -308,16 +309,6 @@ components:
       required:
         - email
         - password
-    LoginResponse:
-      type: object
-      properties:
-        token:
-          type: string
-        id:
-          type: integer
-      required:
-        - token
-        - id
     SignupRequest:
       type: object
       properties:
@@ -327,27 +318,6 @@ components:
         password:
           type: string
           example: password
-    SignupResponse:
-      type: object
-      properties:
-        message:
-          type: string
-      required:
-        - message
-    User:
-      type: object
-      properties:
-        id:
-          type: integer
-        email:
-          type: string
-        created_at:
-          type: string
-          format: date-time
-      required:
-        - id
-        - email
-        - created_at
     AccountCreateRequest:
       type: object
       properties:
@@ -356,37 +326,6 @@ components:
           example: "Checking Account"
       required:
         - name
-    AccountCreateResponse:
-      type: object
-      properties:
-        id:
-          type: integer
-      required:
-        - id
-    Account:
-      type: object
-      properties:
-        id:
-          type: integer
-        name:
-          type: string
-        created_at:
-          type: string
-          format: date-time
-      required:
-        - id
-        - name
-        - created_at
-    AccountDeleteResponse:
-      type: object
-      properties:
-        id:
-          type: integer
-        message:
-          type: string
-      required:
-        - id
-        - message
     CategoryCreateRequest:
       type: object
       properties:
@@ -395,37 +334,6 @@ components:
           example: "Groceries"
       required:
         - name
-    CategoryCreateResponse:
-      type: object
-      properties:
-        id:
-          type: integer
-      required:
-        - id
-    Category:
-      type: object
-      properties:
-        id:
-          type: integer
-        name:
-          type: string
-        created_at:
-          type: string
-          format: date-time
-      required:
-        - id
-        - name
-        - created_at
-    CategoryDeleteResponse:
-      type: object
-      properties:
-        id:
-          type: integer
-        message:
-          type: string
-      required:
-        - id
-        - message
     TransactionCreateRequest:
       type: object
       properties:
@@ -440,18 +348,123 @@ components:
       required:
         - amount
         - category_id
+    # Responses
+    LoginResponse:
+      type: object
+      properties:
+        token:
+          type: string
+        id:
+          type: string
+      required:
+        - token
+        - id
+    SignupResponse:
+      type: object
+      properties:
+        message:
+          type: string
+      required:
+        - message
+    AccountCreateResponse:
+      type: object
+      properties:
+        id:
+          type: string
+      required:
+        - id
+    AccountDeleteResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        message:
+          type: string
+      required:
+        - id
+        - message
+    CategoryCreateResponse:
+      type: object
+      properties:
+        id:
+          type: string
+      required:
+        - id
+    CategoryDeleteResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        message:
+          type: string
+      required:
+        - id
+        - message
     TransactionCreateResponse:
       type: object
       properties:
         id:
-          type: integer
+          type: string
       required:
         - id
+    TransactionDeleteResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        message:
+          type: string
+      required:
+        - id
+        - message
+    # Schemas
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+      required:
+        - id
+        - email
+        - created_at
+    Account:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - created_at
+    Category:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - created_at
     Transaction:
       type: object
       properties:
         id:
-          type: integer
+          type: string
         amount:
           type: number
         category:
@@ -470,13 +483,3 @@ components:
         - description
         - date
         - created_at
-    TransactionDeleteResponse:
-      type: object
-      properties:
-        id:
-          type: integer
-        message:
-          type: string
-      required:
-        - id
-        - message

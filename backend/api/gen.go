@@ -25,7 +25,7 @@ const (
 // Account defines model for Account.
 type Account struct {
 	CreatedAt time.Time `json:"created_at"`
-	Id        int       `json:"id"`
+	Id        string    `json:"id"`
 	Name      string    `json:"name"`
 }
 
@@ -36,19 +36,19 @@ type AccountCreateRequest struct {
 
 // AccountCreateResponse defines model for AccountCreateResponse.
 type AccountCreateResponse struct {
-	Id int `json:"id"`
+	Id string `json:"id"`
 }
 
 // AccountDeleteResponse defines model for AccountDeleteResponse.
 type AccountDeleteResponse struct {
-	Id      int    `json:"id"`
+	Id      string `json:"id"`
 	Message string `json:"message"`
 }
 
 // Category defines model for Category.
 type Category struct {
 	CreatedAt time.Time `json:"created_at"`
-	Id        int       `json:"id"`
+	Id        string    `json:"id"`
 	Name      string    `json:"name"`
 }
 
@@ -59,12 +59,12 @@ type CategoryCreateRequest struct {
 
 // CategoryCreateResponse defines model for CategoryCreateResponse.
 type CategoryCreateResponse struct {
-	Id int `json:"id"`
+	Id string `json:"id"`
 }
 
 // CategoryDeleteResponse defines model for CategoryDeleteResponse.
 type CategoryDeleteResponse struct {
-	Id      int    `json:"id"`
+	Id      string `json:"id"`
 	Message string `json:"message"`
 }
 
@@ -76,7 +76,7 @@ type LoginRequest struct {
 
 // LoginResponse defines model for LoginResponse.
 type LoginResponse struct {
-	Id    int    `json:"id"`
+	Id    string `json:"id"`
 	Token string `json:"token"`
 }
 
@@ -98,7 +98,7 @@ type Transaction struct {
 	CreatedAt   time.Time `json:"created_at"`
 	Date        time.Time `json:"date"`
 	Description string    `json:"description"`
-	Id          int       `json:"id"`
+	Id          string    `json:"id"`
 }
 
 // TransactionCreateRequest defines model for TransactionCreateRequest.
@@ -110,12 +110,12 @@ type TransactionCreateRequest struct {
 
 // TransactionCreateResponse defines model for TransactionCreateResponse.
 type TransactionCreateResponse struct {
-	Id int `json:"id"`
+	Id string `json:"id"`
 }
 
 // TransactionDeleteResponse defines model for TransactionDeleteResponse.
 type TransactionDeleteResponse struct {
-	Id      int    `json:"id"`
+	Id      string `json:"id"`
 	Message string `json:"message"`
 }
 
@@ -123,7 +123,7 @@ type TransactionDeleteResponse struct {
 type User struct {
 	CreatedAt time.Time `json:"created_at"`
 	Email     string    `json:"email"`
-	Id        int       `json:"id"`
+	Id        string    `json:"id"`
 }
 
 // PostLoginJSONRequestBody defines body for PostLogin for application/json ContentType.
@@ -151,40 +151,40 @@ type ServerInterface interface {
 	PostSignup(c *fiber.Ctx) error
 
 	// (GET /user/{id})
-	GetUserId(c *fiber.Ctx, id int) error
+	GetUserId(c *fiber.Ctx, id string) error
 
 	// (GET /user/{id}/accounts)
-	GetUserIdAccounts(c *fiber.Ctx, id int) error
+	GetUserIdAccounts(c *fiber.Ctx, id string) error
 
 	// (POST /user/{id}/accounts)
-	PostUserIdAccounts(c *fiber.Ctx, id int) error
+	PostUserIdAccounts(c *fiber.Ctx, id string) error
 
 	// (DELETE /user/{id}/accounts/{account_id})
-	DeleteUserIdAccountsAccountId(c *fiber.Ctx, id int, accountId int) error
+	DeleteUserIdAccountsAccountId(c *fiber.Ctx, id string, accountId string) error
 
 	// (GET /user/{id}/accounts/{account_id})
-	GetUserIdAccountsAccountId(c *fiber.Ctx, id int, accountId int) error
+	GetUserIdAccountsAccountId(c *fiber.Ctx, id string, accountId string) error
 
 	// (GET /user/{id}/accounts/{account_id}/transactions)
-	GetUserIdAccountsAccountIdTransactions(c *fiber.Ctx, id int, accountId int) error
+	GetUserIdAccountsAccountIdTransactions(c *fiber.Ctx, id string, accountId string) error
 
 	// (POST /user/{id}/accounts/{account_id}/transactions)
-	PostUserIdAccountsAccountIdTransactions(c *fiber.Ctx, id int, accountId int) error
+	PostUserIdAccountsAccountIdTransactions(c *fiber.Ctx, id string, accountId string) error
 
 	// (DELETE /user/{id}/accounts/{account_id}/transactions/{transaction_id})
-	DeleteUserIdAccountsAccountIdTransactionsTransactionId(c *fiber.Ctx, id int, accountId int, transactionId int) error
+	DeleteUserIdAccountsAccountIdTransactionsTransactionId(c *fiber.Ctx, id string, accountId string, transactionId string) error
 
 	// (GET /user/{id}/categories)
-	GetUserIdCategories(c *fiber.Ctx, id int) error
+	GetUserIdCategories(c *fiber.Ctx, id string) error
 
 	// (POST /user/{id}/categories)
-	PostUserIdCategories(c *fiber.Ctx, id int) error
+	PostUserIdCategories(c *fiber.Ctx, id string) error
 
 	// (DELETE /user/{id}/categories/{category_id})
-	DeleteUserIdCategoriesCategoryId(c *fiber.Ctx, id int, categoryId int) error
+	DeleteUserIdCategoriesCategoryId(c *fiber.Ctx, id string, categoryId string) error
 
 	// (GET /user/{id}/categories/{category_id})
-	GetUserIdCategoriesCategoryId(c *fiber.Ctx, id int, categoryId int) error
+	GetUserIdCategoriesCategoryId(c *fiber.Ctx, id string, categoryId string) error
 }
 
 // ServerInterfaceWrapper converts contexts to parameters.
@@ -212,7 +212,7 @@ func (siw *ServerInterfaceWrapper) GetUserId(c *fiber.Ctx) error {
 	var err error
 
 	// ------------- Path parameter "id" -------------
-	var id int
+	var id string
 
 	err = runtime.BindStyledParameterWithOptions("simple", "id", c.Params("id"), &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
 	if err != nil {
@@ -230,7 +230,7 @@ func (siw *ServerInterfaceWrapper) GetUserIdAccounts(c *fiber.Ctx) error {
 	var err error
 
 	// ------------- Path parameter "id" -------------
-	var id int
+	var id string
 
 	err = runtime.BindStyledParameterWithOptions("simple", "id", c.Params("id"), &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
 	if err != nil {
@@ -248,7 +248,7 @@ func (siw *ServerInterfaceWrapper) PostUserIdAccounts(c *fiber.Ctx) error {
 	var err error
 
 	// ------------- Path parameter "id" -------------
-	var id int
+	var id string
 
 	err = runtime.BindStyledParameterWithOptions("simple", "id", c.Params("id"), &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
 	if err != nil {
@@ -266,7 +266,7 @@ func (siw *ServerInterfaceWrapper) DeleteUserIdAccountsAccountId(c *fiber.Ctx) e
 	var err error
 
 	// ------------- Path parameter "id" -------------
-	var id int
+	var id string
 
 	err = runtime.BindStyledParameterWithOptions("simple", "id", c.Params("id"), &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
 	if err != nil {
@@ -274,7 +274,7 @@ func (siw *ServerInterfaceWrapper) DeleteUserIdAccountsAccountId(c *fiber.Ctx) e
 	}
 
 	// ------------- Path parameter "account_id" -------------
-	var accountId int
+	var accountId string
 
 	err = runtime.BindStyledParameterWithOptions("simple", "account_id", c.Params("account_id"), &accountId, runtime.BindStyledParameterOptions{Explode: false, Required: true})
 	if err != nil {
@@ -292,7 +292,7 @@ func (siw *ServerInterfaceWrapper) GetUserIdAccountsAccountId(c *fiber.Ctx) erro
 	var err error
 
 	// ------------- Path parameter "id" -------------
-	var id int
+	var id string
 
 	err = runtime.BindStyledParameterWithOptions("simple", "id", c.Params("id"), &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
 	if err != nil {
@@ -300,7 +300,7 @@ func (siw *ServerInterfaceWrapper) GetUserIdAccountsAccountId(c *fiber.Ctx) erro
 	}
 
 	// ------------- Path parameter "account_id" -------------
-	var accountId int
+	var accountId string
 
 	err = runtime.BindStyledParameterWithOptions("simple", "account_id", c.Params("account_id"), &accountId, runtime.BindStyledParameterOptions{Explode: false, Required: true})
 	if err != nil {
@@ -318,7 +318,7 @@ func (siw *ServerInterfaceWrapper) GetUserIdAccountsAccountIdTransactions(c *fib
 	var err error
 
 	// ------------- Path parameter "id" -------------
-	var id int
+	var id string
 
 	err = runtime.BindStyledParameterWithOptions("simple", "id", c.Params("id"), &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
 	if err != nil {
@@ -326,7 +326,7 @@ func (siw *ServerInterfaceWrapper) GetUserIdAccountsAccountIdTransactions(c *fib
 	}
 
 	// ------------- Path parameter "account_id" -------------
-	var accountId int
+	var accountId string
 
 	err = runtime.BindStyledParameterWithOptions("simple", "account_id", c.Params("account_id"), &accountId, runtime.BindStyledParameterOptions{Explode: false, Required: true})
 	if err != nil {
@@ -344,7 +344,7 @@ func (siw *ServerInterfaceWrapper) PostUserIdAccountsAccountIdTransactions(c *fi
 	var err error
 
 	// ------------- Path parameter "id" -------------
-	var id int
+	var id string
 
 	err = runtime.BindStyledParameterWithOptions("simple", "id", c.Params("id"), &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
 	if err != nil {
@@ -352,7 +352,7 @@ func (siw *ServerInterfaceWrapper) PostUserIdAccountsAccountIdTransactions(c *fi
 	}
 
 	// ------------- Path parameter "account_id" -------------
-	var accountId int
+	var accountId string
 
 	err = runtime.BindStyledParameterWithOptions("simple", "account_id", c.Params("account_id"), &accountId, runtime.BindStyledParameterOptions{Explode: false, Required: true})
 	if err != nil {
@@ -370,7 +370,7 @@ func (siw *ServerInterfaceWrapper) DeleteUserIdAccountsAccountIdTransactionsTran
 	var err error
 
 	// ------------- Path parameter "id" -------------
-	var id int
+	var id string
 
 	err = runtime.BindStyledParameterWithOptions("simple", "id", c.Params("id"), &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
 	if err != nil {
@@ -378,7 +378,7 @@ func (siw *ServerInterfaceWrapper) DeleteUserIdAccountsAccountIdTransactionsTran
 	}
 
 	// ------------- Path parameter "account_id" -------------
-	var accountId int
+	var accountId string
 
 	err = runtime.BindStyledParameterWithOptions("simple", "account_id", c.Params("account_id"), &accountId, runtime.BindStyledParameterOptions{Explode: false, Required: true})
 	if err != nil {
@@ -386,7 +386,7 @@ func (siw *ServerInterfaceWrapper) DeleteUserIdAccountsAccountIdTransactionsTran
 	}
 
 	// ------------- Path parameter "transaction_id" -------------
-	var transactionId int
+	var transactionId string
 
 	err = runtime.BindStyledParameterWithOptions("simple", "transaction_id", c.Params("transaction_id"), &transactionId, runtime.BindStyledParameterOptions{Explode: false, Required: true})
 	if err != nil {
@@ -404,7 +404,7 @@ func (siw *ServerInterfaceWrapper) GetUserIdCategories(c *fiber.Ctx) error {
 	var err error
 
 	// ------------- Path parameter "id" -------------
-	var id int
+	var id string
 
 	err = runtime.BindStyledParameterWithOptions("simple", "id", c.Params("id"), &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
 	if err != nil {
@@ -422,7 +422,7 @@ func (siw *ServerInterfaceWrapper) PostUserIdCategories(c *fiber.Ctx) error {
 	var err error
 
 	// ------------- Path parameter "id" -------------
-	var id int
+	var id string
 
 	err = runtime.BindStyledParameterWithOptions("simple", "id", c.Params("id"), &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
 	if err != nil {
@@ -440,7 +440,7 @@ func (siw *ServerInterfaceWrapper) DeleteUserIdCategoriesCategoryId(c *fiber.Ctx
 	var err error
 
 	// ------------- Path parameter "id" -------------
-	var id int
+	var id string
 
 	err = runtime.BindStyledParameterWithOptions("simple", "id", c.Params("id"), &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
 	if err != nil {
@@ -448,7 +448,7 @@ func (siw *ServerInterfaceWrapper) DeleteUserIdCategoriesCategoryId(c *fiber.Ctx
 	}
 
 	// ------------- Path parameter "category_id" -------------
-	var categoryId int
+	var categoryId string
 
 	err = runtime.BindStyledParameterWithOptions("simple", "category_id", c.Params("category_id"), &categoryId, runtime.BindStyledParameterOptions{Explode: false, Required: true})
 	if err != nil {
@@ -466,7 +466,7 @@ func (siw *ServerInterfaceWrapper) GetUserIdCategoriesCategoryId(c *fiber.Ctx) e
 	var err error
 
 	// ------------- Path parameter "id" -------------
-	var id int
+	var id string
 
 	err = runtime.BindStyledParameterWithOptions("simple", "id", c.Params("id"), &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
 	if err != nil {
@@ -474,7 +474,7 @@ func (siw *ServerInterfaceWrapper) GetUserIdCategoriesCategoryId(c *fiber.Ctx) e
 	}
 
 	// ------------- Path parameter "category_id" -------------
-	var categoryId int
+	var categoryId string
 
 	err = runtime.BindStyledParameterWithOptions("simple", "category_id", c.Params("category_id"), &categoryId, runtime.BindStyledParameterOptions{Explode: false, Required: true})
 	if err != nil {
@@ -540,24 +540,23 @@ func RegisterHandlersWithOptions(router fiber.Router, si ServerInterface, option
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/+xZTY/bNhD9KwbbI7ty2ptO3bhIsEULBI2LHhbGgkvNyowtUiGptoah/16QlCzapiw5",
-	"lRw72JP1MeQM37x5I9JbREWWCw5cKxRvkaJLyIi9vKdUFFyby1yKHKRmYF9QCURD8kTsuxchM3OFEqLh",
-	"B80yQBjpTQ4oRkpLxlNUYsQSY1s9ZlxDCtI85yQD7009oMRIwueCSUhQ/GhGV6bY977YORLPn4BqM2EV",
-	"9cxa/QGfC1CBJdRu4V+S5Wszw2wJdMV4OqmXjTtislP0iEDlgis4DiGMyPHCT7j4BdZwvguMMlCKpH1x",
-	"r61DgcyIhlTIzY2RpA77bJa8l4KCNK+/mB6HvsfgR+3j6xPkN5Ey3gowZIStA14wyolS/wiZdIfg5vBG",
-	"nAjjXBy0WAHvDsGZ4bZsfGQpL/JuEBqaFQrkz9XtHRVZqFh8hJqRu6chfrZG1oZLbx6cosBcEq4I1Uzw",
-	"Yw8kq3tMNY4X2bMDn3ra8r2EFxSj76KmW0VVq4p2GlTiL1Id8/IMa1BUsrxeTU8NC5VNtfT9KatwOhXM",
-	"A7VDxBqEdyx5M53idryf2qrhYOkN6X5n61WnIO6W6/vpubQxNNJz8/Vl8k8Fcpge2i6p/ZlZS+pJDpYY",
-	"KaCFZHrz0VSiC/ktEAnyvtBLc/ds797Vgf/61xxh94lpZnJvm0Ustc5RaSZm/EXYYJm2BHvHOOEUJnNJ",
-	"6Ark5P7DA8Lob5DKchG9uZveTc0aRQ6c5AzF6Cf7yMikXtrIorXpARZk4erEQE1M/h8SFKMPQmnbJpBD",
-	"BJR+KxKrPlRwDa6GSJ6vGbWjok/KFYIToi6Z2uuEZemAd4yz8f04nQ7tq+Kz9bVXvK4fTqRnUWIUKdsO",
-	"TkPkWsZIGO13ypFBOmh+AZSMxaTIj3Ay7TnasqQ0LlIIIPUetCnph8QyUJIMNEiF4sctMhy0rKy/VmNX",
-	"dE0ValkA9hZxVLKLEVGxShTAwjz3gWiq367Kr/vHRbnYxykibsOiugG7ry2vETimIVNdCNYbyOaDi0hJ",
-	"NiFQK9NzcMUnavNSCA5f+MFd+8j1H96nD5OlMPujbXX1VGlHYj88jpPpPkj201n9jiQpODhLE+71CFT4",
-	"7GOo4uonTq+5OJC6SxVNpJuv9jOayS5fc3/4t5+7Xv3K35/36Fme+Th966aTNXxrbN3pj9we27fhw5Hi",
-	"3IqPtt7d/2qiPre865tQ9PBs+8hcT49oP2cZi0fVAVN1iHK6Q8wa25vdcPgHoF3qXdsOK92XQHF4ZQ3/",
-	"CzSyrLb8/TNQqtoKIdp6p669VbNJax3LRfXRPyi+Gjlr+WttsFLrK1evGTmWv4FqqCz/CwAA//9gp1UE",
-	"FiEAAA==",
+	"H4sIAAAAAAAC/+xZTY/bNhD9KwbbI7ty2ptO3WyRYIsWCJotelgYCy41KzO2SIWk2hqG/ntBUrIom7Lk",
+	"VHLsYE/Wx5Az8/jmjUhvERVZLjhwrVC8RYouISP28pZSUXBtLnMpcpCagX1BJRANyROx716EzMwVSoiG",
+	"HzTLAGGkNzmgGCktGU9RiRFLjO3BY04yCLwoMZLwuWASEhQ/msGVKfadL3Z+xPMnoNpMWAV9Z63+gM8F",
+	"qEAGtVv4l2T52sxwtwS6Yjyd1VnjnpjsFAMiULngCg5DCAJymPcRD7/AGk72gFEGSpF0KOq1dSiOO6Ih",
+	"FXJzXQypoz6ZIu+loCDN6y/mxr7vCchRu/jq7PhNpIx3wgsZYetgBDlR6h8hByDg5vBGHAnjRBi0WAHv",
+	"j8CZ4a61+MhSXuT9GDQcKxTIn6vbGyqyUKH4ADUjd09D5OyMrAuWwTQ4xoAHSbgiVDPBDz2QrG4u1The",
+	"ZM8gzTjq6cr3El5QjL6LmjYVVT0q2ulPib9IcczLE6xBUcnyOpth+hUqmirz9oxVNL3q5WHaI2ANwDuS",
+	"vJnPcTfcT60MGNeQOoO9zBvO/c7Wq14x3KXr+xmY2gT66Hn56hL5pwI5TvPsltPBtKzV9CgBS4wU0EIy",
+	"vfloqtBF/BaIBHlb6KW5e7Z37+q4f/3rAWH3XWlmcm+bHJZa56g0EzP+ImysTFt2vWOccAqzB0noCuTs",
+	"9sM9wuhvkMoSEb25md/MTYoiB05yhmL0k31kJFIvbWTR2si/xVi4IjFIE7P69wmK0QehtO0QyCECSr8V",
+	"iVUeKrgGV0Akz9eM2lHRJ+WqwIlQn0S1mmBZOuAd32x8P87nY/uq2Gx9tSrXtcKZ9CxKjCJlW8FxiFy7",
+	"mAijdpecGKS9xhdAyVjMivwAJ9Oaoy1LSuMihQBS70Gbir5PLAMlyUCDVCh+3CLDQcvK+jM1dkXXVKGW",
+	"BWAvif2KXUwIitWhABTmuY9DU/w2Kb/sHxflog1TRNw2RfXjdVtbXiBuTEOm+gCsN43NpxaRkmxCmFam",
+	"p8CKj1TmmQAcv+qDG/WJiz+8NR9nkcLcj7bV1VMlHIn95jhcS/ct0l7N6ncaPcHBSZpoL0acwqcdY1XW",
+	"MGF6XYmWyp2rYCLdfKyf0EZ2q/XgD//WV25Qo/K35AOalWc+TcO64qUavyV27u0nbovdG+/xKHFqtUdb",
+	"7+5/NU+fWd71FWh5eLI2LhfTHLrPVaYiUXWeVJ2aHG8Nd43tte4x/NPOPt2ubccV7TOAOL6ohv/umVhR",
+	"O/7nGWmlusog2npHrIMFs1nVOpZzSqN/KHwpUtbxF9podTZUql7XY1/5RqqfsvwvAAD//xH8BZP3IAAA",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

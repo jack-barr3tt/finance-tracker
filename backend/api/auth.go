@@ -19,9 +19,9 @@ func (s Server) PostLogin(ctx *fiber.Ctx) error {
 		return ctx.SendStatus(fiber.StatusBadRequest)
 	}
 
-	var id int
+	var id string
 	var passwordHash string
-	err = s.DB.QueryRow(ctx.Context(), "SELECT id, password_hash FROM users WHERE email = $1", body.Email).Scan(&id, &passwordHash)
+	err = s.DB.QueryRow(ctx.Context(), `SELECT id, password_hash FROM "user" WHERE email = $1`, body.Email).Scan(&id, &passwordHash)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return ctx.SendStatus(fiber.StatusNotFound)
@@ -70,8 +70,7 @@ func (s Server) PostSignup(ctx *fiber.Ctx) error {
 		return ctx.SendStatus(fiber.StatusInternalServerError)
 	}
 
-	var id int
-	err = s.DB.QueryRow(ctx.Context(), "INSERT INTO users (email, password_hash) VALUES ($1, $2) RETURNING id", body.Email, string(bytes)).Scan(&id)
+	_, err = s.DB.Exec(ctx.Context(), `INSERT INTO "user" (email, password_hash) VALUES ($1, $2)`, body.Email, string(bytes))
 	if err != nil {
 		log.Println(err)
 		return ctx.SendStatus(fiber.StatusInternalServerError)
