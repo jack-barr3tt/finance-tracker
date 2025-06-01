@@ -1,7 +1,9 @@
 import { FormEvent, useCallback, useState } from "react"
 import { useUser } from "../Hooks/useUser"
-import { useNavigate } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import { usePostSignup } from "../API/queries"
+import { Button, TextInput } from "flowbite-react"
+import { FiArrowRight } from "react-icons/fi"
 
 export default function SignUp() {
   const [email, setEmail] = useState("")
@@ -41,28 +43,44 @@ export default function SignUp() {
   )
 
   return (
-    <div>
-      <h1>Sign Up</h1>
-      <form onSubmit={handleSubmit}>
-        <input
+    <div className="flex items-center justify-center pt-32">
+      <form
+        onSubmit={handleSubmit}
+        className="flex flex-col items-center gap-4 p-8 border border-gray-200 shadow-sm dark:border-gray-700 dark:bg-neutral-800 rounded-xl"
+      >
+        <h1 className="w-full text-2xl font-medium text-center">Sign Up</h1>
+        <TextInput
           type="email"
           placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          className="w-64"
+          autoFocus
+          autoComplete="email"
         />
-        <input
+        <TextInput
           type="password"
           placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          className="w-64"
         />
-        <input
+        <TextInput
           type="password"
           placeholder="Confirm password"
           value={passwordConfirmation}
           onChange={(e) => setPasswordConfirmation(e.target.value)}
+          className="w-64"
         />
-        <button type="submit">Submit</button>
+        <Button type="submit" className="w-64 gap-1">
+          Submit <FiArrowRight />
+        </Button>
+        <p className="text-sm">
+          Already have an account?{" "}
+          <Link className="text-blue-400" to="/login">
+            Login
+          </Link>
+        </p>
       </form>
     </div>
   )

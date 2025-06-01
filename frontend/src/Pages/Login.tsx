@@ -1,6 +1,6 @@
 import { FormEvent, useCallback, useState } from "react"
 import { useUser } from "../Hooks/useUser"
-import { useNavigate } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import { Button, TextInput } from "flowbite-react"
 import { FiArrowRight } from "react-icons/fi"
 
@@ -48,6 +48,9 @@ export default function Login() {
         <Button className="w-full gap-1" type="submit">
           Submit <FiArrowRight />
         </Button>
+        <p className="text-sm">
+          Need an account? <Link className="text-blue-400"  to="/signup">Sign Up</Link>
+        </p>
       </form>
     </div>
   )
