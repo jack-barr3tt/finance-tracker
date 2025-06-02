@@ -18,7 +18,6 @@ CREATE TABLE IF NOT EXISTS "category" (
 );
 CREATE TABLE IF NOT EXISTS "transaction" (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  user_id UUID NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
   account_id UUID NOT NULL REFERENCES "account"(id) ON DELETE CASCADE,
   category_id UUID REFERENCES "category"(id) ON DELETE CASCADE,
   amount DECIMAL(10, 2) NOT NULL,

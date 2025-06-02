@@ -103,9 +103,10 @@ type Transaction struct {
 
 // TransactionCreateRequest defines model for TransactionCreateRequest.
 type TransactionCreateRequest struct {
+	AccountId   string  `json:"account_id"`
 	Amount      float32 `json:"amount"`
 	CategoryId  int     `json:"category_id"`
-	Description *string `json:"description,omitempty"`
+	Description string  `json:"description"`
 }
 
 // TransactionCreateResponse defines model for TransactionCreateResponse.
@@ -126,6 +127,11 @@ type User struct {
 	Id        string    `json:"id"`
 }
 
+// GetUserIdTransactionsParams defines parameters for GetUserIdTransactions.
+type GetUserIdTransactionsParams struct {
+	AccountId *string `form:"account_id,omitempty" json:"account_id,omitempty"`
+}
+
 // PostLoginJSONRequestBody defines body for PostLogin for application/json ContentType.
 type PostLoginJSONRequestBody = LoginRequest
 
@@ -135,11 +141,11 @@ type PostSignupJSONRequestBody = SignupRequest
 // PostUserIdAccountsJSONRequestBody defines body for PostUserIdAccounts for application/json ContentType.
 type PostUserIdAccountsJSONRequestBody = AccountCreateRequest
 
-// PostUserIdAccountsAccountIdTransactionsJSONRequestBody defines body for PostUserIdAccountsAccountIdTransactions for application/json ContentType.
-type PostUserIdAccountsAccountIdTransactionsJSONRequestBody = TransactionCreateRequest
-
 // PostUserIdCategoriesJSONRequestBody defines body for PostUserIdCategories for application/json ContentType.
 type PostUserIdCategoriesJSONRequestBody = CategoryCreateRequest
+
+// PostUserIdTransactionsJSONRequestBody defines body for PostUserIdTransactions for application/json ContentType.
+type PostUserIdTransactionsJSONRequestBody = TransactionCreateRequest
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
@@ -165,15 +171,6 @@ type ServerInterface interface {
 	// (GET /user/{id}/accounts/{account_id})
 	GetUserIdAccountsAccountId(c *fiber.Ctx, id string, accountId string) error
 
-	// (GET /user/{id}/accounts/{account_id}/transactions)
-	GetUserIdAccountsAccountIdTransactions(c *fiber.Ctx, id string, accountId string) error
-
-	// (POST /user/{id}/accounts/{account_id}/transactions)
-	PostUserIdAccountsAccountIdTransactions(c *fiber.Ctx, id string, accountId string) error
-
-	// (DELETE /user/{id}/accounts/{account_id}/transactions/{transaction_id})
-	DeleteUserIdAccountsAccountIdTransactionsTransactionId(c *fiber.Ctx, id string, accountId string, transactionId string) error
-
 	// (GET /user/{id}/categories)
 	GetUserIdCategories(c *fiber.Ctx, id string) error
 
@@ -185,6 +182,15 @@ type ServerInterface interface {
 
 	// (GET /user/{id}/categories/{category_id})
 	GetUserIdCategoriesCategoryId(c *fiber.Ctx, id string, categoryId string) error
+
+	// (GET /user/{id}/transactions)
+	GetUserIdTransactions(c *fiber.Ctx, id string, params GetUserIdTransactionsParams) error
+
+	// (POST /user/{id}/transactions)
+	PostUserIdTransactions(c *fiber.Ctx, id string) error
+
+	// (DELETE /user/{id}/transactions/{transaction_id})
+	DeleteUserIdTransactionsTransactionId(c *fiber.Ctx, id string, transactionId string) error
 }
 
 // ServerInterfaceWrapper converts contexts to parameters.
@@ -312,92 +318,6 @@ func (siw *ServerInterfaceWrapper) GetUserIdAccountsAccountId(c *fiber.Ctx) erro
 	return siw.Handler.GetUserIdAccountsAccountId(c, id, accountId)
 }
 
-// GetUserIdAccountsAccountIdTransactions operation middleware
-func (siw *ServerInterfaceWrapper) GetUserIdAccountsAccountIdTransactions(c *fiber.Ctx) error {
-
-	var err error
-
-	// ------------- Path parameter "id" -------------
-	var id string
-
-	err = runtime.BindStyledParameterWithOptions("simple", "id", c.Params("id"), &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
-	if err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter id: %w", err).Error())
-	}
-
-	// ------------- Path parameter "account_id" -------------
-	var accountId string
-
-	err = runtime.BindStyledParameterWithOptions("simple", "account_id", c.Params("account_id"), &accountId, runtime.BindStyledParameterOptions{Explode: false, Required: true})
-	if err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter account_id: %w", err).Error())
-	}
-
-	c.Context().SetUserValue(BearerAuthScopes, []string{})
-
-	return siw.Handler.GetUserIdAccountsAccountIdTransactions(c, id, accountId)
-}
-
-// PostUserIdAccountsAccountIdTransactions operation middleware
-func (siw *ServerInterfaceWrapper) PostUserIdAccountsAccountIdTransactions(c *fiber.Ctx) error {
-
-	var err error
-
-	// ------------- Path parameter "id" -------------
-	var id string
-
-	err = runtime.BindStyledParameterWithOptions("simple", "id", c.Params("id"), &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
-	if err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter id: %w", err).Error())
-	}
-
-	// ------------- Path parameter "account_id" -------------
-	var accountId string
-
-	err = runtime.BindStyledParameterWithOptions("simple", "account_id", c.Params("account_id"), &accountId, runtime.BindStyledParameterOptions{Explode: false, Required: true})
-	if err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter account_id: %w", err).Error())
-	}
-
-	c.Context().SetUserValue(BearerAuthScopes, []string{})
-
-	return siw.Handler.PostUserIdAccountsAccountIdTransactions(c, id, accountId)
-}
-
-// DeleteUserIdAccountsAccountIdTransactionsTransactionId operation middleware
-func (siw *ServerInterfaceWrapper) DeleteUserIdAccountsAccountIdTransactionsTransactionId(c *fiber.Ctx) error {
-
-	var err error
-
-	// ------------- Path parameter "id" -------------
-	var id string
-
-	err = runtime.BindStyledParameterWithOptions("simple", "id", c.Params("id"), &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
-	if err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter id: %w", err).Error())
-	}
-
-	// ------------- Path parameter "account_id" -------------
-	var accountId string
-
-	err = runtime.BindStyledParameterWithOptions("simple", "account_id", c.Params("account_id"), &accountId, runtime.BindStyledParameterOptions{Explode: false, Required: true})
-	if err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter account_id: %w", err).Error())
-	}
-
-	// ------------- Path parameter "transaction_id" -------------
-	var transactionId string
-
-	err = runtime.BindStyledParameterWithOptions("simple", "transaction_id", c.Params("transaction_id"), &transactionId, runtime.BindStyledParameterOptions{Explode: false, Required: true})
-	if err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter transaction_id: %w", err).Error())
-	}
-
-	c.Context().SetUserValue(BearerAuthScopes, []string{})
-
-	return siw.Handler.DeleteUserIdAccountsAccountIdTransactionsTransactionId(c, id, accountId, transactionId)
-}
-
 // GetUserIdCategories operation middleware
 func (siw *ServerInterfaceWrapper) GetUserIdCategories(c *fiber.Ctx) error {
 
@@ -486,6 +406,84 @@ func (siw *ServerInterfaceWrapper) GetUserIdCategoriesCategoryId(c *fiber.Ctx) e
 	return siw.Handler.GetUserIdCategoriesCategoryId(c, id, categoryId)
 }
 
+// GetUserIdTransactions operation middleware
+func (siw *ServerInterfaceWrapper) GetUserIdTransactions(c *fiber.Ctx) error {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", c.Params("id"), &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter id: %w", err).Error())
+	}
+
+	c.Context().SetUserValue(BearerAuthScopes, []string{})
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetUserIdTransactionsParams
+
+	var query url.Values
+	query, err = url.ParseQuery(string(c.Request().URI().QueryString()))
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for query string: %w", err).Error())
+	}
+
+	// ------------- Optional query parameter "account_id" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "account_id", query, &params.AccountId)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter account_id: %w", err).Error())
+	}
+
+	return siw.Handler.GetUserIdTransactions(c, id, params)
+}
+
+// PostUserIdTransactions operation middleware
+func (siw *ServerInterfaceWrapper) PostUserIdTransactions(c *fiber.Ctx) error {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", c.Params("id"), &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter id: %w", err).Error())
+	}
+
+	c.Context().SetUserValue(BearerAuthScopes, []string{})
+
+	return siw.Handler.PostUserIdTransactions(c, id)
+}
+
+// DeleteUserIdTransactionsTransactionId operation middleware
+func (siw *ServerInterfaceWrapper) DeleteUserIdTransactionsTransactionId(c *fiber.Ctx) error {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", c.Params("id"), &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter id: %w", err).Error())
+	}
+
+	// ------------- Path parameter "transaction_id" -------------
+	var transactionId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "transaction_id", c.Params("transaction_id"), &transactionId, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter transaction_id: %w", err).Error())
+	}
+
+	c.Context().SetUserValue(BearerAuthScopes, []string{})
+
+	return siw.Handler.DeleteUserIdTransactionsTransactionId(c, id, transactionId)
+}
+
 // FiberServerOptions provides options for the Fiber server.
 type FiberServerOptions struct {
 	BaseURL     string
@@ -521,12 +519,6 @@ func RegisterHandlersWithOptions(router fiber.Router, si ServerInterface, option
 
 	router.Get(options.BaseURL+"/user/:id/accounts/:account_id", wrapper.GetUserIdAccountsAccountId)
 
-	router.Get(options.BaseURL+"/user/:id/accounts/:account_id/transactions", wrapper.GetUserIdAccountsAccountIdTransactions)
-
-	router.Post(options.BaseURL+"/user/:id/accounts/:account_id/transactions", wrapper.PostUserIdAccountsAccountIdTransactions)
-
-	router.Delete(options.BaseURL+"/user/:id/accounts/:account_id/transactions/:transaction_id", wrapper.DeleteUserIdAccountsAccountIdTransactionsTransactionId)
-
 	router.Get(options.BaseURL+"/user/:id/categories", wrapper.GetUserIdCategories)
 
 	router.Post(options.BaseURL+"/user/:id/categories", wrapper.PostUserIdCategories)
@@ -535,28 +527,35 @@ func RegisterHandlersWithOptions(router fiber.Router, si ServerInterface, option
 
 	router.Get(options.BaseURL+"/user/:id/categories/:category_id", wrapper.GetUserIdCategoriesCategoryId)
 
+	router.Get(options.BaseURL+"/user/:id/transactions", wrapper.GetUserIdTransactions)
+
+	router.Post(options.BaseURL+"/user/:id/transactions", wrapper.PostUserIdTransactions)
+
+	router.Delete(options.BaseURL+"/user/:id/transactions/:transaction_id", wrapper.DeleteUserIdTransactionsTransactionId)
+
 }
 
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"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",
+	"8pwpIAAA",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

@@ -131,17 +131,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/AccountDeleteResponse"
-  /user/{id}/accounts/{account_id}/transactions:
+  /user/{id}/transactions:
     post:
       security:
         - BearerAuth: []
       parameters:
         - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: account_id
           in: path
           required: true
           schema:
@@ -168,8 +163,8 @@ paths:
           schema:
             type: string
         - name: account_id
-          in: path
-          required: true
+          in: query
+          required: false
           schema:
             type: string
       responses:
@@ -181,17 +176,12 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/Transaction"
-  /user/{id}/accounts/{account_id}/transactions/{transaction_id}:
+  /user/{id}/transactions/{transaction_id}:
     delete:
       security:
         - BearerAuth: []
       parameters:
         - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: account_id
           in: path
           required: true
           schema:
@@ -337,6 +327,8 @@ components:
     TransactionCreateRequest:
       type: object
       properties:
+        account_id:
+          type: string
         amount:
           type: number
           example: 100.00
@@ -346,8 +338,10 @@ components:
           type: string
           example: "Milk"
       required:
+        - account_id
         - amount
         - category_id
+        - description
     # Responses
     LoginResponse:
       type: object
