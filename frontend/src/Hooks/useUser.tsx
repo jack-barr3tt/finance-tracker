@@ -4,7 +4,7 @@ import Cookies from "js-cookie"
 import { useGetUserById, usePostLogin } from "../API/queries"
 
 interface UserValue {
-  userId: number | null
+  userId: string
   login: (email: string, password: string) => Promise<boolean>
   logout: () => void
 }
@@ -18,11 +18,11 @@ export function useUser() {
 }
 
 export function UserProvider(props: { children: ReactNode }) {
-  const [userId, setUserId] = useState<number | null>(null)
+  const [userId, setUserId] = useState<string>("")
 
   const { mutateAsync: loginReq } = usePostLogin()
-  const { isError } = useGetUserById({ path: { id: userId || 0 } }, undefined, {
-    enabled: userId !== null,
+  const { isError } = useGetUserById({ path: { id: userId } }, undefined, {
+    enabled: !!userId,
   })
 
   const login = async (email: string, password: string) => {
@@ -34,7 +34,7 @@ export function UserProvider(props: { children: ReactNode }) {
         },
       })
 
-      setUserId(response.data?.id || null)
+      setUserId(response.data?.id || "")
 
       Cookies.set("access_token", response.data?.token || "", {})
       Cookies.set("user_id", String(response.data?.id || ""), {})
@@ -47,7 +47,7 @@ export function UserProvider(props: { children: ReactNode }) {
 
   useEffect(() => {
     if (isError) {
-      setUserId(null)
+      setUserId("")
       Cookies.remove("access_token")
       Cookies.remove("user_id")
     }
@@ -57,12 +57,12 @@ export function UserProvider(props: { children: ReactNode }) {
     const storedUserId = Cookies.get("user_id")
     const storedAccessToken = Cookies.get("access_token")
     if (storedUserId && storedAccessToken) {
-      setUserId(Number(storedUserId))
+      setUserId(storedUserId)
     }
   }, [])
 
   const logout = () => {
-    setUserId(null)
+    setUserId("")
     Cookies.remove("access_token")
     Cookies.remove("user_id")
   }

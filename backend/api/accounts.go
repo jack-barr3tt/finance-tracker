@@ -15,22 +15,55 @@ func (s Server) PostUserIdAccounts(c *fiber.Ctx, userId string) error {
 		return c.SendStatus(fiber.StatusBadRequest)
 	}
 
+	tx, err := s.DB.Begin(c.Context())
+	if err != nil {
+		return DBError(c, err)
+	}
+
+	var shortName string
+	var fixed bool
+	err = tx.QueryRow(c.Context(), "SELECT short_name, fixed_products FROM bank WHERE id = $1", body.BankId).Scan(&shortName, &fixed)
+	if err != nil {
+		return DBError(c, err)
+	}
+
+	accountsToCreate := []string{}
+
+	if fixed {
+		switch shortName {
+		case "t212":
+			accountsToCreate = append(accountsToCreate, "Uninvested Cash", "Portfolio")
+		}
+
+	} else {
+		accountsToCreate = append(accountsToCreate, body.Name)
+	}
+
 	tokUserId := GetTokenClaim[string](c, "id")
 
 	if tokUserId != userId {
 		return c.SendStatus(fiber.StatusUnauthorized)
 	}
 
-	var id string
+	createdIds := []string{}
 
-	err = s.DB.QueryRow(c.Context(), "INSERT INTO account (user_id, name) VALUES ($1, $2) RETURNING id", userId, body.Name).Scan(&id)
+	for _, name := range accountsToCreate {
+		var id string
+		err = tx.QueryRow(c.Context(), "INSERT INTO account (user_id, bank_id, name) VALUES ($1, $2, $3) RETURNING id", userId, body.BankId, name).Scan(&id)
+		if err != nil {
+			return DBError(c, err)
+		}
+		createdIds = append(createdIds, id)
+	}
+
+	err = tx.Commit(c.Context())
 	if err != nil {
 		return DBError(c, err)
 	}
 
 	return c.
 		Status(http.StatusOK).
-		JSON(AccountCreateResponse{Id: id})
+		JSON(AccountCreateResponse{Ids: createdIds})
 }
 
 func (s Server) GetUserIdAccounts(c *fiber.Ctx, userId string) error {
@@ -40,21 +73,26 @@ func (s Server) GetUserIdAccounts(c *fiber.Ctx, userId string) error {
 		return c.SendStatus(fiber.StatusUnauthorized)
 	}
 
-	rows, err := s.DB.Query(c.Context(), "SELECT id, name, created_at FROM account WHERE user_id = $1", userId)
+	rows, err := s.DB.Query(
+		c.Context(),
+		`SELECT a.id, a.name, a.created_at, b.id, b.name, b.csv_import_enabled, b.api_import_enabled
+		FROM account a
+		LEFT JOIN bank b ON a.bank_id = b.id
+		WHERE a.user_id = $1`,
+		userId,
+	)
 	if err != nil {
 		return DBError(c, err)
 	}
 
 	accounts := []Account{}
 	for rows.Next() {
-		var id string
-		var name string
-		var createdAt time.Time
-		err = rows.Scan(&id, &name, &createdAt)
+		account := Account{}
+		err = rows.Scan(&account.Id, &account.Name, &account.CreatedAt, &account.Bank.Id, &account.Bank.Name, &account.Bank.CsvImportEnabled, &account.Bank.ApiImportEnabled)
 		if err != nil {
 			return DBError(c, err)
 		}
-		accounts = append(accounts, Account{Id: id, Name: name, CreatedAt: createdAt})
+		accounts = append(accounts, account)
 	}
 
 	return c.

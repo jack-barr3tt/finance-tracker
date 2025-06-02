@@ -13,19 +13,6 @@ export const LoginRequestSchema = {
     required: ['email', 'password']
 } as const;
 
-export const LoginResponseSchema = {
-    type: 'object',
-    properties: {
-        token: {
-            type: 'string'
-        },
-        id: {
-            type: 'integer'
-        }
-    },
-    required: ['token', 'id']
-} as const;
-
 export const SignupRequestSchema = {
     type: 'object',
     properties: {
@@ -40,82 +27,18 @@ export const SignupRequestSchema = {
     }
 } as const;
 
-export const SignupResponseSchema = {
-    type: 'object',
-    properties: {
-        message: {
-            type: 'string'
-        }
-    },
-    required: ['message']
-} as const;
-
-export const UserSchema = {
-    type: 'object',
-    properties: {
-        id: {
-            type: 'integer'
-        },
-        email: {
-            type: 'string'
-        },
-        created_at: {
-            type: 'string',
-            format: 'date-time'
-        }
-    },
-    required: ['id', 'email', 'created_at']
-} as const;
-
 export const AccountCreateRequestSchema = {
     type: 'object',
     properties: {
         name: {
             type: 'string',
             example: 'Checking Account'
-        }
-    },
-    required: ['name']
-} as const;
-
-export const AccountCreateResponseSchema = {
-    type: 'object',
-    properties: {
-        id: {
-            type: 'integer'
-        }
-    },
-    required: ['id']
-} as const;
-
-export const AccountSchema = {
-    type: 'object',
-    properties: {
-        id: {
-            type: 'integer'
         },
-        name: {
-            type: 'string'
-        },
-        created_at: {
-            type: 'string',
-            format: 'date-time'
-        }
-    },
-    required: ['id', 'name', 'created_at']
-} as const;
-
-export const AccountDeleteResponseSchema = {
-    type: 'object',
-    properties: {
-        id: {
-            type: 'integer'
-        },
-        message: {
+        bank_id: {
             type: 'string'
         }
     },
-    required: ['id', 'message']
+    required: ['name', 'bank_id']
 } as const;
 
 export const CategoryCreateRequestSchema = {
@@ -129,49 +52,12 @@ export const CategoryCreateRequestSchema = {
     required: ['name']
 } as const;
 
-export const CategoryCreateResponseSchema = {
-    type: 'object',
-    properties: {
-        id: {
-            type: 'integer'
-        }
-    },
-    required: ['id']
-} as const;
-
-export const CategorySchema = {
-    type: 'object',
-    properties: {
-        id: {
-            type: 'integer'
-        },
-        name: {
-            type: 'string'
-        },
-        created_at: {
-            type: 'string',
-            format: 'date-time'
-        }
-    },
-    required: ['id', 'name', 'created_at']
-} as const;
-
-export const CategoryDeleteResponseSchema = {
-    type: 'object',
-    properties: {
-        id: {
-            type: 'integer'
-        },
-        message: {
-            type: 'string'
-        }
-    },
-    required: ['id', 'message']
-} as const;
-
 export const TransactionCreateRequestSchema = {
     type: 'object',
     properties: {
+        account_id: {
+            type: 'string'
+        },
         amount: {
             type: 'number',
             example: 100
@@ -184,24 +70,205 @@ export const TransactionCreateRequestSchema = {
             example: 'Milk'
         }
     },
-    required: ['amount', 'category_id']
+    required: ['account_id', 'amount', 'category_id', 'description']
+} as const;
+
+export const LoginResponseSchema = {
+    type: 'object',
+    properties: {
+        token: {
+            type: 'string'
+        },
+        id: {
+            type: 'string'
+        }
+    },
+    required: ['token', 'id']
+} as const;
+
+export const SignupResponseSchema = {
+    type: 'object',
+    properties: {
+        message: {
+            type: 'string'
+        }
+    },
+    required: ['message']
+} as const;
+
+export const AccountCreateResponseSchema = {
+    type: 'object',
+    properties: {
+        ids: {
+            type: 'array',
+            items: {
+                type: 'string'
+            }
+        }
+    },
+    required: ['ids']
+} as const;
+
+export const AccountDeleteResponseSchema = {
+    type: 'object',
+    properties: {
+        id: {
+            type: 'string'
+        },
+        message: {
+            type: 'string'
+        }
+    },
+    required: ['id', 'message']
+} as const;
+
+export const CategoryCreateResponseSchema = {
+    type: 'object',
+    properties: {
+        id: {
+            type: 'string'
+        }
+    },
+    required: ['id']
+} as const;
+
+export const CategoryDeleteResponseSchema = {
+    type: 'object',
+    properties: {
+        id: {
+            type: 'string'
+        },
+        message: {
+            type: 'string'
+        }
+    },
+    required: ['id', 'message']
 } as const;
 
 export const TransactionCreateResponseSchema = {
     type: 'object',
     properties: {
         id: {
-            type: 'integer'
+            type: 'string'
         }
     },
     required: ['id']
+} as const;
+
+export const TransactionDeleteResponseSchema = {
+    type: 'object',
+    properties: {
+        id: {
+            type: 'string'
+        },
+        message: {
+            type: 'string'
+        }
+    },
+    required: ['id', 'message']
+} as const;
+
+export const NotAuthorizedSchema = {
+    type: 'object',
+    properties: {
+        message: {
+            type: 'string',
+            const: 'Not authorized'
+        }
+    }
+} as const;
+
+export const NotFoundSchema = {
+    type: 'object',
+    properties: {
+        message: {
+            type: 'string',
+            const: 'Not found'
+        }
+    }
+} as const;
+
+export const UserSchema = {
+    type: 'object',
+    properties: {
+        id: {
+            type: 'string'
+        },
+        email: {
+            type: 'string'
+        },
+        created_at: {
+            type: 'string',
+            format: 'date-time'
+        }
+    },
+    required: ['id', 'email', 'created_at']
+} as const;
+
+export const AccountSchema = {
+    type: 'object',
+    properties: {
+        id: {
+            type: 'string'
+        },
+        name: {
+            type: 'string'
+        },
+        bank: {
+            '$ref': '#/components/schemas/Bank'
+        },
+        created_at: {
+            type: 'string',
+            format: 'date-time'
+        }
+    },
+    required: ['id', 'name', 'bank', 'created_at']
+} as const;
+
+export const BankSchema = {
+    type: 'object',
+    properties: {
+        id: {
+            type: 'string'
+        },
+        name: {
+            type: 'string'
+        },
+        fixed_products: {
+            type: 'boolean'
+        },
+        csv_import_enabled: {
+            type: 'boolean'
+        },
+        api_import_enabled: {
+            type: 'boolean'
+        }
+    },
+    required: ['id', 'name', 'csv_import_enabled', 'api_import_enabled']
+} as const;
+
+export const CategorySchema = {
+    type: 'object',
+    properties: {
+        id: {
+            type: 'string'
+        },
+        name: {
+            type: 'string'
+        },
+        created_at: {
+            type: 'string',
+            format: 'date-time'
+        }
+    },
+    required: ['id', 'name', 'created_at']
 } as const;
 
 export const TransactionSchema = {
     type: 'object',
     properties: {
         id: {
-            type: 'integer'
+            type: 'string'
         },
         amount: {
             type: 'number'
@@ -222,17 +289,4 @@ export const TransactionSchema = {
         }
     },
     required: ['id', 'amount', 'description', 'date', 'created_at']
-} as const;
-
-export const TransactionDeleteResponseSchema = {
-    type: 'object',
-    properties: {
-        id: {
-            type: 'integer'
-        },
-        message: {
-            type: 'string'
-        }
-    },
-    required: ['id', 'message']
 } as const;

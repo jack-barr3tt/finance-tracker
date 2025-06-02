@@ -5,86 +5,105 @@ export type LoginRequest = {
     password: string;
 };
 
-export type LoginResponse = {
-    token: string;
-    id: number;
-};
-
 export type SignupRequest = {
     email?: string;
     password?: string;
 };
 
-export type SignupResponse = {
-    message: string;
-};
-
-export type User = {
-    id: number;
-    email: string;
-    created_at: string;
-};
-
 export type AccountCreateRequest = {
     name: string;
-};
-
-export type AccountCreateResponse = {
-    id: number;
-};
-
-export type Account = {
-    id: number;
-    name: string;
-    created_at: string;
-};
-
-export type AccountDeleteResponse = {
-    id: number;
-    message: string;
+    bank_id: string;
 };
 
 export type CategoryCreateRequest = {
     name: string;
 };
 
+export type TransactionCreateRequest = {
+    account_id: string;
+    amount: number;
+    category_id: number;
+    description: string;
+};
+
+export type LoginResponse = {
+    token: string;
+    id: string;
+};
+
+export type SignupResponse = {
+    message: string;
+};
+
+export type AccountCreateResponse = {
+    ids: Array<(string)>;
+};
+
+export type AccountDeleteResponse = {
+    id: string;
+    message: string;
+};
+
 export type CategoryCreateResponse = {
-    id: number;
+    id: string;
+};
+
+export type CategoryDeleteResponse = {
+    id: string;
+    message: string;
+};
+
+export type TransactionCreateResponse = {
+    id: string;
+};
+
+export type TransactionDeleteResponse = {
+    id: string;
+    message: string;
+};
+
+export type NotAuthorized = {
+    message?: "Not authorized";
+};
+
+export type NotFound = {
+    message?: "Not found";
+};
+
+export type User = {
+    id: string;
+    email: string;
+    created_at: string;
+};
+
+export type Account = {
+    id: string;
+    name: string;
+    bank: Bank;
+    created_at: string;
+};
+
+export type Bank = {
+    id: string;
+    name: string;
+    fixed_products?: boolean;
+    csv_import_enabled: boolean;
+    api_import_enabled: boolean;
 };
 
 export type Category = {
-    id: number;
+    id: string;
     name: string;
     created_at: string;
 };
 
-export type CategoryDeleteResponse = {
-    id: number;
-    message: string;
-};
-
-export type TransactionCreateRequest = {
-    amount: number;
-    category_id: number;
-    description?: string;
-};
-
-export type TransactionCreateResponse = {
-    id: number;
-};
-
 export type Transaction = {
-    id: number;
+    id: string;
     amount: number;
     category?: Category;
     description: string;
     date: string;
     created_at: string;
-};
-
-export type TransactionDeleteResponse = {
-    id: number;
-    message: string;
 };
 
 export type PostLoginData = {
@@ -93,7 +112,7 @@ export type PostLoginData = {
 
 export type PostLoginResponse = (LoginResponse);
 
-export type PostLoginError = unknown;
+export type PostLoginError = (NotFound);
 
 export type PostSignupData = {
     body?: SignupRequest;
@@ -101,22 +120,26 @@ export type PostSignupData = {
 
 export type PostSignupResponse = (SignupResponse);
 
-export type PostSignupError = unknown;
+export type PostSignupError = (NotAuthorized);
+
+export type GetBanksResponse = (Array<Bank>);
+
+export type GetBanksError = (NotFound);
 
 export type GetUserByIdData = {
     path: {
-        id: number;
+        id: string;
     };
 };
 
 export type GetUserByIdResponse = (User);
 
-export type GetUserByIdError = unknown;
+export type GetUserByIdError = (NotFound);
 
 export type PostUserByIdAccountsData = {
     body?: AccountCreateRequest;
     path: {
-        id: number;
+        id: string;
     };
 };
 
@@ -126,75 +149,75 @@ export type PostUserByIdAccountsError = unknown;
 
 export type GetUserByIdAccountsData = {
     path: {
-        id: number;
+        id: string;
     };
 };
 
 export type GetUserByIdAccountsResponse = (Array<Account>);
 
-export type GetUserByIdAccountsError = unknown;
+export type GetUserByIdAccountsError = (NotFound);
 
 export type GetUserByIdAccountsByAccountIdData = {
     path: {
-        account_id: number;
-        id: number;
+        account_id: string;
+        id: string;
     };
 };
 
 export type GetUserByIdAccountsByAccountIdResponse = (Account);
 
-export type GetUserByIdAccountsByAccountIdError = unknown;
+export type GetUserByIdAccountsByAccountIdError = (NotFound);
 
 export type DeleteUserByIdAccountsByAccountIdData = {
     path: {
-        account_id: number;
-        id: number;
+        account_id: string;
+        id: string;
     };
 };
 
 export type DeleteUserByIdAccountsByAccountIdResponse = (AccountDeleteResponse);
 
-export type DeleteUserByIdAccountsByAccountIdError = unknown;
+export type DeleteUserByIdAccountsByAccountIdError = (NotFound);
 
-export type PostUserByIdAccountsByAccountIdTransactionsData = {
+export type PostUserByIdTransactionsData = {
     body?: TransactionCreateRequest;
     path: {
-        account_id: number;
-        id: number;
+        id: string;
     };
 };
 
-export type PostUserByIdAccountsByAccountIdTransactionsResponse = (TransactionCreateResponse);
+export type PostUserByIdTransactionsResponse = (TransactionCreateResponse);
 
-export type PostUserByIdAccountsByAccountIdTransactionsError = unknown;
+export type PostUserByIdTransactionsError = unknown;
 
-export type GetUserByIdAccountsByAccountIdTransactionsData = {
+export type GetUserByIdTransactionsData = {
     path: {
-        account_id: number;
-        id: number;
+        id: string;
+    };
+    query?: {
+        account_id?: string;
     };
 };
 
-export type GetUserByIdAccountsByAccountIdTransactionsResponse = (Array<Transaction>);
+export type GetUserByIdTransactionsResponse = (Array<Transaction>);
 
-export type GetUserByIdAccountsByAccountIdTransactionsError = unknown;
+export type GetUserByIdTransactionsError = (NotFound);
 
-export type DeleteUserByIdAccountsByAccountIdTransactionsByTransactionIdData = {
+export type DeleteUserByIdTransactionsByTransactionIdData = {
     path: {
-        account_id: number;
-        id: number;
-        transaction_id: number;
+        id: string;
+        transaction_id: string;
     };
 };
 
-export type DeleteUserByIdAccountsByAccountIdTransactionsByTransactionIdResponse = (TransactionDeleteResponse);
+export type DeleteUserByIdTransactionsByTransactionIdResponse = (TransactionDeleteResponse);
 
-export type DeleteUserByIdAccountsByAccountIdTransactionsByTransactionIdError = unknown;
+export type DeleteUserByIdTransactionsByTransactionIdError = (NotFound);
 
 export type PostUserByIdCategoriesData = {
     body?: CategoryCreateRequest;
     path: {
-        id: number;
+        id: string;
     };
 };
 
@@ -204,32 +227,32 @@ export type PostUserByIdCategoriesError = unknown;
 
 export type GetUserByIdCategoriesData = {
     path: {
-        id: number;
+        id: string;
     };
 };
 
 export type GetUserByIdCategoriesResponse = (Array<Category>);
 
-export type GetUserByIdCategoriesError = unknown;
+export type GetUserByIdCategoriesError = (NotFound);
 
 export type GetUserByIdCategoriesByCategoryIdData = {
     path: {
-        category_id: number;
-        id: number;
+        category_id: string;
+        id: string;
     };
 };
 
 export type GetUserByIdCategoriesByCategoryIdResponse = (Category);
 
-export type GetUserByIdCategoriesByCategoryIdError = unknown;
+export type GetUserByIdCategoriesByCategoryIdError = (NotFound);
 
 export type DeleteUserByIdCategoriesByCategoryIdData = {
     path: {
-        category_id: number;
-        id: number;
+        category_id: string;
+        id: string;
     };
 };
 
 export type DeleteUserByIdCategoriesByCategoryIdResponse = (CategoryDeleteResponse);
 
-export type DeleteUserByIdCategoriesByCategoryIdError = unknown;
+export type DeleteUserByIdCategoriesByCategoryIdError = (NotFound);

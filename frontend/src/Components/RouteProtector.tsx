@@ -7,9 +7,7 @@ export default function RouteProtector() {
   const navigate = useNavigate()
 
   useEffect(() => {
-    if (userId === null) {
-      navigate("/login")
-    }
+    if (!userId) navigate("/login")
   }, [userId, navigate])
 
   return <Outlet />

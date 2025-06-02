@@ -49,6 +49,25 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/NotAuthorized"
+  /banks:
+    get:
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: List of banks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Bank"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFound"
   /user/{id}:
     get:
       security:
@@ -386,8 +405,11 @@ components:
         name:
           type: string
           example: "Checking Account"
+        bank_id:
+          type: string
       required:
         - name
+        - bank_id
     CategoryCreateRequest:
       type: object
       properties:
@@ -435,10 +457,12 @@ components:
     AccountCreateResponse:
       type: object
       properties:
-        id:
-          type: string
+        ids:
+          type: array
+          items:
+            type: string
       required:
-        - id
+        - ids
     AccountDeleteResponse:
       type: object
       properties:
@@ -518,13 +542,34 @@ components:
           type: string
         name:
           type: string
+        bank:
+          $ref: "#/components/schemas/Bank"
         created_at:
           type: string
           format: date-time
       required:
         - id
         - name
+        - bank
         - created_at
+    Bank:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        fixed_products:
+          type: boolean
+        csv_import_enabled:
+          type: boolean
+        api_import_enabled:
+          type: boolean
+      required:
+        - id
+        - name
+        - csv_import_enabled
+        - api_import_enabled
     Category:
       type: object
       properties:
