@@ -56,10 +56,14 @@ func (s Server) GetUserIdTransactions(c *fiber.Ctx, userId string, params GetUse
 		c.Context(),
 		fmt.Sprintf(
 			`SELECT 
-				t.id, t.amount, t.description, t.date, c.id, c.name, c.created_at
+				t.id, t.amount, t.description, t.date, 
+				c.id, c.name, c.created_at,
+				a.id, a.name, a.opened_at, a.closed_at,
+				b.id, b.name, b.csv_import_enabled, b.api_import_enabled
 			FROM transaction t
 			LEFT JOIN category c ON t.category_id = c.id
 			LEFT JOIN account a ON t.account_id = a.id
+			LEFT JOIN bank b ON a.bank_id = b.id
 			%[1]s`,
 			whereClause,
 		),
@@ -71,30 +75,25 @@ func (s Server) GetUserIdTransactions(c *fiber.Ctx, userId string, params GetUse
 
 	transactions := []Transaction{}
 	for rows.Next() {
-		var id string
-		var amount float32
-		var description string
-		var date time.Time
-		var categoryId *string
-		var categoryName *string
-		var categoryCreatedAt *time.Time
-		err = rows.Scan(&id, &amount, &description, &date, &categoryId, &categoryName, &categoryCreatedAt)
+		transaction := Transaction{}
+		var c_id *string
+		var c_name *string
+		var c_created_at *time.Time
+		err = rows.Scan(
+			&transaction.Id, &transaction.Amount, &transaction.Description, &transaction.Date,
+			&c_id, &c_name, &c_created_at,
+			&transaction.Account.Id, &transaction.Account.Name, &transaction.Account.OpenedAt, &transaction.Account.ClosedAt,
+			&transaction.Account.Bank.Id, &transaction.Account.Bank.Name, &transaction.Account.Bank.CsvImportEnabled, &transaction.Account.Bank.ApiImportEnabled,
+		)
 		if err != nil {
 			return DBError(c, err)
 		}
 
-		transaction := Transaction{
-			Id:          id,
-			Amount:      amount,
-			Description: description,
-			Date:        date,
-		}
-
-		if categoryId != nil {
+		if c_id != nil {
 			transaction.Category = &Category{
-				Id:        *categoryId,
-				Name:      *categoryName,
-				CreatedAt: *categoryCreatedAt,
+				Id:        *c_id,
+				Name:      *c_name,
+				CreatedAt: *c_created_at,
 			}
 		}
 

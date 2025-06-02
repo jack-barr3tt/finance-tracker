@@ -1,8 +1,6 @@
 package api
 
 import (
-	"time"
-
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -66,21 +64,37 @@ func (s Server) GetUserIdCategoriesCategoryId(c *fiber.Ctx, userId string, categ
 		return c.SendStatus(fiber.StatusUnauthorized)
 	}
 
-	var name string
-	var createdAt time.Time
+	category := Category{}
+	rules := []CategoryRule{}
 
-	err := s.DB.QueryRow(c.Context(), "SELECT name, created_at FROM category WHERE user_id = $1 AND id = $2", userId, categoryId).Scan(&name, &createdAt)
+	rows, err := s.DB.Query(
+		c.Context(),
+		`SELECT 
+			c.name, c.created_at,
+			cr.id, cr.rule_regex,
+			a.id, a.name, a.opened_at, a.closed_at
+			FROM category c 
+			LEFT JOIN category_rule cr ON c.id = cr.category_id 
+			LEFT JOIN account a ON cr.account_id = a.id
+			WHERE id = $1`,
+		categoryId,
+	)
 	if err != nil {
 		return DBError(c, err)
 	}
 
-	return c.
-		Status(fiber.StatusOK).
-		JSON(Category{
-			Id:        categoryId,
-			Name:      name,
-			CreatedAt: createdAt,
-		})
+	for rows.Next() {
+		rule := CategoryRule{}
+		err = rows.Scan(&category.Name, &category.CreatedAt, &rule.Id, &rule.Rule, &rule.Account.Id, &rule.Account.Name, &rule.Account.OpenedAt, &rule.Account.ClosedAt)
+		if err != nil {
+			return DBError(c, err)
+		}
+		rules = append(rules, rule)
+	}
+
+	category.Rules = rules
+
+	return c.JSON(category)
 }
 
 func (s Server) DeleteUserIdCategoriesCategoryId(c *fiber.Ctx, userId string, categoryId string) error {
@@ -90,7 +104,7 @@ func (s Server) DeleteUserIdCategoriesCategoryId(c *fiber.Ctx, userId string, ca
 		return c.SendStatus(fiber.StatusUnauthorized)
 	}
 
-	tag, err := s.DB.Exec(c.Context(), "DELETE FROM category WHERE user_id = $1 AND id = $2", userId, categoryId)
+	tag, err := s.DB.Exec(c.Context(), "DELETE FROM category WHERE id = $1", categoryId)
 	if err != nil {
 		return DBError(c, err)
 	}
@@ -103,4 +117,16 @@ func (s Server) DeleteUserIdCategoriesCategoryId(c *fiber.Ctx, userId string, ca
 		Id:      categoryId,
 		Message: "Category deleted",
 	})
+}
+
+func (s *Server) PostUserIdCategoriesCategoryIdRules(c *fiber.Ctx, id string, categoryId string) error {
+	panic("unimplemented")
+}
+
+func (s *Server) DeleteUserIdCategoriesCategoryIdRulesRuleId(c *fiber.Ctx, id string, categoryId string, ruleId string) error {
+	panic("unimplemented")
+}
+
+func (s *Server) PatchUserIdCategoriesCategoryIdRulesRuleId(c *fiber.Ctx, id string, categoryId string, ruleId string) error {
+	panic("unimplemented")
 }

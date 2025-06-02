@@ -372,6 +372,103 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/NotFound"
+  /user/{id}/categories/{category_id}/rules:
+    post:
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: category_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CategoryAddRuleRequest"
+      responses:
+        "200":
+          description: Category rule added response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CategoryAddRuleResponse"
+  /user/{id}/categories/{category_id}/rules/{rule_id}:
+    patch:
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: category_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: rule_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CategoryEditRuleRequest"
+      responses:
+        "200":
+          description: Category rule edited response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CategoryEditRuleResponse"
+        "404":
+          description: Rule not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFound"
+    delete:
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: category_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: rule_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Category rule deleted response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CategoryEditRuleResponse"
+        "404":
+          description: Rule not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFound"
 components:
   securitySchemes:
     BearerAuth:
@@ -407,9 +504,13 @@ components:
           example: "Checking Account"
         bank_id:
           type: string
+        opened_at:
+          type: string
+          format: date-time
       required:
         - name
         - bank_id
+        - opened_at
     CategoryCreateRequest:
       type: object
       properties:
@@ -418,6 +519,24 @@ components:
           example: "Groceries"
       required:
         - name
+    CategoryAddRuleRequest:
+      type: object
+      properties:
+        category_id:
+          type: string
+        rule:
+          type: string
+          example: "Tesco"
+    CategoryEditRuleRequest:
+      type: object
+      properties:
+        category_id:
+          type: string
+        rule_id:
+          type: string
+        rule:
+          type: string
+          example: "Tesco"
     TransactionCreateRequest:
       type: object
       properties:
@@ -427,7 +546,7 @@ components:
           type: number
           example: 100.00
         category_id:
-          type: integer
+          type: string
         description:
           type: string
           example: "Milk"
@@ -490,6 +609,39 @@ components:
       required:
         - id
         - message
+    CategoryAddRuleResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        rule_id:
+          type: string
+      required:
+        - id
+        - rule_id
+    CategoryEditRuleResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        rule_id:
+          type: string
+      required:
+        - id
+        - rule_id
+    CategoryDeleteRuleResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        rule_id:
+          type: string
+        message:
+          type: string
+      required:
+        - id
+        - rule_id
+        - message
     TransactionCreateResponse:
       type: object
       properties:
@@ -544,14 +696,17 @@ components:
           type: string
         bank:
           $ref: "#/components/schemas/Bank"
-        created_at:
+        opened_at:
+          type: string
+          format: date-time
+        closed_at:
           type: string
           format: date-time
       required:
         - id
         - name
         - bank
-        - created_at
+        - opened_at
     Bank:
       type: object
       properties:
@@ -580,10 +735,28 @@ components:
         created_at:
           type: string
           format: date-time
+        rules:
+          type: array
+          items:
+            $ref: "#/components/schemas/CategoryRule"
       required:
         - id
         - name
         - created_at
+        - rules
+    CategoryRule:
+      type: object
+      properties:
+        id:
+          type: string
+        account:
+          $ref: "#/components/schemas/Account"
+        rule:
+          type: string
+      required:
+        - id
+        - account
+        - rule
     Transaction:
       type: object
       properties:
@@ -593,6 +766,8 @@ components:
           type: number
         category:
           $ref: "#/components/schemas/Category"
+        account:
+          $ref: "#/components/schemas/Account"
         description:
           type: string
         date:
@@ -604,6 +779,7 @@ components:
       required:
         - id
         - amount
+        - account
         - description
         - date
         - created_at

@@ -36,9 +36,13 @@ export const AccountCreateRequestSchema = {
         },
         bank_id: {
             type: 'string'
+        },
+        opened_at: {
+            type: 'string',
+            format: 'date-time'
         }
     },
-    required: ['name', 'bank_id']
+    required: ['name', 'bank_id', 'opened_at']
 } as const;
 
 export const CategoryCreateRequestSchema = {
@@ -63,7 +67,7 @@ export const TransactionCreateRequestSchema = {
             example: 100
         },
         category_id: {
-            type: 'integer'
+            type: 'string'
         },
         description: {
             type: 'string',
@@ -217,12 +221,16 @@ export const AccountSchema = {
         bank: {
             '$ref': '#/components/schemas/Bank'
         },
-        created_at: {
+        opened_at: {
+            type: 'string',
+            format: 'date-time'
+        },
+        closed_at: {
             type: 'string',
             format: 'date-time'
         }
     },
-    required: ['id', 'name', 'bank', 'created_at']
+    required: ['id', 'name', 'bank', 'opened_at']
 } as const;
 
 export const BankSchema = {
@@ -276,6 +284,9 @@ export const TransactionSchema = {
         category: {
             '$ref': '#/components/schemas/Category'
         },
+        account: {
+            '$ref': '#/components/schemas/Account'
+        },
         description: {
             type: 'string'
         },
@@ -288,5 +299,5 @@ export const TransactionSchema = {
             format: 'date-time'
         }
     },
-    required: ['id', 'amount', 'description', 'date', 'created_at']
+    required: ['id', 'amount', 'account', 'description', 'date', 'created_at']
 } as const;

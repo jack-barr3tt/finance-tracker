@@ -3,7 +3,6 @@ package api
 import (
 	"log"
 	"net/http"
-	"time"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -49,7 +48,7 @@ func (s Server) PostUserIdAccounts(c *fiber.Ctx, userId string) error {
 
 	for _, name := range accountsToCreate {
 		var id string
-		err = tx.QueryRow(c.Context(), "INSERT INTO account (user_id, bank_id, name) VALUES ($1, $2, $3) RETURNING id", userId, body.BankId, name).Scan(&id)
+		err = tx.QueryRow(c.Context(), "INSERT INTO account (user_id, bank_id, name, opened_at) VALUES ($1, $2, $3, $4) RETURNING id", userId, body.BankId, name, body.OpenedAt).Scan(&id)
 		if err != nil {
 			return DBError(c, err)
 		}
@@ -75,7 +74,9 @@ func (s Server) GetUserIdAccounts(c *fiber.Ctx, userId string) error {
 
 	rows, err := s.DB.Query(
 		c.Context(),
-		`SELECT a.id, a.name, a.created_at, b.id, b.name, b.csv_import_enabled, b.api_import_enabled
+		`SELECT 
+			a.id, a.name, a.opened_at, a.closed_at,
+			b.id, b.name, b.csv_import_enabled, b.api_import_enabled
 		FROM account a
 		LEFT JOIN bank b ON a.bank_id = b.id
 		WHERE a.user_id = $1`,
@@ -88,7 +89,8 @@ func (s Server) GetUserIdAccounts(c *fiber.Ctx, userId string) error {
 	accounts := []Account{}
 	for rows.Next() {
 		account := Account{}
-		err = rows.Scan(&account.Id, &account.Name, &account.CreatedAt, &account.Bank.Id, &account.Bank.Name, &account.Bank.CsvImportEnabled, &account.Bank.ApiImportEnabled)
+		err = rows.Scan(&account.Id, &account.Name, &account.OpenedAt, &account.ClosedAt,
+			&account.Bank.Id, &account.Bank.Name, &account.Bank.CsvImportEnabled, &account.Bank.ApiImportEnabled)
 		if err != nil {
 			return DBError(c, err)
 		}
@@ -129,19 +131,23 @@ func (s Server) GetUserIdAccountsAccountId(c *fiber.Ctx, userId string, accountI
 		return c.SendStatus(fiber.StatusUnauthorized)
 	}
 
-	var name string
-	var createdAt time.Time
+	account := Account{}
 
-	err := s.DB.QueryRow(c.Context(), "SELECT name, created_at FROM account WHERE user_id = $1 AND id = $2", userId, accountId).Scan(&name, &createdAt)
+	err := s.DB.QueryRow(
+		c.Context(),
+		`SELECT 
+			a.name, a.opened_at, a.closed_at,
+			b.id, b.name, b.csv_import_enabled, b.api_import_enabled
+		FROM account a 
+		LEFT JOIN bank b ON a.bank_id = b.id
+		WHERE a.user_id = $1 AND a.id = $2`,
+		userId, accountId,
+	).Scan(&account.Name, &account.OpenedAt, &account.ClosedAt,
+		&account.Bank.Id, &account.Bank.Name, &account.Bank.CsvImportEnabled, &account.Bank.ApiImportEnabled)
 	if err != nil {
 		return DBError(c, err)
 	}
+	account.Id = accountId
 
-	return c.
-		Status(http.StatusOK).
-		JSON(Account{
-			Id:        accountId,
-			Name:      name,
-			CreatedAt: createdAt,
-		})
+	return c.JSON(account)
 }

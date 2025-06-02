@@ -13,6 +13,7 @@ export type SignupRequest = {
 export type AccountCreateRequest = {
     name: string;
     bank_id: string;
+    opened_at: string;
 };
 
 export type CategoryCreateRequest = {
@@ -22,7 +23,7 @@ export type CategoryCreateRequest = {
 export type TransactionCreateRequest = {
     account_id: string;
     amount: number;
-    category_id: number;
+    category_id: string;
     description: string;
 };
 
@@ -80,7 +81,8 @@ export type Account = {
     id: string;
     name: string;
     bank: Bank;
-    created_at: string;
+    opened_at: string;
+    closed_at?: string;
 };
 
 export type Bank = {
@@ -101,6 +103,7 @@ export type Transaction = {
     id: string;
     amount: number;
     category?: Category;
+    account: Account;
     description: string;
     date: string;
     created_at: string;
