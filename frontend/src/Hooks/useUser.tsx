@@ -1,7 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, ReactNode, useContext, useState } from "react"
+import { createContext, ReactNode, useContext, useEffect, useState } from "react"
 import Cookies from "js-cookie"
-import { usePostLogin } from "../API/queries"
+import { useGetUserById, usePostLogin } from "../API/queries"
 
 interface UserValue {
   userId: number | null
@@ -21,6 +21,9 @@ export function UserProvider(props: { children: ReactNode }) {
   const [userId, setUserId] = useState<number | null>(null)
 
   const { mutateAsync: loginReq } = usePostLogin()
+  const { isError } = useGetUserById({ path: { id: userId || 0 } }, undefined, {
+    enabled: userId !== null,
+  })
 
   const login = async (email: string, password: string) => {
     try {
@@ -34,6 +37,7 @@ export function UserProvider(props: { children: ReactNode }) {
       setUserId(response.data?.id || null)
 
       Cookies.set("access_token", response.data?.token || "", {})
+      Cookies.set("user_id", String(response.data?.id || ""), {})
 
       return true
     } catch {
@@ -41,9 +45,26 @@ export function UserProvider(props: { children: ReactNode }) {
     }
   }
 
+  useEffect(() => {
+    if (isError) {
+      setUserId(null)
+      Cookies.remove("access_token")
+      Cookies.remove("user_id")
+    }
+  }, [isError])
+
+  useEffect(() => {
+    const storedUserId = Cookies.get("user_id")
+    const storedAccessToken = Cookies.get("access_token")
+    if (storedUserId && storedAccessToken) {
+      setUserId(Number(storedUserId))
+    }
+  }, [])
+
   const logout = () => {
     setUserId(null)
     Cookies.remove("access_token")
+    Cookies.remove("user_id")
   }
 
   const value: UserValue = {

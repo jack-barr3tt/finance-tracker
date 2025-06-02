@@ -3,10 +3,17 @@ import Router from "./Router"
 import { client } from "./API/requests"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { createTheme, ThemeProvider } from "flowbite-react"
+import Cookies from "js-cookie"
 
 client.setConfig({
   baseUrl: import.meta.env.VITE_BACKEND_URL,
   throwOnError: true,
+})
+
+client.interceptors.request.use((config) => {
+  const accessToken = Cookies.get("access_token")
+  if (accessToken) config.headers.append("Authorization", `Bearer ${accessToken}`)
+  return config
 })
 
 const queryClient = new QueryClient()

@@ -17,6 +17,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	defer server.DB.Close(context)
 
 	app := fiber.New()
 

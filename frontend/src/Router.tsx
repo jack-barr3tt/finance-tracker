@@ -2,17 +2,22 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom"
 import Dashboard from "./Pages/Dashboard"
 import SignUp from "./Pages/SignUp"
 import Login from "./Pages/Login"
-import { DarkThemeToggle } from "flowbite-react"
+import NavBar from "./Components/NavBar"
+import RouteProtector from "./Components/RouteProtector"
+import Settings from "./Pages/Settings"
 
 export default function Router() {
   return (
     <BrowserRouter>
-      <div className="flex items-center justify-end w-full p-2">
-        <DarkThemeToggle />
-      </div>
+      <NavBar />
       <Routes>
         <Route path="/" element={<Navigate to="login" />} />
-        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/dashboard" element={<RouteProtector />}>
+          <Route index element={<Dashboard />} />
+        </Route>
+        <Route path="/settings" element={<RouteProtector />}>
+          <Route index element={<Settings />} />
+        </Route>
         <Route path="/signup" element={<SignUp />} />
         <Route path="/login" element={<Login />} />
       </Routes>
