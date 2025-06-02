@@ -1,41 +1,32 @@
 package api
 
 import (
-	"database/sql"
-	"errors"
-	"log"
 	"net/http"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/jack-barr3tt/finance-tracker/utils"
 )
 
-func (s Server) GetUserId(ctx *fiber.Ctx, reqId string) error {
-	if ctx.Locals("user") == nil {
-		return ctx.SendStatus(fiber.StatusBadRequest)
+func (s Server) GetUserId(c *fiber.Ctx, reqId string) error {
+	if c.Locals("user") == nil {
+		return c.SendStatus(fiber.StatusBadRequest)
 	}
 
-	userId := utils.GetTokenClaim[string](ctx, "id")
+	userId := GetTokenClaim[string](c, "id")
 
 	if userId != reqId {
-		return ctx.SendStatus(fiber.StatusUnauthorized)
+		return c.SendStatus(fiber.StatusUnauthorized)
 	}
 
 	var email string
 	var createdAt time.Time
 
-	err := s.DB.QueryRow(ctx.Context(), `SELECT email, created_at FROM "user" WHERE id = $1`, userId).Scan(&email, &createdAt)
+	err := s.DB.QueryRow(c.Context(), `SELECT email, created_at FROM "user" WHERE id = $1`, userId).Scan(&email, &createdAt)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return ctx.SendStatus(fiber.StatusNotFound)
-		}
-
-		log.Println(err)
-		return ctx.SendStatus(fiber.StatusInternalServerError)
+		return DBError(c, err)
 	}
 
-	return ctx.
+	return c.
 		Status(http.StatusOK).JSON(User{
 		Id:        userId,
 		Email:     email,

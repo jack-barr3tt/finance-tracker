@@ -17,6 +17,18 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/LoginResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFound"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFound"
   /signup:
     post:
       requestBody:
@@ -31,6 +43,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/SignupResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotAuthorized"
   /user/{id}:
     get:
       security:
@@ -48,6 +66,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/User"
+        "404":
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFound"
   /user/{id}/accounts:
     post:
       security:
@@ -88,6 +112,12 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/Account"
+        "404":
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFound"
   /user/{id}/accounts/{account_id}:
     get:
       security:
@@ -110,6 +140,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Account"
+        "404":
+          description: Account not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFound"
     delete:
       security:
         - BearerAuth: []
@@ -131,6 +167,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/AccountDeleteResponse"
+        "404":
+          description: Account not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFound"
   /user/{id}/transactions:
     post:
       security:
@@ -176,6 +218,12 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/Transaction"
+        "404":
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFound"
   /user/{id}/transactions/{transaction_id}:
     delete:
       security:
@@ -198,6 +246,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/TransactionDeleteResponse"
+        "404":
+          description: Transaction not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFound"
   /user/{id}/categories:
     post:
       security:
@@ -238,6 +292,12 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/Category"
+        "404":
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFound"
   /user/{id}/categories/{category_id}:
     get:
       security:
@@ -260,6 +320,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Category"
+        "404":
+          description: Category not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFound"
     delete:
       security:
         - BearerAuth: []
@@ -281,6 +347,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/CategoryDeleteResponse"
+        "404":
+          description: Category not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFound"
 components:
   securitySchemes:
     BearerAuth:
@@ -411,6 +483,19 @@ components:
       required:
         - id
         - message
+    # Errors
+    NotAuthorized:
+      type: object
+      properties:
+        message:
+          type: string
+          const: "Not authorized"
+    NotFound:
+      type: object
+      properties:
+        message:
+          type: string
+          const: "Not found"
     # Schemas
     User:
       type: object

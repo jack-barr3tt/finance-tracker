@@ -24,6 +24,7 @@ const (
 
 // Account defines model for Account.
 type Account struct {
+	Bank      Bank      `json:"bank"`
 	CreatedAt time.Time `json:"created_at"`
 	Id        string    `json:"id"`
 	Name      string    `json:"name"`
@@ -31,7 +32,8 @@ type Account struct {
 
 // AccountCreateRequest defines model for AccountCreateRequest.
 type AccountCreateRequest struct {
-	Name string `json:"name"`
+	BankId string `json:"bank_id"`
+	Name   string `json:"name"`
 }
 
 // AccountCreateResponse defines model for AccountCreateResponse.
@@ -43,6 +45,14 @@ type AccountCreateResponse struct {
 type AccountDeleteResponse struct {
 	Id      string `json:"id"`
 	Message string `json:"message"`
+}
+
+// Bank defines model for Bank.
+type Bank struct {
+	ApiImportEnabled bool   `json:"api_import_enabled"`
+	CsvImportEnabled bool   `json:"csv_import_enabled"`
+	Id               string `json:"id"`
+	Name             string `json:"name"`
 }
 
 // Category defines model for Category.
@@ -78,6 +88,16 @@ type LoginRequest struct {
 type LoginResponse struct {
 	Id    string `json:"id"`
 	Token string `json:"token"`
+}
+
+// NotAuthorized defines model for NotAuthorized.
+type NotAuthorized struct {
+	Message *string `json:"message,omitempty"`
+}
+
+// NotFound defines model for NotFound.
+type NotFound struct {
+	Message *string `json:"message,omitempty"`
 }
 
 // SignupRequest defines model for SignupRequest.
@@ -150,6 +170,9 @@ type PostUserIdTransactionsJSONRequestBody = TransactionCreateRequest
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 
+	// (GET /banks)
+	GetBanks(c *fiber.Ctx) error
+
 	// (POST /login)
 	PostLogin(c *fiber.Ctx) error
 
@@ -199,6 +222,14 @@ type ServerInterfaceWrapper struct {
 }
 
 type MiddlewareFunc fiber.Handler
+
+// GetBanks operation middleware
+func (siw *ServerInterfaceWrapper) GetBanks(c *fiber.Ctx) error {
+
+	c.Context().SetUserValue(BearerAuthScopes, []string{})
+
+	return siw.Handler.GetBanks(c)
+}
 
 // PostLogin operation middleware
 func (siw *ServerInterfaceWrapper) PostLogin(c *fiber.Ctx) error {
@@ -505,6 +536,8 @@ func RegisterHandlersWithOptions(router fiber.Router, si ServerInterface, option
 		router.Use(fiber.Handler(m))
 	}
 
+	router.Get(options.BaseURL+"/banks", wrapper.GetBanks)
+
 	router.Post(options.BaseURL+"/login", wrapper.PostLogin)
 
 	router.Post(options.BaseURL+"/signup", wrapper.PostSignup)
@@ -538,24 +571,27 @@ func RegisterHandlersWithOptions(router fiber.Router, si ServerInterface, option
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/+xYwY7bNhD9FYPtkV057U2nblwk2KIFgsZFDwsj4FKzMmOL1JJUW8PQvwckJYuyKUsO",
-	"JK8D5GRLGnKGb2beI7lHVGS54MC1QvEeKbqGjNi/95SKgmvzN5ciB6kZ2A9UAtGQfCL227OQmfmHEqLh",
-	"J80yQBjpXQ4oRkpLxlNUYsQSY3vympMMAh9KjCS8FExCguJHM7gyxb7z1cGPePoMVJsJq6AX1uoveClA",
-	"BVZQu4X/SZZvzQyLNdAN4+msXjXuiclOMSAClQuu4DSEICCn6z7j4TfYwsUeMMpAKZIORb22DsWxIBpS",
-	"IXffVoXUUV9cIu+loCDN56+ujWPfExRH7eLVq+MPkTLeCS9khG2DEeREqf+EHICAm8MbcSaMC2HQYgO8",
-	"PwJnhrty8ZGlvMj7MWhqrFAgf60e76jIQo3iA9SMPLwNFWdnZF2wDC6DcxWwlIQrQjUT/NQDyWpxqcbx",
-	"InsCacZRj1d+lPCMYvRD1MhUVGlUdOCfEn8V45iPF1iDopLl9WqG8VeoaaqVt2esoullLw/THgIjTiU+",
-	"dVR4g/+hht7M57g7G+2JGNeQOoMjYJqS/JNtN71c6YXpQeM7bXsYCMoEzOp5eXVy/VuBHEd2u4l4cEHX",
-	"PHy2dEuMFNBCMr37aPrXRfwWiAR5X+i1eXqyT+/quH//Z4mw25GamdzXZg1rrXNUmokZfxY2VqZt4b1j",
-	"nHAKs6UkdANydv/hAWH0L0hlaxS9uZvfzc0SRQ6c5AzF6Bf7ypCrXtvIoq0RDouxcO1lkCYm+w8JitEH",
-	"obTVFuQQAaXfisRyFhVcg+stkudbRu2o6LNyDeLoq4/cWvJZlg54V282vp/n87F9VdVsfbWa2onoTHoW",
-	"JUaRsiJyHiInNBNh1NbXiUE6kswASsZiVuQnOBlRj/YsKY2LFAJIvQdtOvohsRUoSQYapELx4x6ZGrRV",
-	"WW9wY9d0TRdqWQD2FnHcsasJQbE8FIDCvPdxaJrfLspv+8dVuWrDFFWaoPrxuq8tbxA3piFTfQDWx81m",
-	"k0akJLsQppXpJbDiM515JQDH7/rgEX/i5g8f6sdJUrj2o32zM7LEkdg9x2ku3V6knc3qdxo+wcFJWvu4",
-	"2yCn8D3JWJ01jJi+Z6LFchM0THVUqLbA57OyaGy/VcHwD719ilHbjisZVwBxfNEI3/pNrBod130jZaqr",
-	"DaK9d3oeLB1NVutYrslZ7fP+bZBWx03qaH02lKq+5+OY+aboH93c7gwQkqVvPWFWXgqQuw5pf2Uh8m93",
-	"B2iRZz6uHE2diokEqfMid2JN6r4rHS9p3Z0V7b2nS+TJz7L3/5qc2I78Zmix+1p6xISW5ZcAAAD//w7Q",
-	"8pwpIAAA",
+	"H4sIAAAAAAAC/+xZUW/bNhD+Kwa3Ry1ytj75aXGGDBm6oVhT7CEIAlo626wtUiGpbp6h/16QlCwqpiQq",
+	"tWwn6JNl6cg73n333ZHcooglKaNApUCTLRLREhKsH6+iiGVUqseUsxS4JKA/zDBdqd8fOczRBP0QVlOE",
+	"xfhwqmTyAEUcsIT4Eet55own6gnFWMJPkiSAAiQ3KaAJEpITulBjSKxk915TnIDjQx4gDk8Z4RCjyb0a",
+	"XIgGxtCaDQ87dWz2GSKp5i3Wea2l/oanDETDoh87LIP/cJKu1bfrJUQrQhej0olBh9mWxUqLh50iZVTA",
+	"vqFOG/ed1KLhN1hDbw0BSkAIvPANUSntsmNaAKyuFqfkkSQp4/IRKJ6twTZjxtgaMNWQE1+85A4GM4fC",
+	"wGWta6nXWMKC8c3+ck+aOR0pU1rdkTP7efE7ZxFw9dkrIXx0D5AHpYqTJ8J7tiC00b2QYLJ2WpBiIf5l",
+	"3MMDZg5rRIsZPd0g2QpotwVGLGiKxV9MXmVyyTj53yRyXbfl64hR5SU1YoSrIS6gubTcsIz6K5hraa+5",
+	"P5IFzdLuKFZZkgngvxZ/LyKWuFLdDnE1cve2l2VNgfUGchuG7zimAkeSMOrg9KRsMYpxNEtmwDWNW8zY",
+	"1mnsGPSF3Yb62EMaRMRJWq7Gj4FdaV+svD5jYU0n/1o+7aBgbEp6U+dS+X+HocvxOGiORn0iQiUsjMAz",
+	"x1SQ/JOsV51sb5lpucZWWtfg6ZQBaoOl5eTl4ZMAfpjGobmUeAO6rCSt0M0DJCDKOJGbjyp/jcVTwBy4",
+	"onndaet/N6Xdf/xzhwKzL9ENnP5arWEpZYpyNTGhc6ZtJVID74ZQTCMY3XEcrYCPrj7cogB9AS40RtHl",
+	"xfhirJbIUqA4JWiCftGvFLnKpbYsVA25flqAdqdyNFbBv41VOwNyqgWUPwwMtPDP43FRMCSY9MJpuiaR",
+	"Hhl+FiZHDINppEhIhO+Wqlg45hxvzMpruYfeEyFHbD4ypucBejd+18uaNiN2hdKhuKqLdpzR5L4e4fuH",
+	"/EEJhGvVVmj8MuFw7gcmpO48kEEbCDll8eZgS6k1V3luQP0NQfTQVTCFK2hKYMR3Eipql0eJ2idqNUsn",
+	"QouGg9DdSDseTMcyECDqjdrAiHjWezkcpCRGWTokKKzOuhMZJkiqNQ23JM7bOFHVpdtY8yjHCUjgQrOA",
+	"ynbNreVGc2JKR1VLJM8gsOx/XnceBoyIrqYuNwjgz4JwnAzRimlPUt0FKCx6KtEdqatS8gwj5lUay1M2",
+	"j+pYiL6OgAYtVHik0B2eZp3nrQOzrfvs1AseL8y6cFvtaTRZxnq3sB9Ls4uoR7P4HYZDA+cktR3YeRCy",
+	"+zj6zHK61N0vrf34+DsMauT++gNfp4rieKPYtrdD4rqSfa1F2j6o66rSpexbKdNHCN/hC7X7lmfgSt1w",
+	"veOHkRcnYLi1zhq9y3UV1dKWY1J1/XT0PLi64ebs3DJ8p/yQVfs7GpoZ/y3Ev84dsroH8Cjfd7b0gJh4",
+	"yoBvGrq5E5d/+x7QowOwxN9KEzA0CAZqAxovGwfuBJrv87zh8g05HW6tf32aAjvK1vMxa0Hd8rMpB81X",
+	"p2eY/7b+XlUiz78GAAD//68ZxGZUKQAA",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

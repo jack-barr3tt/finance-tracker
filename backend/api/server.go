@@ -13,14 +13,14 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/joho/godotenv"
 
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 // ensure that we've conformed to the `ServerInterface` with a compile-time check
 var _ ServerInterface = (*Server)(nil)
 
 type Server struct {
-	DB        *pgx.Conn
+	DB        *pgxpool.Pool
 	JWTSecret string
 	Spec      *openapi3.T
 }
@@ -37,7 +37,7 @@ func NewServer(ctx context.Context) (*Server, error) {
 	password := os.Getenv("DB_PASSWORD")
 	dbname := os.Getenv("DB_NAME")
 
-	conn, err := pgx.Connect(ctx, fmt.Sprintf("host=%s port=%d user=%s "+
+	conn, err := pgxpool.New(ctx, fmt.Sprintf("host=%s port=%d user=%s "+
 		"password=%s dbname=%s sslmode=disable",
 		host, port, user, password, dbname))
 	if err != nil {

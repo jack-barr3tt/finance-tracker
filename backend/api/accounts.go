@@ -1,57 +1,48 @@
 package api
 
 import (
-	"database/sql"
-	"errors"
 	"log"
 	"net/http"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/jack-barr3tt/finance-tracker/utils"
 )
 
-func (s Server) PostUserIdAccounts(ctx *fiber.Ctx, userId string) error {
-	body, err := utils.GetBody[AccountCreateRequest](ctx)
+func (s Server) PostUserIdAccounts(c *fiber.Ctx, userId string) error {
+	body, err := GetBody[AccountCreateRequest](c)
 	if err != nil {
 		log.Println(err)
-		return ctx.SendStatus(fiber.StatusBadRequest)
+		return c.SendStatus(fiber.StatusBadRequest)
 	}
 
-	tokUserId := utils.GetTokenClaim[string](ctx, "id")
+	tokUserId := GetTokenClaim[string](c, "id")
 
 	if tokUserId != userId {
-		return ctx.SendStatus(fiber.StatusUnauthorized)
+		return c.SendStatus(fiber.StatusUnauthorized)
 	}
 
 	var id string
 
-	err = s.DB.QueryRow(ctx.Context(), "INSERT INTO account (user_id, name) VALUES ($1, $2) RETURNING id", userId, body.Name).Scan(&id)
+	err = s.DB.QueryRow(c.Context(), "INSERT INTO account (user_id, name) VALUES ($1, $2) RETURNING id", userId, body.Name).Scan(&id)
 	if err != nil {
-		log.Println(err)
-		return ctx.SendStatus(fiber.StatusInternalServerError)
+		return DBError(c, err)
 	}
 
-	return ctx.
+	return c.
 		Status(http.StatusOK).
 		JSON(AccountCreateResponse{Id: id})
 }
 
-func (s Server) GetUserIdAccounts(ctx *fiber.Ctx, userId string) error {
-	tokUserId := utils.GetTokenClaim[string](ctx, "id")
+func (s Server) GetUserIdAccounts(c *fiber.Ctx, userId string) error {
+	tokUserId := GetTokenClaim[string](c, "id")
 
 	if tokUserId != userId {
-		return ctx.SendStatus(fiber.StatusUnauthorized)
+		return c.SendStatus(fiber.StatusUnauthorized)
 	}
 
-	rows, err := s.DB.Query(ctx.Context(), "SELECT id, name, created_at FROM account WHERE user_id = $1", userId)
+	rows, err := s.DB.Query(c.Context(), "SELECT id, name, created_at FROM account WHERE user_id = $1", userId)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return ctx.SendStatus(fiber.StatusNotFound)
-		}
-
-		log.Println(err)
-		return ctx.SendStatus(fiber.StatusInternalServerError)
+		return DBError(c, err)
 	}
 
 	accounts := []Account{}
@@ -61,61 +52,54 @@ func (s Server) GetUserIdAccounts(ctx *fiber.Ctx, userId string) error {
 		var createdAt time.Time
 		err = rows.Scan(&id, &name, &createdAt)
 		if err != nil {
-			log.Println(err)
-			return ctx.SendStatus(fiber.StatusInternalServerError)
+			return DBError(c, err)
 		}
 		accounts = append(accounts, Account{Id: id, Name: name, CreatedAt: createdAt})
 	}
 
-	return ctx.
+	return c.
 		Status(http.StatusOK).
 		JSON(accounts)
 }
 
-func (s Server) DeleteUserIdAccountsAccountId(ctx *fiber.Ctx, userId string, accountId string) error {
-	tokUserId := utils.GetTokenClaim[string](ctx, "id")
+func (s Server) DeleteUserIdAccountsAccountId(c *fiber.Ctx, userId string, accountId string) error {
+	tokUserId := GetTokenClaim[string](c, "id")
 
 	if tokUserId != userId {
-		return ctx.SendStatus(fiber.StatusUnauthorized)
+		return c.SendStatus(fiber.StatusUnauthorized)
 	}
 
-	tag, err := s.DB.Exec(ctx.Context(), "DELETE FROM account WHERE user_id = $1 AND id = $2", userId, accountId)
+	tag, err := s.DB.Exec(c.Context(), "DELETE FROM account WHERE user_id = $1 AND id = $2", userId, accountId)
 	if err != nil {
-		log.Println(err)
-		return ctx.SendStatus(fiber.StatusInternalServerError)
+		return DBError(c, err)
 	}
 
 	if tag.RowsAffected() == 0 {
-		return ctx.SendStatus(fiber.StatusNotFound)
+		return c.SendStatus(fiber.StatusNotFound)
 	}
 
-	return ctx.Status(http.StatusOK).JSON(AccountDeleteResponse{
+	return c.Status(http.StatusOK).JSON(AccountDeleteResponse{
 		Id:      accountId,
 		Message: "Account deleted",
 	})
 }
 
-func (s Server) GetUserIdAccountsAccountId(ctx *fiber.Ctx, userId string, accountId string) error {
-	tokUserId := utils.GetTokenClaim[string](ctx, "id")
+func (s Server) GetUserIdAccountsAccountId(c *fiber.Ctx, userId string, accountId string) error {
+	tokUserId := GetTokenClaim[string](c, "id")
 
 	if tokUserId != userId {
-		return ctx.SendStatus(fiber.StatusUnauthorized)
+		return c.SendStatus(fiber.StatusUnauthorized)
 	}
 
 	var name string
 	var createdAt time.Time
 
-	err := s.DB.QueryRow(ctx.Context(), "SELECT name, created_at FROM account WHERE user_id = $1 AND id = $2", userId, accountId).Scan(&name, &createdAt)
+	err := s.DB.QueryRow(c.Context(), "SELECT name, created_at FROM account WHERE user_id = $1 AND id = $2", userId, accountId).Scan(&name, &createdAt)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return ctx.SendStatus(fiber.StatusNotFound)
-		}
-
-		log.Println(err)
-		return ctx.SendStatus(fiber.StatusInternalServerError)
+		return DBError(c, err)
 	}
 
-	return ctx.
+	return c.
 		Status(http.StatusOK).
 		JSON(Account{
 			Id:        accountId,

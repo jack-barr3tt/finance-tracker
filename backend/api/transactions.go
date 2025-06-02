@@ -2,44 +2,41 @@ package api
 
 import (
 	"fmt"
-	"log"
 	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/jack-barr3tt/finance-tracker/utils"
 )
 
-func (s Server) PostUserIdTransactions(ctx *fiber.Ctx, userId string) error {
-	body, err := utils.GetBody[TransactionCreateRequest](ctx)
+func (s Server) PostUserIdTransactions(c *fiber.Ctx, userId string) error {
+	body, err := GetBody[TransactionCreateRequest](c)
 	if err != nil {
-		return ctx.SendStatus(fiber.StatusBadRequest)
+		return c.SendStatus(fiber.StatusBadRequest)
 	}
 
-	tokenUserId := utils.GetTokenClaim[string](ctx, "id")
+	tokenUserId := GetTokenClaim[string](c, "id")
 
 	if tokenUserId != userId {
-		return ctx.SendStatus(fiber.StatusUnauthorized)
+		return c.SendStatus(fiber.StatusUnauthorized)
 	}
 
 	var id string
 
-	err = s.DB.QueryRow(ctx.Context(), "INSERT INTO transaction (account_id, category_id, amount, description, date) VALUES ($1, $2, $3, $4, $5) RETURNING id", body.AccountId, body.CategoryId, body.Amount, body.Description, time.Now()).Scan(&id)
+	err = s.DB.QueryRow(c.Context(), "INSERT INTO transaction (account_id, category_id, amount, description, date) VALUES ($1, $2, $3, $4, $5) RETURNING id", body.AccountId, body.CategoryId, body.Amount, body.Description, time.Now()).Scan(&id)
 	if err != nil {
-		log.Println(err)
-		return ctx.SendStatus(fiber.StatusInternalServerError)
+		return DBError(c, err)
 	}
 
-	return ctx.Status(fiber.StatusOK).JSON(TransactionCreateResponse{
+	return c.Status(fiber.StatusOK).JSON(TransactionCreateResponse{
 		Id: id,
 	})
 }
 
-func (s Server) GetUserIdTransactions(ctx *fiber.Ctx, userId string, params GetUserIdTransactionsParams) error {
-	tokenUserId := utils.GetTokenClaim[string](ctx, "id")
+func (s Server) GetUserIdTransactions(c *fiber.Ctx, userId string, params GetUserIdTransactionsParams) error {
+	tokenUserId := GetTokenClaim[string](c, "id")
 
 	if tokenUserId != userId {
-		return ctx.SendStatus(fiber.StatusUnauthorized)
+		return c.SendStatus(fiber.StatusUnauthorized)
 	}
 
 	conditions := []string{"a.user_id = $1"}
@@ -56,7 +53,7 @@ func (s Server) GetUserIdTransactions(ctx *fiber.Ctx, userId string, params GetU
 	}
 
 	rows, err := s.DB.Query(
-		ctx.Context(),
+		c.Context(),
 		fmt.Sprintf(
 			`SELECT 
 				t.id, t.amount, t.description, t.date, c.id, c.name, c.created_at
@@ -69,8 +66,7 @@ func (s Server) GetUserIdTransactions(ctx *fiber.Ctx, userId string, params GetU
 		args...,
 	)
 	if err != nil {
-		log.Println(err)
-		return ctx.SendStatus(fiber.StatusInternalServerError)
+		return DBError(c, err)
 	}
 
 	transactions := []Transaction{}
@@ -84,8 +80,7 @@ func (s Server) GetUserIdTransactions(ctx *fiber.Ctx, userId string, params GetU
 		var categoryCreatedAt *time.Time
 		err = rows.Scan(&id, &amount, &description, &date, &categoryId, &categoryName, &categoryCreatedAt)
 		if err != nil {
-			log.Println(err)
-			return ctx.SendStatus(fiber.StatusInternalServerError)
+			return DBError(c, err)
 		}
 
 		transaction := Transaction{
@@ -106,27 +101,26 @@ func (s Server) GetUserIdTransactions(ctx *fiber.Ctx, userId string, params GetU
 		transactions = append(transactions, transaction)
 	}
 
-	return ctx.Status(fiber.StatusOK).JSON(transactions)
+	return c.Status(fiber.StatusOK).JSON(transactions)
 }
 
-func (s Server) DeleteUserIdTransactionsTransactionId(ctx *fiber.Ctx, userId, transactionId string) error {
-	tokenUserId := utils.GetTokenClaim[string](ctx, "id")
+func (s Server) DeleteUserIdTransactionsTransactionId(c *fiber.Ctx, userId, transactionId string) error {
+	tokenUserId := GetTokenClaim[string](c, "id")
 
 	if tokenUserId != userId {
-		return ctx.SendStatus(fiber.StatusUnauthorized)
+		return c.SendStatus(fiber.StatusUnauthorized)
 	}
 
-	tag, err := s.DB.Exec(ctx.Context(), "DELETE FROM transaction WHERE id = $1", transactionId)
+	tag, err := s.DB.Exec(c.Context(), "DELETE FROM transaction WHERE id = $1", transactionId)
 	if err != nil {
-		log.Println(err)
-		return ctx.SendStatus(fiber.StatusInternalServerError)
+		return DBError(c, err)
 	}
 
 	if tag.RowsAffected() == 0 {
-		return ctx.SendStatus(fiber.StatusNotFound)
+		return c.SendStatus(fiber.StatusNotFound)
 	}
 
-	return ctx.Status(fiber.StatusOK).JSON(TransactionDeleteResponse{
+	return c.Status(fiber.StatusOK).JSON(TransactionDeleteResponse{
 		Id:      transactionId,
 		Message: "Transaction deleted",
 	})
