@@ -20,6 +20,20 @@ export type CategoryCreateRequest = {
     name: string;
 };
 
+export type CategoryEditRequest = {
+    name: string;
+};
+
+export type CategoryAddRuleRequest = {
+    account_id?: string;
+    rule?: string;
+};
+
+export type CategoryEditRuleRequest = {
+    account_id?: string;
+    rule?: string;
+};
+
 export type TransactionCreateRequest = {
     account_id: string;
     amount: number;
@@ -49,8 +63,29 @@ export type CategoryCreateResponse = {
     id: string;
 };
 
+export type CategoryEditResponse = {
+    id: string;
+    name: string;
+};
+
 export type CategoryDeleteResponse = {
     id: string;
+    message: string;
+};
+
+export type CategoryAddRuleResponse = {
+    id: string;
+    rule_id: string;
+};
+
+export type CategoryEditRuleResponse = {
+    id: string;
+    rule_id: string;
+};
+
+export type CategoryDeleteRuleResponse = {
+    id: string;
+    rule_id: string;
     message: string;
 };
 
@@ -97,6 +132,13 @@ export type Category = {
     id: string;
     name: string;
     created_at: string;
+    rules: Array<CategoryRule>;
+};
+
+export type CategoryRule = {
+    id: string;
+    account: Account;
+    rule: string;
 };
 
 export type Transaction = {
@@ -249,6 +291,18 @@ export type GetUserByIdCategoriesByCategoryIdResponse = (Category);
 
 export type GetUserByIdCategoriesByCategoryIdError = (NotFound);
 
+export type PatchUserByIdCategoriesByCategoryIdData = {
+    body?: CategoryEditRequest;
+    path: {
+        category_id: string;
+        id: string;
+    };
+};
+
+export type PatchUserByIdCategoriesByCategoryIdResponse = (CategoryEditResponse);
+
+export type PatchUserByIdCategoriesByCategoryIdError = (NotFound);
+
 export type DeleteUserByIdCategoriesByCategoryIdData = {
     path: {
         category_id: string;
@@ -259,3 +313,40 @@ export type DeleteUserByIdCategoriesByCategoryIdData = {
 export type DeleteUserByIdCategoriesByCategoryIdResponse = (CategoryDeleteResponse);
 
 export type DeleteUserByIdCategoriesByCategoryIdError = (NotFound);
+
+export type PostUserByIdCategoriesByCategoryIdRulesData = {
+    body?: CategoryAddRuleRequest;
+    path: {
+        category_id: string;
+        id: string;
+    };
+};
+
+export type PostUserByIdCategoriesByCategoryIdRulesResponse = (CategoryAddRuleResponse);
+
+export type PostUserByIdCategoriesByCategoryIdRulesError = unknown;
+
+export type PatchUserByIdCategoriesByCategoryIdRulesByRuleIdData = {
+    body?: CategoryEditRuleRequest;
+    path: {
+        category_id: string;
+        id: string;
+        rule_id: string;
+    };
+};
+
+export type PatchUserByIdCategoriesByCategoryIdRulesByRuleIdResponse = (CategoryEditRuleResponse);
+
+export type PatchUserByIdCategoriesByCategoryIdRulesByRuleIdError = (NotFound);
+
+export type DeleteUserByIdCategoriesByCategoryIdRulesByRuleIdData = {
+    path: {
+        category_id: string;
+        id: string;
+        rule_id: string;
+    };
+};
+
+export type DeleteUserByIdCategoriesByCategoryIdRulesByRuleIdResponse = (CategoryEditRuleResponse);
+
+export type DeleteUserByIdCategoriesByCategoryIdRulesByRuleIdError = (NotFound);

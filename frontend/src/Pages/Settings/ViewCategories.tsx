@@ -5,7 +5,7 @@ import {
   UseGetUserByIdCategoriesKeyFn,
 } from "../../API/queries"
 import { Card, Button } from "flowbite-react"
-import { FiTrash, FiPlus } from "react-icons/fi"
+import { FiTrash, FiPlus, FiEdit } from "react-icons/fi"
 import { useCallback } from "react"
 import { useQueryClient } from "@tanstack/react-query"
 import { useNavigate } from "react-router-dom"
@@ -37,6 +37,13 @@ export default function ViewCategories() {
               <h3 className="font-medium">{category.name}</h3>
             </div>
             <div className="flex flex-col">
+              <Button
+                className="p-0 mb-2 size-8"
+                color="light"
+                onClick={() => navigate(`category/${category.id}/edit`)}
+              >
+                <FiEdit />
+              </Button>
               <Button
                 className="p-0 size-8"
                 color="light"

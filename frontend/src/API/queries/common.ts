@@ -2,7 +2,7 @@
 
 import { type Options } from "@hey-api/client-fetch";
 import { UseQueryResult } from "@tanstack/react-query";
-import { deleteUserByIdAccountsByAccountId, deleteUserByIdCategoriesByCategoryId, deleteUserByIdTransactionsByTransactionId, getBanks, getUserById, getUserByIdAccounts, getUserByIdAccountsByAccountId, getUserByIdCategories, getUserByIdCategoriesByCategoryId, getUserByIdTransactions, postLogin, postSignup, postUserByIdAccounts, postUserByIdCategories, postUserByIdTransactions } from "../requests/services.gen";
+import { deleteUserByIdAccountsByAccountId, deleteUserByIdCategoriesByCategoryId, deleteUserByIdCategoriesByCategoryIdRulesByRuleId, deleteUserByIdTransactionsByTransactionId, getBanks, getUserById, getUserByIdAccounts, getUserByIdAccountsByAccountId, getUserByIdCategories, getUserByIdCategoriesByCategoryId, getUserByIdTransactions, patchUserByIdCategoriesByCategoryId, patchUserByIdCategoriesByCategoryIdRulesByRuleId, postLogin, postSignup, postUserByIdAccounts, postUserByIdCategories, postUserByIdCategoriesByCategoryIdRules, postUserByIdTransactions } from "../requests/services.gen";
 export type GetBanksDefaultResponse = Awaited<ReturnType<typeof getBanks>>["data"];
 export type GetBanksQueryResult<TData = GetBanksDefaultResponse, TError = unknown> = UseQueryResult<TData, TError>;
 export const useGetBanksKey = "GetBanks";
@@ -46,6 +46,15 @@ export const UsePostUserByIdTransactionsKeyFn = (mutationKey?: Array<unknown>) =
 export type PostUserByIdCategoriesMutationResult = Awaited<ReturnType<typeof postUserByIdCategories>>;
 export const usePostUserByIdCategoriesKey = "PostUserByIdCategories";
 export const UsePostUserByIdCategoriesKeyFn = (mutationKey?: Array<unknown>) => [usePostUserByIdCategoriesKey, ...(mutationKey ?? [])];
+export type PostUserByIdCategoriesByCategoryIdRulesMutationResult = Awaited<ReturnType<typeof postUserByIdCategoriesByCategoryIdRules>>;
+export const usePostUserByIdCategoriesByCategoryIdRulesKey = "PostUserByIdCategoriesByCategoryIdRules";
+export const UsePostUserByIdCategoriesByCategoryIdRulesKeyFn = (mutationKey?: Array<unknown>) => [usePostUserByIdCategoriesByCategoryIdRulesKey, ...(mutationKey ?? [])];
+export type PatchUserByIdCategoriesByCategoryIdMutationResult = Awaited<ReturnType<typeof patchUserByIdCategoriesByCategoryId>>;
+export const usePatchUserByIdCategoriesByCategoryIdKey = "PatchUserByIdCategoriesByCategoryId";
+export const UsePatchUserByIdCategoriesByCategoryIdKeyFn = (mutationKey?: Array<unknown>) => [usePatchUserByIdCategoriesByCategoryIdKey, ...(mutationKey ?? [])];
+export type PatchUserByIdCategoriesByCategoryIdRulesByRuleIdMutationResult = Awaited<ReturnType<typeof patchUserByIdCategoriesByCategoryIdRulesByRuleId>>;
+export const usePatchUserByIdCategoriesByCategoryIdRulesByRuleIdKey = "PatchUserByIdCategoriesByCategoryIdRulesByRuleId";
+export const UsePatchUserByIdCategoriesByCategoryIdRulesByRuleIdKeyFn = (mutationKey?: Array<unknown>) => [usePatchUserByIdCategoriesByCategoryIdRulesByRuleIdKey, ...(mutationKey ?? [])];
 export type DeleteUserByIdAccountsByAccountIdMutationResult = Awaited<ReturnType<typeof deleteUserByIdAccountsByAccountId>>;
 export const useDeleteUserByIdAccountsByAccountIdKey = "DeleteUserByIdAccountsByAccountId";
 export const UseDeleteUserByIdAccountsByAccountIdKeyFn = (mutationKey?: Array<unknown>) => [useDeleteUserByIdAccountsByAccountIdKey, ...(mutationKey ?? [])];
@@ -55,3 +64,6 @@ export const UseDeleteUserByIdTransactionsByTransactionIdKeyFn = (mutationKey?: 
 export type DeleteUserByIdCategoriesByCategoryIdMutationResult = Awaited<ReturnType<typeof deleteUserByIdCategoriesByCategoryId>>;
 export const useDeleteUserByIdCategoriesByCategoryIdKey = "DeleteUserByIdCategoriesByCategoryId";
 export const UseDeleteUserByIdCategoriesByCategoryIdKeyFn = (mutationKey?: Array<unknown>) => [useDeleteUserByIdCategoriesByCategoryIdKey, ...(mutationKey ?? [])];
+export type DeleteUserByIdCategoriesByCategoryIdRulesByRuleIdMutationResult = Awaited<ReturnType<typeof deleteUserByIdCategoriesByCategoryIdRulesByRuleId>>;
+export const useDeleteUserByIdCategoriesByCategoryIdRulesByRuleIdKey = "DeleteUserByIdCategoriesByCategoryIdRulesByRuleId";
+export const UseDeleteUserByIdCategoriesByCategoryIdRulesByRuleIdKeyFn = (mutationKey?: Array<unknown>) => [useDeleteUserByIdCategoriesByCategoryIdRulesByRuleIdKey, ...(mutationKey ?? [])];

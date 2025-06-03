@@ -56,6 +56,43 @@ export const CategoryCreateRequestSchema = {
     required: ['name']
 } as const;
 
+export const CategoryEditRequestSchema = {
+    type: 'object',
+    properties: {
+        name: {
+            type: 'string',
+            example: 'Groceries'
+        }
+    },
+    required: ['name']
+} as const;
+
+export const CategoryAddRuleRequestSchema = {
+    type: 'object',
+    properties: {
+        account_id: {
+            type: 'string'
+        },
+        rule: {
+            type: 'string',
+            example: 'Tesco'
+        }
+    }
+} as const;
+
+export const CategoryEditRuleRequestSchema = {
+    type: 'object',
+    properties: {
+        account_id: {
+            type: 'string'
+        },
+        rule: {
+            type: 'string',
+            example: 'Tesco'
+        }
+    }
+} as const;
+
 export const TransactionCreateRequestSchema = {
     type: 'object',
     properties: {
@@ -136,6 +173,19 @@ export const CategoryCreateResponseSchema = {
     required: ['id']
 } as const;
 
+export const CategoryEditResponseSchema = {
+    type: 'object',
+    properties: {
+        id: {
+            type: 'string'
+        },
+        name: {
+            type: 'string'
+        }
+    },
+    required: ['id', 'name']
+} as const;
+
 export const CategoryDeleteResponseSchema = {
     type: 'object',
     properties: {
@@ -147,6 +197,48 @@ export const CategoryDeleteResponseSchema = {
         }
     },
     required: ['id', 'message']
+} as const;
+
+export const CategoryAddRuleResponseSchema = {
+    type: 'object',
+    properties: {
+        id: {
+            type: 'string'
+        },
+        rule_id: {
+            type: 'string'
+        }
+    },
+    required: ['id', 'rule_id']
+} as const;
+
+export const CategoryEditRuleResponseSchema = {
+    type: 'object',
+    properties: {
+        id: {
+            type: 'string'
+        },
+        rule_id: {
+            type: 'string'
+        }
+    },
+    required: ['id', 'rule_id']
+} as const;
+
+export const CategoryDeleteRuleResponseSchema = {
+    type: 'object',
+    properties: {
+        id: {
+            type: 'string'
+        },
+        rule_id: {
+            type: 'string'
+        },
+        message: {
+            type: 'string'
+        }
+    },
+    required: ['id', 'rule_id', 'message']
 } as const;
 
 export const TransactionCreateResponseSchema = {
@@ -267,9 +359,31 @@ export const CategorySchema = {
         created_at: {
             type: 'string',
             format: 'date-time'
+        },
+        rules: {
+            type: 'array',
+            items: {
+                '$ref': '#/components/schemas/CategoryRule'
+            }
         }
     },
-    required: ['id', 'name', 'created_at']
+    required: ['id', 'name', 'created_at', 'rules']
+} as const;
+
+export const CategoryRuleSchema = {
+    type: 'object',
+    properties: {
+        id: {
+            type: 'string'
+        },
+        account: {
+            '$ref': '#/components/schemas/Account'
+        },
+        rule: {
+            type: 'string'
+        }
+    },
+    required: ['id', 'account', 'rule']
 } as const;
 
 export const TransactionSchema = {
