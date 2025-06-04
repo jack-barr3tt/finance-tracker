@@ -1,9 +1,8 @@
 import { TableRow, TableCell, TextInput, Button } from "flowbite-react"
-import { FiSave, FiTrash, FiX } from "react-icons/fi"
+import { FiSave, FiX } from "react-icons/fi"
 import SearchSelect from "../../Components/SearchSelect"
 import { useCallback, useEffect, useState } from "react"
 import {
-  useDeleteUserByIdCategoriesByCategoryIdRulesByRuleId,
   useGetUserByIdAccounts,
   useGetUserByIdCategoriesByCategoryId,
   UseGetUserByIdCategoriesByCategoryIdKeyFn,
@@ -40,7 +39,6 @@ export default function EditCategoryRuleRow(props: EditCategoryRuleRowProps) {
 
   const { mutateAsync: createRule } = usePostUserByIdCategoriesByCategoryIdRules()
   const { mutateAsync: editRule } = usePatchUserByIdCategoriesByCategoryIdRulesByRuleId()
-  const { mutateAsync: deleteRule } = useDeleteUserByIdCategoriesByCategoryIdRulesByRuleId()
 
   useEffect(() => {
     if (category) {
@@ -68,8 +66,9 @@ export default function EditCategoryRuleRow(props: EditCategoryRuleRowProps) {
       })
       setAccountId(undefined)
       setRule("")
+      cancelCallback?.()
     }
-  }, [accountId, categoryId, createRule, queryClient, rule, userId])
+  }, [accountId, cancelCallback, categoryId, createRule, queryClient, rule, userId])
 
   const handleEdit = useCallback(async () => {
     if (ruleId && accountId && rule) {
@@ -85,14 +84,6 @@ export default function EditCategoryRuleRow(props: EditCategoryRuleRowProps) {
           path: { id: userId, category_id: categoryId },
         }),
       })
-    }
-  }, [accountId, categoryId, editRule, queryClient, rule, ruleId, userId])
-
-  const handleDelete = useCallback(async () => {
-    if (ruleId) {
-      await deleteRule({
-        path: { id: userId, category_id: categoryId, rule_id: ruleId },
-      })
       queryClient.invalidateQueries({
         queryKey: UseGetUserByIdCategoriesKeyFn({ path: { id: userId } }),
       })
@@ -101,8 +92,11 @@ export default function EditCategoryRuleRow(props: EditCategoryRuleRowProps) {
           path: { id: userId, category_id: categoryId },
         }),
       })
+      setAccountId(undefined)
+      setRule("")
+      cancelCallback?.()
     }
-  }, [categoryId, deleteRule, queryClient, ruleId, userId])
+  }, [accountId, cancelCallback, categoryId, editRule, queryClient, rule, ruleId, userId])
 
   return (
     <TableRow>
@@ -134,20 +128,14 @@ export default function EditCategoryRuleRow(props: EditCategoryRuleRowProps) {
         <div className="flex flex-row items-center justify-end">
           <Button
             color="green"
-            className="w-10 p-0"
+            className="p-0 size-8"
             onClick={() => (ruleId ? handleEdit() : handleCreate())}
           >
             <FiSave />
           </Button>
-          {ruleId ? (
-            <Button color="red" className="w-10 p-0 ml-2" onClick={handleDelete}>
-              <FiTrash />
-            </Button>
-          ) : (
-            <Button color="dark" className="w-10 p-0 ml-2" onClick={() => cancelCallback?.()}>
-              <FiX />
-            </Button>
-          )}
+          <Button color="dark" className="p-0 ml-2 size-8" onClick={() => cancelCallback?.()}>
+            <FiX />
+          </Button>
         </div>
       </TableCell>
     </TableRow>

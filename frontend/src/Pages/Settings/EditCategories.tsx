@@ -13,6 +13,7 @@ import {
 } from "flowbite-react"
 import { useLocation, useNavigate } from "react-router-dom"
 import {
+  useDeleteUserByIdCategoriesByCategoryIdRulesByRuleId,
   useGetUserByIdCategoriesByCategoryId,
   UseGetUserByIdCategoriesByCategoryIdKeyFn,
   UseGetUserByIdCategoriesKeyFn,
@@ -21,7 +22,7 @@ import {
 import { useUser } from "../../Hooks/useUser"
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { useQueryClient } from "@tanstack/react-query"
-import { FiEdit, FiPlus } from "react-icons/fi"
+import { FiEdit, FiPlus, FiTrash } from "react-icons/fi"
 import TableBodyWithButton from "../../Components/TableBodyWithButton"
 import EditCategoryRuleRow from "./EditCategoryRuleRow"
 
@@ -42,9 +43,11 @@ export default function EditCategories() {
     { enabled: !!categoryId }
   )
   const { mutateAsync: editCategory } = usePatchUserByIdCategoriesByCategoryId()
+  const { mutateAsync: deleteRule } = useDeleteUserByIdCategoriesByCategoryIdRulesByRuleId()
 
   const [categoryName, setCategoryName] = useState<string>("")
   const [showAdd, setShowAdd] = useState(false)
+  const [editingRuleId, setEditingRuleId] = useState<string | undefined>(undefined)
 
   useEffect(() => {
     if (category) {
@@ -70,6 +73,23 @@ export default function EditCategories() {
 
     navigate("/settings")
   }, [categoryName, category, navigate, editCategory, userId, categoryId, queryClient])
+
+  const handleDelete = useCallback(
+    async (ruleId: string) => {
+      await deleteRule({
+        path: { id: userId, category_id: categoryId, rule_id: ruleId },
+      })
+      queryClient.invalidateQueries({
+        queryKey: UseGetUserByIdCategoriesKeyFn({ path: { id: userId } }),
+      })
+      queryClient.invalidateQueries({
+        queryKey: UseGetUserByIdCategoriesByCategoryIdKeyFn({
+          path: { id: userId, category_id: categoryId },
+        }),
+      })
+    },
+    [categoryId, deleteRule, queryClient, userId]
+  )
 
   return (
     <Modal show={/settings\/category\/(.+)\/edit/.test(location.pathname)}>
@@ -117,17 +137,38 @@ export default function EditCategories() {
                   </TableCell>
                 </TableRow>
               ) : (
-                category?.rules.map((rule) => (
-                  <TableRow key={rule.id}>
-                    <TableCell>{rule.account.name}</TableCell>
-                    <TableCell>{rule.rule}</TableCell>
-                    <TableCell className="text-right">
-                      <Button color="light" className="w-10 p-0">
-                        <FiEdit />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))
+                category?.rules.map((rule) =>
+                  editingRuleId == rule.id ? (
+                    <EditCategoryRuleRow
+                      categoryId={categoryId}
+                      cancelCallback={() => setEditingRuleId(undefined)}
+                      ruleId={rule.id}
+                    />
+                  ) : (
+                    <TableRow key={rule.id}>
+                      <TableCell>{rule.account.name}</TableCell>
+                      <TableCell>{rule.rule}</TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex flex-row items-center justify-end">
+                          <Button
+                            color="light"
+                            className="p-0 size-8"
+                            onClick={() => setEditingRuleId(rule.id)}
+                          >
+                            <FiEdit />
+                          </Button>
+                          <Button
+                            color="light"
+                            className="p-0 ml-2 size-8"
+                            onClick={() => handleDelete(rule.id)}
+                          >
+                            <FiTrash />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  )
+                )
               )}
               {showAdd && (
                 <EditCategoryRuleRow

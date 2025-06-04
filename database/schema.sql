@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS "category_rule" (
 CREATE TABLE IF NOT EXISTS "transaction" (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   account_id UUID NOT NULL REFERENCES "account"(id) ON DELETE CASCADE,
-  category_id UUID REFERENCES "category"(id) ON DELETE CASCADE,
+  category_id UUID REFERENCES "category"(id) ON DELETE SET NULL,
   amount DECIMAL(10, 2) NOT NULL,
   description TEXT,
   date TIMESTAMP NOT NULL,

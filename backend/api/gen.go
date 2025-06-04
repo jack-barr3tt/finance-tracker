@@ -68,14 +68,13 @@ type Category struct {
 
 // CategoryAddRuleRequest defines model for CategoryAddRuleRequest.
 type CategoryAddRuleRequest struct {
-	CategoryId *string `json:"category_id,omitempty"`
-	Rule       *string `json:"rule,omitempty"`
+	AccountId *string `json:"account_id,omitempty"`
+	Rule      *string `json:"rule,omitempty"`
 }
 
 // CategoryAddRuleResponse defines model for CategoryAddRuleResponse.
 type CategoryAddRuleResponse struct {
-	Id     string `json:"id"`
-	RuleId string `json:"rule_id"`
+	Id string `json:"id"`
 }
 
 // CategoryCreateRequest defines model for CategoryCreateRequest.
@@ -94,17 +93,26 @@ type CategoryDeleteResponse struct {
 	Message string `json:"message"`
 }
 
+// CategoryEditRequest defines model for CategoryEditRequest.
+type CategoryEditRequest struct {
+	Name string `json:"name"`
+}
+
+// CategoryEditResponse defines model for CategoryEditResponse.
+type CategoryEditResponse struct {
+	Id   string `json:"id"`
+	Name string `json:"name"`
+}
+
 // CategoryEditRuleRequest defines model for CategoryEditRuleRequest.
 type CategoryEditRuleRequest struct {
-	CategoryId *string `json:"category_id,omitempty"`
-	Rule       *string `json:"rule,omitempty"`
-	RuleId     *string `json:"rule_id,omitempty"`
+	AccountId *string `json:"account_id,omitempty"`
+	Rule      *string `json:"rule,omitempty"`
 }
 
 // CategoryEditRuleResponse defines model for CategoryEditRuleResponse.
 type CategoryEditRuleResponse struct {
-	Id     string `json:"id"`
-	RuleId string `json:"rule_id"`
+	Id string `json:"id"`
 }
 
 // CategoryRule defines model for CategoryRule.
@@ -201,6 +209,9 @@ type PostUserIdAccountsJSONRequestBody = AccountCreateRequest
 // PostUserIdCategoriesJSONRequestBody defines body for PostUserIdCategories for application/json ContentType.
 type PostUserIdCategoriesJSONRequestBody = CategoryCreateRequest
 
+// PatchUserIdCategoriesCategoryIdJSONRequestBody defines body for PatchUserIdCategoriesCategoryId for application/json ContentType.
+type PatchUserIdCategoriesCategoryIdJSONRequestBody = CategoryEditRequest
+
 // PostUserIdCategoriesCategoryIdRulesJSONRequestBody defines body for PostUserIdCategoriesCategoryIdRules for application/json ContentType.
 type PostUserIdCategoriesCategoryIdRulesJSONRequestBody = CategoryAddRuleRequest
 
@@ -248,6 +259,9 @@ type ServerInterface interface {
 
 	// (GET /user/{id}/categories/{category_id})
 	GetUserIdCategoriesCategoryId(c *fiber.Ctx, id string, categoryId string) error
+
+	// (PATCH /user/{id}/categories/{category_id})
+	PatchUserIdCategoriesCategoryId(c *fiber.Ctx, id string, categoryId string) error
 
 	// (POST /user/{id}/categories/{category_id}/rules)
 	PostUserIdCategoriesCategoryIdRules(c *fiber.Ctx, id string, categoryId string) error
@@ -489,6 +503,32 @@ func (siw *ServerInterfaceWrapper) GetUserIdCategoriesCategoryId(c *fiber.Ctx) e
 	return siw.Handler.GetUserIdCategoriesCategoryId(c, id, categoryId)
 }
 
+// PatchUserIdCategoriesCategoryId operation middleware
+func (siw *ServerInterfaceWrapper) PatchUserIdCategoriesCategoryId(c *fiber.Ctx) error {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", c.Params("id"), &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter id: %w", err).Error())
+	}
+
+	// ------------- Path parameter "category_id" -------------
+	var categoryId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "category_id", c.Params("category_id"), &categoryId, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter category_id: %w", err).Error())
+	}
+
+	c.Context().SetUserValue(BearerAuthScopes, []string{})
+
+	return siw.Handler.PatchUserIdCategoriesCategoryId(c, id, categoryId)
+}
+
 // PostUserIdCategoriesCategoryIdRules operation middleware
 func (siw *ServerInterfaceWrapper) PostUserIdCategoriesCategoryIdRules(c *fiber.Ctx) error {
 
@@ -706,6 +746,8 @@ func RegisterHandlersWithOptions(router fiber.Router, si ServerInterface, option
 
 	router.Get(options.BaseURL+"/user/:id/categories/:category_id", wrapper.GetUserIdCategoriesCategoryId)
 
+	router.Patch(options.BaseURL+"/user/:id/categories/:category_id", wrapper.PatchUserIdCategoriesCategoryId)
+
 	router.Post(options.BaseURL+"/user/:id/categories/:category_id/rules", wrapper.PostUserIdCategoriesCategoryIdRules)
 
 	router.Delete(options.BaseURL+"/user/:id/categories/:category_id/rules/:rule_id", wrapper.DeleteUserIdCategoriesCategoryIdRulesRuleId)
@@ -723,31 +765,31 @@ func RegisterHandlersWithOptions(router fiber.Router, si ServerInterface, option
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
-	"phVqPgt1hPlv6u9VJbLsvwAAAP//wHVqRVY1AAA=",
+	"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",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

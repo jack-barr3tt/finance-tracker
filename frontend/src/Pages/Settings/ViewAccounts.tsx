@@ -13,7 +13,9 @@ import { useUser } from "../../Hooks/useUser"
 export default function ViewAccounts() {
   const { userId } = useUser()
   const queryClient = useQueryClient()
-  const { data: accounts } = useGetUserByIdAccounts({ path: { id: userId } })
+  const { data: accounts } = useGetUserByIdAccounts({ path: { id: userId } }, undefined, {
+    enabled: !!userId,
+  })
   const { mutateAsync: deleteAccount } = useDeleteUserByIdAccountsByAccountId()
 
   const navigate = useNavigate()

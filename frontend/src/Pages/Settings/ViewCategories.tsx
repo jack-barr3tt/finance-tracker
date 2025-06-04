@@ -13,7 +13,9 @@ import { useNavigate } from "react-router-dom"
 export default function ViewCategories() {
   const { userId } = useUser()
   const queryClient = useQueryClient()
-  const { data: categories } = useGetUserByIdCategories({ path: { id: userId } })
+  const { data: categories } = useGetUserByIdCategories({ path: { id: userId } }, undefined, {
+    enabled: !!userId,
+  })
 
   const { mutateAsync: deleteCategory } = useDeleteUserByIdCategoriesByCategoryId()
   const navigate = useNavigate()
@@ -35,6 +37,9 @@ export default function ViewCategories() {
           <div className="flex flex-row">
             <div className="flex flex-col flex-1 gap-4">
               <h3 className="font-medium">{category.name}</h3>
+              <p className="text-sm">
+                {category.rules.length} rule{category.rules.length !== 1 ? "s" : ""}
+              </p>
             </div>
             <div className="flex flex-col">
               <Button

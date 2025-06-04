@@ -345,6 +345,38 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/NotFound"
+    patch:
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: category_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CategoryEditRequest"
+      responses:
+        "200":
+          description: Category response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CategoryEditResponse"
+        "404":
+          description: Category not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFound"
     delete:
       security:
         - BearerAuth: []
@@ -519,10 +551,18 @@ components:
           example: "Groceries"
       required:
         - name
+    CategoryEditRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "Groceries"
+      required:
+        - name
     CategoryAddRuleRequest:
       type: object
       properties:
-        category_id:
+        account_id:
           type: string
         rule:
           type: string
@@ -530,9 +570,7 @@ components:
     CategoryEditRuleRequest:
       type: object
       properties:
-        category_id:
-          type: string
-        rule_id:
+        account_id:
           type: string
         rule:
           type: string
@@ -599,6 +637,16 @@ components:
           type: string
       required:
         - id
+    CategoryEditResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+      required:
+        - id
+        - name
     CategoryDeleteResponse:
       type: object
       properties:
@@ -614,33 +662,24 @@ components:
       properties:
         id:
           type: string
-        rule_id:
-          type: string
       required:
         - id
-        - rule_id
     CategoryEditRuleResponse:
       type: object
       properties:
         id:
           type: string
-        rule_id:
-          type: string
       required:
         - id
-        - rule_id
     CategoryDeleteRuleResponse:
       type: object
       properties:
         id:
           type: string
-        rule_id:
-          type: string
         message:
           type: string
       required:
         - id
-        - rule_id
         - message
     TransactionCreateResponse:
       type: object

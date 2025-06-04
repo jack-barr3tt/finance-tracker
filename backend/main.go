@@ -6,6 +6,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/jack-barr3tt/finance-tracker/api"
 )
 
@@ -24,6 +25,7 @@ func main() {
 	app.Use(cors.New())
 
 	app.Use(server.JWTAuthMiddleware)
+	app.Use(recover.New(recover.Config{EnableStackTrace: true}))
 
 	api.RegisterHandlers(app, server)
 
