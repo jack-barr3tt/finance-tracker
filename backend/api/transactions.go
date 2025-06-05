@@ -103,6 +103,81 @@ func (s Server) GetUserIdTransactions(c *fiber.Ctx, userId string, params GetUse
 	return c.Status(fiber.StatusOK).JSON(transactions)
 }
 
+func (s *Server) GetUserIdTransactionsTransactionId(c *fiber.Ctx, id string, transactionId string) error {
+	tokenUserId := GetTokenClaim[string](c, "id")
+
+	if tokenUserId != id {
+		return c.SendStatus(fiber.StatusUnauthorized)
+	}
+
+	row := s.DB.QueryRow(c.Context(), `
+		SELECT 
+			t.id, t.amount, t.description, t.date, 
+			c.id, c.name, c.created_at,
+			a.id, a.name, a.opened_at, a.closed_at,
+			b.id, b.name, b.csv_import_enabled, b.api_import_enabled
+		FROM transaction t
+		LEFT JOIN category c ON t.category_id = c.id
+		LEFT JOIN account a ON t.account_id = a.id
+		LEFT JOIN bank b ON a.bank_id = b.id
+		WHERE t.id = $1 AND a.user_id = $2
+	`, transactionId, id)
+
+	transaction := Transaction{}
+	var c_id *string
+	var c_name *string
+	var c_created_at *time.Time
+	err := row.Scan(
+		&transaction.Id, &transaction.Amount, &transaction.Description, &transaction.Date,
+		&c_id, &c_name, &c_created_at,
+		&transaction.Account.Id, &transaction.Account.Name, &transaction.Account.OpenedAt, &transaction.Account.ClosedAt,
+		&transaction.Account.Bank.Id, &transaction.Account.Bank.Name, &transaction.Account.Bank.CsvImportEnabled, &transaction.Account.Bank.ApiImportEnabled,
+	)
+	if err != nil {
+		return DBError(c, err)
+	}
+
+	if c_id != nil {
+		transaction.Category = &Category{
+			Id:        *c_id,
+			Name:      *c_name,
+			CreatedAt: *c_created_at,
+		}
+	}
+
+	return c.Status(fiber.StatusOK).JSON(transaction)
+}
+
+func (s *Server) PatchUserIdTransactionsTransactionId(c *fiber.Ctx, id string, transactionId string) error {
+	tokenUserId := GetTokenClaim[string](c, "id")
+
+	if tokenUserId != id {
+		return c.SendStatus(fiber.StatusUnauthorized)
+	}
+
+	body, err := GetBody[TransactionEditRequest](c)
+	if err != nil {
+		return c.SendStatus(fiber.StatusBadRequest)
+	}
+
+	tag, err := s.DB.Exec(c.Context(), `
+		UPDATE transaction 
+		SET account_id = $1, category_id = $2, amount = $3, description = $4 
+		WHERE id = $5
+	`, body.AccountId, body.CategoryId, body.Amount, body.Description, transactionId)
+	if err != nil {
+		return DBError(c, err)
+	}
+
+	if tag.RowsAffected() == 0 {
+		return c.SendStatus(fiber.StatusNotFound)
+	}
+
+	return c.JSON(TransactionEditResponse{
+		Id: transactionId,
+	})
+}
+
 func (s Server) DeleteUserIdTransactionsTransactionId(c *fiber.Ctx, userId, transactionId string) error {
 	tokenUserId := GetTokenClaim[string](c, "id")
 

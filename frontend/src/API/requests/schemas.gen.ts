@@ -114,6 +114,26 @@ export const TransactionCreateRequestSchema = {
     required: ['account_id', 'amount', 'category_id', 'description']
 } as const;
 
+export const TransactionEditRequestSchema = {
+    type: 'object',
+    properties: {
+        account_id: {
+            type: 'string'
+        },
+        amount: {
+            type: 'number',
+            example: 100
+        },
+        category_id: {
+            type: 'string'
+        },
+        description: {
+            type: 'string',
+            example: 'Milk'
+        }
+    }
+} as const;
+
 export const LoginResponseSchema = {
     type: 'object',
     properties: {
@@ -204,12 +224,9 @@ export const CategoryAddRuleResponseSchema = {
     properties: {
         id: {
             type: 'string'
-        },
-        rule_id: {
-            type: 'string'
         }
     },
-    required: ['id', 'rule_id']
+    required: ['id']
 } as const;
 
 export const CategoryEditRuleResponseSchema = {
@@ -217,12 +234,9 @@ export const CategoryEditRuleResponseSchema = {
     properties: {
         id: {
             type: 'string'
-        },
-        rule_id: {
-            type: 'string'
         }
     },
-    required: ['id', 'rule_id']
+    required: ['id']
 } as const;
 
 export const CategoryDeleteRuleResponseSchema = {
@@ -231,17 +245,24 @@ export const CategoryDeleteRuleResponseSchema = {
         id: {
             type: 'string'
         },
-        rule_id: {
-            type: 'string'
-        },
         message: {
             type: 'string'
         }
     },
-    required: ['id', 'rule_id', 'message']
+    required: ['id', 'message']
 } as const;
 
 export const TransactionCreateResponseSchema = {
+    type: 'object',
+    properties: {
+        id: {
+            type: 'string'
+        }
+    },
+    required: ['id']
+} as const;
+
+export const TransactionEditResponseSchema = {
     type: 'object',
     properties: {
         id: {

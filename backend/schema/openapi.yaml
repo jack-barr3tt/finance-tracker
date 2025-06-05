@@ -244,6 +244,65 @@ paths:
               schema:
                 $ref: "#/components/schemas/NotFound"
   /user/{id}/transactions/{transaction_id}:
+    get:
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: transaction_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Transaction response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Transaction"
+        "404":
+          description: Transaction not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFound"
+    patch:
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: transaction_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TransactionEditRequest"
+      responses:
+        "200":
+          description: Transaction response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransactionEditResponse"
+        "404":
+          description: Transaction not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFound"
     delete:
       security:
         - BearerAuth: []
@@ -593,6 +652,19 @@ components:
         - amount
         - category_id
         - description
+    TransactionEditRequest:
+      type: object
+      properties:
+        account_id:
+          type: string
+        amount:
+          type: number
+          example: 100.00
+        category_id:
+          type: string
+        description:
+          type: string
+          example: "Milk"
     # Responses
     LoginResponse:
       type: object
@@ -682,6 +754,13 @@ components:
         - id
         - message
     TransactionCreateResponse:
+      type: object
+      properties:
+        id:
+          type: string
+      required:
+        - id
+    TransactionEditResponse:
       type: object
       properties:
         id:

@@ -41,6 +41,13 @@ export type TransactionCreateRequest = {
     description: string;
 };
 
+export type TransactionEditRequest = {
+    account_id?: string;
+    amount?: number;
+    category_id?: string;
+    description?: string;
+};
+
 export type LoginResponse = {
     token: string;
     id: string;
@@ -75,21 +82,22 @@ export type CategoryDeleteResponse = {
 
 export type CategoryAddRuleResponse = {
     id: string;
-    rule_id: string;
 };
 
 export type CategoryEditRuleResponse = {
     id: string;
-    rule_id: string;
 };
 
 export type CategoryDeleteRuleResponse = {
     id: string;
-    rule_id: string;
     message: string;
 };
 
 export type TransactionCreateResponse = {
+    id: string;
+};
+
+export type TransactionEditResponse = {
     id: string;
 };
 
@@ -247,6 +255,29 @@ export type GetUserByIdTransactionsData = {
 export type GetUserByIdTransactionsResponse = (Array<Transaction>);
 
 export type GetUserByIdTransactionsError = (NotFound);
+
+export type GetUserByIdTransactionsByTransactionIdData = {
+    path: {
+        id: string;
+        transaction_id: string;
+    };
+};
+
+export type GetUserByIdTransactionsByTransactionIdResponse = (Transaction);
+
+export type GetUserByIdTransactionsByTransactionIdError = (NotFound);
+
+export type PatchUserByIdTransactionsByTransactionIdData = {
+    body?: TransactionEditRequest;
+    path: {
+        id: string;
+        transaction_id: string;
+    };
+};
+
+export type PatchUserByIdTransactionsByTransactionIdResponse = (TransactionEditResponse);
+
+export type PatchUserByIdTransactionsByTransactionIdError = (NotFound);
 
 export type DeleteUserByIdTransactionsByTransactionIdData = {
     path: {
