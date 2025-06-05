@@ -1,19 +1,18 @@
 import {
   Button,
   Card,
+  HR,
   Table,
   TableCell,
   TableHead,
   TableHeadCell,
   TableRow,
-  useThemeMode,
 } from "flowbite-react"
 import { useUser } from "../Hooks/useUser"
 import {
   useDeleteUserByIdTransactionsByTransactionId,
   useGetUserByIdSummaryAccounts,
   UseGetUserByIdSummaryAccountsKeyFn,
-  useGetUserByIdSummaryCategories,
   UseGetUserByIdSummaryCategoriesKeyFn,
   useGetUserByIdTransactions,
   UseGetUserByIdTransactionsByTransactionIdKeyFn,
@@ -22,44 +21,21 @@ import {
 import { FiEdit, FiPlus, FiTrash, FiUpload } from "react-icons/fi"
 import EditTransactionRow from "./Dashboard/EditTransactionRow"
 import TableBodyWithButton from "../Components/TableBodyWithButton"
-import { useCallback, useMemo, useState } from "react"
+import { useCallback, useState } from "react"
 import { useQueryClient } from "@tanstack/react-query"
-import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js"
-import { Doughnut } from "react-chartjs-2"
 
-ChartJS.register(ArcElement, Tooltip, Legend)
-
-function getBrightColors(
-  count: number,
-  transparency = 0.25
-): { pieFills: string[]; pieBorders: string[] } {
-  const fills: string[] = []
-  const borders: string[] = []
-  const offset = Math.floor(Math.random() * 360)
-  for (let i = 0; i < count; i++) {
-    const hue = (360 / count) * i + offset
-    fills.push(`hsla(${hue}, 100%, 50%, ${transparency})`)
-    borders.push(`hsla(${hue}, 100%, 50%, 1)`)
-  }
-  return { pieFills: fills, pieBorders: borders }
-}
+import BalanceGraph from "../Components/BalanceGraph"
+import CategoryPie from "../Components/CategoryPie"
 
 export default function Dashboard() {
   const { userId } = useUser()
   const queryClient = useQueryClient()
-  const { mode } = useThemeMode()
   const { data: accountSummaries } = useGetUserByIdSummaryAccounts({ path: { id: userId } })
-  const { data: categorySummaries } = useGetUserByIdSummaryCategories({ path: { id: userId } })
   const { data: transactions, isLoading } = useGetUserByIdTransactions({ path: { id: userId } })
   const { mutateAsync: deleteTransaction } = useDeleteUserByIdTransactionsByTransactionId()
 
   const [showAdd, setShowAdd] = useState(false)
   const [editingTransactionId, setEditingTransactionId] = useState<string | undefined>(undefined)
-
-  const { pieBorders, pieFills } = useMemo(
-    () => getBrightColors(categorySummaries?.length || 0, mode === "dark" ? 0.25 : 0.5),
-    [categorySummaries?.length, mode]
-  )
 
   const handleDelete = useCallback(
     async (transactionId: string) => {
@@ -91,65 +67,34 @@ export default function Dashboard() {
       {accountSummaries?.length === 0 ? (
         <p className="text-gray-500">No accounts found</p>
       ) : (
-        <div className="grid grid-cols-3 gap-4">
-          {accountSummaries?.map((account) => (
-            <Card>
-              <div className="grid grid-cols-2 gap-2">
-                <h1 className="font-medium">{account.account.name}</h1>
-                <h2 className="font-light">{account.account.bank.name}</h2>
-                <p className="col-span-2 text-4xl">
-                  {account.balance.toLocaleString("en-GB", {
-                    style: "currency",
-                    currency: "GBP",
-                  })}
-                </p>
-              </div>
-            </Card>
-          ))}
-        </div>
+        <>
+          <div className="grid grid-cols-3 gap-4">
+            {accountSummaries?.map((account) => (
+              <Card>
+                <div className="grid grid-cols-2 gap-2">
+                  <h1 className="font-medium">{account.account.name}</h1>
+                  <h2 className="font-light">{account.account.bank.name}</h2>
+                  <p className="col-span-2 text-4xl">
+                    {account.balance.toLocaleString("en-GB", {
+                      style: "currency",
+                      currency: "GBP",
+                    })}
+                  </p>
+                </div>
+              </Card>
+            ))}
+          </div>
+        </>
       )}
 
-      <h2 className="text-2xl font-medium">Categories</h2>
-      <Card className="w-full max-w-xl">
-        <div className="flex flex-col items-center gap-4">
-          <h1 className="text-xl font-medium">Spending by Category</h1>
-          <div className="w-full h-64">
-            <Doughnut
-              data={{
-                labels:
-                  categorySummaries
-                    ?.filter((cat) => cat.total < 0)
-                    .map((cat) => cat.category.name) || [],
-                datasets: [
-                  {
-                    label: "Total",
-                    data:
-                      categorySummaries?.filter((cat) => cat.total < 0).map((cat) => -cat.total) ||
-                      [],
-                    backgroundColor: pieFills,
-                    borderColor: pieBorders,
-                  },
-                ],
-              }}
-              options={{
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                  legend: {
-                    position: "right",
-                  },
-                  title: {
-                    display: true,
-                    text: "Category Breakdown",
-                  },
-                },
-                animation: false
-              }}
-              className="w-full"
-            />
-          </div>
-        </div>
-      </Card>
+      <HR />
+
+      <div className="flex flex-row items-center gap-4">
+        <CategoryPie />
+        <BalanceGraph />
+      </div>
+
+      <HR />
 
       <div className="flex flex-row items-center justify-between">
         <h2 className="text-2xl font-medium">Transactions</h2>

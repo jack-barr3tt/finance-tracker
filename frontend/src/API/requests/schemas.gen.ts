@@ -465,3 +465,52 @@ export const CategorySummarySchema = {
     },
     required: ['category', 'total', 'percentage']
 } as const;
+
+export const BalanceSummarySchema = {
+    type: 'object',
+    properties: {
+        total: {
+            type: 'array',
+            items: {
+                '$ref': '#/components/schemas/BalanceDatapoint'
+            }
+        },
+        accounts: {
+            type: 'array',
+            items: {
+                '$ref': '#/components/schemas/BalanceSummaryAccount'
+            }
+        }
+    },
+    required: ['total', 'accounts']
+} as const;
+
+export const BalanceSummaryAccountSchema = {
+    type: 'object',
+    properties: {
+        account: {
+            '$ref': '#/components/schemas/Account'
+        },
+        balance: {
+            type: 'array',
+            items: {
+                '$ref': '#/components/schemas/BalanceDatapoint'
+            }
+        }
+    },
+    required: ['account', 'balance']
+} as const;
+
+export const BalanceDatapointSchema = {
+    type: 'object',
+    properties: {
+        date: {
+            type: 'string',
+            format: 'date-time'
+        },
+        balance: {
+            type: 'number'
+        }
+    },
+    required: ['date', 'balance']
+} as const;

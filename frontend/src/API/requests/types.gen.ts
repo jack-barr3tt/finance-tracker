@@ -170,6 +170,21 @@ export type CategorySummary = {
     percentage: number;
 };
 
+export type BalanceSummary = {
+    total: Array<BalanceDatapoint>;
+    accounts: Array<BalanceSummaryAccount>;
+};
+
+export type BalanceSummaryAccount = {
+    account: Account;
+    balance: Array<BalanceDatapoint>;
+};
+
+export type BalanceDatapoint = {
+    date: string;
+    balance: number;
+};
+
 export type PostLoginData = {
     body?: LoginRequest;
 };
@@ -412,3 +427,13 @@ export type GetUserByIdSummaryCategoriesData = {
 export type GetUserByIdSummaryCategoriesResponse = (Array<CategorySummary>);
 
 export type GetUserByIdSummaryCategoriesError = unknown;
+
+export type GetUserByIdSummaryBalanceData = {
+    path: {
+        id: string;
+    };
+};
+
+export type GetUserByIdSummaryBalanceResponse = (BalanceSummary);
+
+export type GetUserByIdSummaryBalanceError = unknown;

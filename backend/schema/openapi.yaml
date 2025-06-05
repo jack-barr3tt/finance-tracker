@@ -598,6 +598,23 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/CategorySummary"
+  /user/{id}/summary/balance:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Balance summary response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BalanceSummary"
 components:
   securitySchemes:
     BearerAuth:
@@ -962,3 +979,40 @@ components:
         - category
         - total
         - percentage
+    BalanceSummary:
+      type: object
+      properties:
+        total:
+          type: array
+          items:
+            $ref: "#/components/schemas/BalanceDatapoint"
+        accounts:
+          type: array
+          items:
+            $ref: "#/components/schemas/BalanceSummaryAccount"
+      required: 
+        - total
+        - accounts
+    BalanceSummaryAccount:
+      type: object
+      properties:
+        account:
+          $ref: "#/components/schemas/Account"
+        balance:
+          type: array
+          items:
+            $ref: "#/components/schemas/BalanceDatapoint"
+      required:
+        - account
+        - balance
+    BalanceDatapoint:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date-time
+        balance:
+          type: number
+      required:
+        - date
+        - balance

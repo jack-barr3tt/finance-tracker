@@ -1,6 +1,10 @@
 package api
 
-import "github.com/gofiber/fiber/v2"
+import (
+	"time"
+
+	"github.com/gofiber/fiber/v2"
+)
 
 func (s *Server) GetUserIdSummaryAccounts(c *fiber.Ctx, userId string) error {
 	tokUserId := GetTokenClaim[string](c, "id")
@@ -18,7 +22,8 @@ func (s *Server) GetUserIdSummaryAccounts(c *fiber.Ctx, userId string) error {
 			b.id, b.name, b.csv_import_enabled, b.api_import_enabled
 		FROM account a
 		LEFT JOIN bank b ON a.bank_id = b.id
-		WHERE a.user_id = $1`,
+		WHERE a.user_id = $1
+		ORDER BY a.name`,
 		userId,
 	)
 	if err != nil {
@@ -89,7 +94,8 @@ func (s *Server) GetUserIdSummaryCategories(c *fiber.Ctx, userId string) error {
 		`SELECT 
 			c.id, c.name, c.created_at
 		FROM category c 
-		WHERE c.user_id = $1`,
+		WHERE c.user_id = $1
+		ORDER BY c.name`,
 		userId,
 	)
 	if err != nil {
@@ -146,5 +152,124 @@ func (s *Server) GetUserIdSummaryCategories(c *fiber.Ctx, userId string) error {
 	for _, category := range categories {
 		result = append(result, category)
 	}
+	return c.JSON(result)
+}
+
+func (s *Server) GetUserIdSummaryBalance(c *fiber.Ctx, userId string) error {
+	tokUserId := GetTokenClaim[string](c, "id")
+
+	if tokUserId != userId {
+		return c.SendStatus(fiber.StatusUnauthorized)
+	}
+
+	accounts := map[string]Account{}
+	accountIds := []string{}
+
+	rows, err := s.DB.Query(
+		c.Context(),
+		`SELECT id, name, opened_at, closed_at FROM account WHERE user_id = $1`,
+		userId,
+	)
+	if err != nil {
+		return DBError(c, err)
+	}
+	for rows.Next() {
+		var account Account
+		err = rows.Scan(&account.Id, &account.Name, &account.OpenedAt, &account.ClosedAt)
+		if err != nil {
+			return DBError(c, err)
+		}
+		accounts[account.Id] = account
+		accountIds = append(accountIds, account.Id)
+	}
+
+	type Transaction struct {
+		AccountId string
+		Amount    float32
+		Date      time.Time
+	}
+
+	transactions := []Transaction{}
+
+	rows, err = s.DB.Query(
+		c.Context(),
+		`SELECT account_id, amount, date::DATE FROM transaction ORDER BY date ASC`,
+	)
+	if err != nil {
+		return DBError(c, err)
+	}
+
+	for rows.Next() {
+		var t Transaction
+		err = rows.Scan(&t.AccountId, &t.Amount, &t.Date)
+		if err != nil {
+			return DBError(c, err)
+		}
+		transactions = append(transactions, t)
+	}
+
+	startDate := transactions[0].Date.AddDate(0, 0, -1)
+
+	grandTotals := []BalanceDatapoint{
+		{
+			Date:    startDate,
+			Balance: 0,
+		},
+	}
+	totals := map[string][]BalanceDatapoint{}
+	for _, accountId := range accountIds {
+		totals[accountId] = []BalanceDatapoint{
+			{
+				Date:    startDate,
+				Balance: 0,
+			},
+		}
+	}
+
+	startDate = startDate.AddDate(0, 0, 1)
+
+	tIdx := 0
+
+	for currentDate := startDate; currentDate.Before(time.Now()); currentDate = currentDate.AddDate(0, 0, 1) {
+		dayTotals := map[string]float32{}
+		for _, accountId := range accountIds {
+			dayTotals[accountId] = 0
+		}
+		dayTotal := float32(0)
+
+		for tIdx < len(transactions) && transactions[tIdx].Date.Equal(currentDate) {
+			t := transactions[tIdx]
+			if _, ok := dayTotals[t.AccountId]; ok {
+				dayTotals[t.AccountId] += t.Amount
+			}
+			dayTotal += t.Amount
+
+			tIdx++
+		}
+
+		for accountId, amount := range dayTotals {
+			totals[accountId] = append(totals[accountId], BalanceDatapoint{
+				Date:    currentDate,
+				Balance: amount + totals[accountId][len(totals[accountId])-1].Balance,
+			})
+		}
+
+		grandTotals = append(grandTotals, BalanceDatapoint{
+			Date:    currentDate,
+			Balance: dayTotal + grandTotals[len(grandTotals)-1].Balance,
+		})
+	}
+
+	result := BalanceSummary{
+		Total: grandTotals,
+	}
+
+	for accountId, accountTotals := range totals {
+		result.Accounts = append(result.Accounts, BalanceSummaryAccount{
+			Account: accounts[accountId],
+			Balance: accountTotals,
+		})
+	}
+
 	return c.JSON(result)
 }
