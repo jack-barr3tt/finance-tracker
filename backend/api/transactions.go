@@ -64,7 +64,8 @@ func (s Server) GetUserIdTransactions(c *fiber.Ctx, userId string, params GetUse
 			LEFT JOIN category c ON t.category_id = c.id
 			LEFT JOIN account a ON t.account_id = a.id
 			LEFT JOIN bank b ON a.bank_id = b.id
-			%[1]s`,
+			%[1]s
+			ORDER BY t.date DESC`,
 			whereClause,
 		),
 		args...,

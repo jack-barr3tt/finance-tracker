@@ -10,7 +10,7 @@ export default function TableBodyWithButton(props: TableBodyWithButtonProps) {
   return (
     <TableBody className={`${className ?? ""} relative group/tablebody`} {...rest}>
       {children}
-      <div className="absolute bottom-0 flex items-center justify-center w-0 h-0 left-1/2">
+      <div className="absolute top-0 flex items-center justify-center w-0 h-0 left-1/2">
         <div className="transition-all scale-0 duration-0 group-hover/tablebody:scale-100">{button}</div>
       </div>
     </TableBody>

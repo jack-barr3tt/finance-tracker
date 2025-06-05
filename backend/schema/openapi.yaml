@@ -560,6 +560,44 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/NotFound"
+  /user/{id}/summary/accounts:
+    get:
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Account summary response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AccountSummary"
+  /user/{id}/summary/categories:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Category summary response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CategorySummary"
 components:
   securitySchemes:
     BearerAuth:
@@ -901,3 +939,26 @@ components:
         - description
         - date
         - created_at
+    AccountSummary:
+      type: object
+      properties:
+        account:
+          $ref: "#/components/schemas/Account"
+        balance:
+          type: number
+      required:
+        - account
+        - balance
+    CategorySummary:
+      type: object
+      properties:
+        category:
+          $ref: "#/components/schemas/Category"
+        total:
+          type: number
+        percentage:
+          type: number
+      required:
+        - category
+        - total
+        - percentage

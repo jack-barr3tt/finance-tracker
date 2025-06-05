@@ -2,7 +2,7 @@
 
 import { type Options } from "@hey-api/client-fetch";
 import { UseQueryResult } from "@tanstack/react-query";
-import { deleteUserByIdAccountsByAccountId, deleteUserByIdCategoriesByCategoryId, deleteUserByIdCategoriesByCategoryIdRulesByRuleId, deleteUserByIdTransactionsByTransactionId, getBanks, getUserById, getUserByIdAccounts, getUserByIdAccountsByAccountId, getUserByIdCategories, getUserByIdCategoriesByCategoryId, getUserByIdTransactions, getUserByIdTransactionsByTransactionId, patchUserByIdCategoriesByCategoryId, patchUserByIdCategoriesByCategoryIdRulesByRuleId, patchUserByIdTransactionsByTransactionId, postLogin, postSignup, postUserByIdAccounts, postUserByIdCategories, postUserByIdCategoriesByCategoryIdRules, postUserByIdTransactions } from "../requests/services.gen";
+import { deleteUserByIdAccountsByAccountId, deleteUserByIdCategoriesByCategoryId, deleteUserByIdCategoriesByCategoryIdRulesByRuleId, deleteUserByIdTransactionsByTransactionId, getBanks, getUserById, getUserByIdAccounts, getUserByIdAccountsByAccountId, getUserByIdCategories, getUserByIdCategoriesByCategoryId, getUserByIdSummaryAccounts, getUserByIdSummaryCategories, getUserByIdTransactions, getUserByIdTransactionsByTransactionId, patchUserByIdCategoriesByCategoryId, patchUserByIdCategoriesByCategoryIdRulesByRuleId, patchUserByIdTransactionsByTransactionId, postLogin, postSignup, postUserByIdAccounts, postUserByIdCategories, postUserByIdCategoriesByCategoryIdRules, postUserByIdTransactions } from "../requests/services.gen";
 export type GetBanksDefaultResponse = Awaited<ReturnType<typeof getBanks>>["data"];
 export type GetBanksQueryResult<TData = GetBanksDefaultResponse, TError = unknown> = UseQueryResult<TData, TError>;
 export const useGetBanksKey = "GetBanks";
@@ -35,6 +35,14 @@ export type GetUserByIdCategoriesByCategoryIdDefaultResponse = Awaited<ReturnTyp
 export type GetUserByIdCategoriesByCategoryIdQueryResult<TData = GetUserByIdCategoriesByCategoryIdDefaultResponse, TError = unknown> = UseQueryResult<TData, TError>;
 export const useGetUserByIdCategoriesByCategoryIdKey = "GetUserByIdCategoriesByCategoryId";
 export const UseGetUserByIdCategoriesByCategoryIdKeyFn = (clientOptions: Options<unknown, true>, queryKey?: Array<unknown>) => [useGetUserByIdCategoriesByCategoryIdKey, ...(queryKey ?? [clientOptions])];
+export type GetUserByIdSummaryAccountsDefaultResponse = Awaited<ReturnType<typeof getUserByIdSummaryAccounts>>["data"];
+export type GetUserByIdSummaryAccountsQueryResult<TData = GetUserByIdSummaryAccountsDefaultResponse, TError = unknown> = UseQueryResult<TData, TError>;
+export const useGetUserByIdSummaryAccountsKey = "GetUserByIdSummaryAccounts";
+export const UseGetUserByIdSummaryAccountsKeyFn = (clientOptions: Options<unknown, true>, queryKey?: Array<unknown>) => [useGetUserByIdSummaryAccountsKey, ...(queryKey ?? [clientOptions])];
+export type GetUserByIdSummaryCategoriesDefaultResponse = Awaited<ReturnType<typeof getUserByIdSummaryCategories>>["data"];
+export type GetUserByIdSummaryCategoriesQueryResult<TData = GetUserByIdSummaryCategoriesDefaultResponse, TError = unknown> = UseQueryResult<TData, TError>;
+export const useGetUserByIdSummaryCategoriesKey = "GetUserByIdSummaryCategories";
+export const UseGetUserByIdSummaryCategoriesKeyFn = (clientOptions: Options<unknown, true>, queryKey?: Array<unknown>) => [useGetUserByIdSummaryCategoriesKey, ...(queryKey ?? [clientOptions])];
 export type PostLoginMutationResult = Awaited<ReturnType<typeof postLogin>>;
 export const usePostLoginKey = "PostLogin";
 export const UsePostLoginKeyFn = (mutationKey?: Array<unknown>) => [usePostLoginKey, ...(mutationKey ?? [])];

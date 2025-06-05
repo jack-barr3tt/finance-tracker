@@ -159,6 +159,17 @@ export type Transaction = {
     created_at: string;
 };
 
+export type AccountSummary = {
+    account: Account;
+    balance: number;
+};
+
+export type CategorySummary = {
+    category: Category;
+    total: number;
+    percentage: number;
+};
+
 export type PostLoginData = {
     body?: LoginRequest;
 };
@@ -381,3 +392,23 @@ export type DeleteUserByIdCategoriesByCategoryIdRulesByRuleIdData = {
 export type DeleteUserByIdCategoriesByCategoryIdRulesByRuleIdResponse = (CategoryEditRuleResponse);
 
 export type DeleteUserByIdCategoriesByCategoryIdRulesByRuleIdError = (NotFound);
+
+export type GetUserByIdSummaryAccountsData = {
+    path: {
+        id: string;
+    };
+};
+
+export type GetUserByIdSummaryAccountsResponse = (Array<AccountSummary>);
+
+export type GetUserByIdSummaryAccountsError = unknown;
+
+export type GetUserByIdSummaryCategoriesData = {
+    path: {
+        id: string;
+    };
+};
+
+export type GetUserByIdSummaryCategoriesResponse = (Array<CategorySummary>);
+
+export type GetUserByIdSummaryCategoriesError = unknown;

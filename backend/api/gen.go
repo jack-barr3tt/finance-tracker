@@ -49,6 +49,12 @@ type AccountDeleteResponse struct {
 	Message string `json:"message"`
 }
 
+// AccountSummary defines model for AccountSummary.
+type AccountSummary struct {
+	Account Account `json:"account"`
+	Balance float32 `json:"balance"`
+}
+
 // Bank defines model for Bank.
 type Bank struct {
 	ApiImportEnabled bool   `json:"api_import_enabled"`
@@ -120,6 +126,13 @@ type CategoryRule struct {
 	Account Account `json:"account"`
 	Id      string  `json:"id"`
 	Rule    string  `json:"rule"`
+}
+
+// CategorySummary defines model for CategorySummary.
+type CategorySummary struct {
+	Category   Category `json:"category"`
+	Percentage float32  `json:"percentage"`
+	Total      float32  `json:"total"`
 }
 
 // LoginRequest defines model for LoginRequest.
@@ -287,6 +300,12 @@ type ServerInterface interface {
 
 	// (PATCH /user/{id}/categories/{category_id}/rules/{rule_id})
 	PatchUserIdCategoriesCategoryIdRulesRuleId(c *fiber.Ctx, id string, categoryId string, ruleId string) error
+
+	// (GET /user/{id}/summary/accounts)
+	GetUserIdSummaryAccounts(c *fiber.Ctx, id string) error
+
+	// (GET /user/{id}/summary/categories)
+	GetUserIdSummaryCategories(c *fiber.Ctx, id string) error
 
 	// (GET /user/{id}/transactions)
 	GetUserIdTransactions(c *fiber.Ctx, id string, params GetUserIdTransactionsParams) error
@@ -645,6 +664,42 @@ func (siw *ServerInterfaceWrapper) PatchUserIdCategoriesCategoryIdRulesRuleId(c 
 	return siw.Handler.PatchUserIdCategoriesCategoryIdRulesRuleId(c, id, categoryId, ruleId)
 }
 
+// GetUserIdSummaryAccounts operation middleware
+func (siw *ServerInterfaceWrapper) GetUserIdSummaryAccounts(c *fiber.Ctx) error {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", c.Params("id"), &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter id: %w", err).Error())
+	}
+
+	c.Context().SetUserValue(BearerAuthScopes, []string{})
+
+	return siw.Handler.GetUserIdSummaryAccounts(c, id)
+}
+
+// GetUserIdSummaryCategories operation middleware
+func (siw *ServerInterfaceWrapper) GetUserIdSummaryCategories(c *fiber.Ctx) error {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", c.Params("id"), &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter id: %w", err).Error())
+	}
+
+	c.Context().SetUserValue(BearerAuthScopes, []string{})
+
+	return siw.Handler.GetUserIdSummaryCategories(c, id)
+}
+
 // GetUserIdTransactions operation middleware
 func (siw *ServerInterfaceWrapper) GetUserIdTransactions(c *fiber.Ctx) error {
 
@@ -828,6 +883,10 @@ func RegisterHandlersWithOptions(router fiber.Router, si ServerInterface, option
 
 	router.Patch(options.BaseURL+"/user/:id/categories/:category_id/rules/:rule_id", wrapper.PatchUserIdCategoriesCategoryIdRulesRuleId)
 
+	router.Get(options.BaseURL+"/user/:id/summary/accounts", wrapper.GetUserIdSummaryAccounts)
+
+	router.Get(options.BaseURL+"/user/:id/summary/categories", wrapper.GetUserIdSummaryCategories)
+
 	router.Get(options.BaseURL+"/user/:id/transactions", wrapper.GetUserIdTransactions)
 
 	router.Post(options.BaseURL+"/user/:id/transactions", wrapper.PostUserIdTransactions)
@@ -843,32 +902,34 @@ func RegisterHandlersWithOptions(router fiber.Router, si ServerInterface, option
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
-	"zLLsvwAAAP//Ygg9MD8+AAA=",
+	"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",
+	"nUIAAA==",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

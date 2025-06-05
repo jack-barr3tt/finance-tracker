@@ -1,25 +1,50 @@
-import { Button, Table, TableCell, TableHead, TableHeadCell, TableRow } from "flowbite-react"
+import { Button, Card, Table, TableCell, TableHead, TableHeadCell, TableRow } from "flowbite-react"
 import { useUser } from "../Hooks/useUser"
 import {
   useDeleteUserByIdTransactionsByTransactionId,
+  useGetUserByIdSummaryAccounts,
+  UseGetUserByIdSummaryAccountsKeyFn,
+  useGetUserByIdSummaryCategories,
+  UseGetUserByIdSummaryCategoriesKeyFn,
   useGetUserByIdTransactions,
   UseGetUserByIdTransactionsByTransactionIdKeyFn,
   UseGetUserByIdTransactionsKeyFn,
 } from "../API/queries"
-import { FiEdit, FiPlus, FiTrash } from "react-icons/fi"
+import { FiEdit, FiPlus, FiTrash, FiUpload } from "react-icons/fi"
 import EditTransactionRow from "./Dashboard/EditTransactionRow"
 import TableBodyWithButton from "../Components/TableBodyWithButton"
-import { useCallback, useState } from "react"
+import { useCallback, useMemo, useState } from "react"
 import { useQueryClient } from "@tanstack/react-query"
+import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js"
+import { Doughnut } from "react-chartjs-2"
+
+ChartJS.register(ArcElement, Tooltip, Legend)
+
+function getBrightColors(n: number) {
+  const colors: string[] = []
+  const offset = Math.floor(Math.random() * 360)
+  for (let i = 0; i < n; i++) {
+    const hue = (360 / n) * i + offset
+    colors.push(`hsla(${hue}, 100%, 50%, 0.25)`)
+  }
+  return colors
+}
 
 export default function Dashboard() {
   const { userId } = useUser()
   const queryClient = useQueryClient()
+  const { data: accountSummaries } = useGetUserByIdSummaryAccounts({ path: { id: userId } })
+  const { data: categorySummaries } = useGetUserByIdSummaryCategories({ path: { id: userId } })
   const { data: transactions, isLoading } = useGetUserByIdTransactions({ path: { id: userId } })
   const { mutateAsync: deleteTransaction } = useDeleteUserByIdTransactionsByTransactionId()
 
   const [showAdd, setShowAdd] = useState(false)
   const [editingTransactionId, setEditingTransactionId] = useState<string | undefined>(undefined)
+
+  const pieColors = useMemo(
+    () => getBrightColors(categorySummaries?.length || 0),
+    [categorySummaries]
+  )
 
   const handleDelete = useCallback(
     async (transactionId: string) => {
@@ -35,13 +60,87 @@ export default function Dashboard() {
           path: { id: userId, transaction_id: transactionId },
         }),
       })
+      queryClient.invalidateQueries({
+        queryKey: UseGetUserByIdSummaryAccountsKeyFn({ path: { id: userId } }),
+      })
+      queryClient.invalidateQueries({
+        queryKey: UseGetUserByIdSummaryCategoriesKeyFn({ path: { id: userId } }),
+      })
     },
     [deleteTransaction, userId, editingTransactionId, queryClient]
   )
 
   return (
     <div className="flex flex-col gap-8 px-16">
-      <h2 className="text-2xl font-medium">Dashboard</h2>
+      <h2 className="text-2xl font-medium">Accounts</h2>
+      {accountSummaries?.length === 0 ? (
+        <p className="text-gray-500">No accounts found</p>
+      ) : (
+        <div className="grid grid-cols-3 gap-4">
+          {accountSummaries?.map((account) => (
+            <Card>
+              <div className="grid grid-cols-2 gap-2">
+                <h1>{account.account.name}</h1>
+                <h2>{account.account.bank.name}</h2>
+                <p className="col-span-2 text-sm">
+                  {account.balance.toLocaleString("en-GB", {
+                    style: "currency",
+                    currency: "GBP",
+                  })}
+                </p>
+              </div>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      <h2 className="text-2xl font-medium">Categories</h2>
+      <Card className="w-full max-w-xl">
+        <div className="flex flex-col items-center gap-4">
+          <h1 className="text-xl font-medium">Spending by Category</h1>
+          <div className="w-full h-64">
+            <Doughnut
+              data={{
+                labels:
+                  categorySummaries
+                    ?.filter((cat) => cat.total < 0)
+                    .map((cat) => cat.category.name) || [],
+                datasets: [
+                  {
+                    label: "Total",
+                    data:
+                      categorySummaries?.filter((cat) => cat.total < 0).map((cat) => -cat.total) ||
+                      [],
+                    backgroundColor: pieColors,
+                  },
+                ],
+              }}
+              options={{
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: {
+                    position: "right",
+                  },
+                  title: {
+                    display: true,
+                    text: "Category Breakdown",
+                  },
+                },
+              }}
+              className="w-full"
+            />
+          </div>
+        </div>
+      </Card>
+
+      <div className="flex flex-row items-center justify-between">
+        <h2 className="text-2xl font-medium">Transactions</h2>
+        <Button>
+          <FiUpload className="mr-2" />
+          Import
+        </Button>
+      </div>
 
       <Table striped>
         <TableHead>
@@ -86,6 +185,7 @@ export default function Dashboard() {
               ))
           ) : (
             <>
+              {showAdd && <EditTransactionRow cancelCallback={() => setShowAdd(false)} />}
               {transactions?.length === 0 && !showAdd ? (
                 <TableRow>
                   <TableCell colSpan={6} className="text-center">
@@ -133,7 +233,6 @@ export default function Dashboard() {
                   )
                 )
               )}
-              <EditTransactionRow show={showAdd} cancelCallback={() => setShowAdd(false)} />
             </>
           )}
         </TableBodyWithButton>

@@ -12,7 +12,10 @@ import { FiSave, FiX } from "react-icons/fi"
 import {
   useGetUserByIdAccounts,
   useGetUserByIdCategories,
+  UseGetUserByIdSummaryAccountsKeyFn,
+  UseGetUserByIdSummaryCategoriesKeyFn,
   useGetUserByIdTransactionsByTransactionId,
+  UseGetUserByIdTransactionsByTransactionIdKeyFn,
   UseGetUserByIdTransactionsKeyFn,
   usePatchUserByIdTransactionsByTransactionId,
   usePostUserByIdTransactions,
@@ -24,11 +27,10 @@ import { useQueryClient } from "@tanstack/react-query"
 type EditTransactionRowProps = {
   transactionId?: string
   cancelCallback?: () => void
-  show?: boolean
 }
 
 export default function EditTransactionRow(props: EditTransactionRowProps) {
-  const { transactionId, cancelCallback, show } = props
+  const { transactionId, cancelCallback } = props
 
   const { userId } = useUser()
   const queryClient = useQueryClient()
@@ -77,8 +79,14 @@ export default function EditTransactionRow(props: EditTransactionRowProps) {
       },
       path: { id: userId },
     })
-    await queryClient.invalidateQueries({
+    queryClient.invalidateQueries({
       queryKey: UseGetUserByIdTransactionsKeyFn({ path: { id: userId } }),
+    })
+    queryClient.invalidateQueries({
+      queryKey: UseGetUserByIdSummaryAccountsKeyFn({ path: { id: userId } }),
+    })
+    queryClient.invalidateQueries({
+      queryKey: UseGetUserByIdSummaryCategoriesKeyFn({ path: { id: userId } }),
     })
     // Reset the form fields
     setDate(null)
@@ -114,8 +122,19 @@ export default function EditTransactionRow(props: EditTransactionRowProps) {
       },
       path: { id: userId, transaction_id: transactionId },
     })
-    await queryClient.invalidateQueries({
+    queryClient.invalidateQueries({
       queryKey: UseGetUserByIdTransactionsKeyFn({ path: { id: userId } }),
+    })
+    queryClient.invalidateQueries({
+      queryKey: UseGetUserByIdTransactionsByTransactionIdKeyFn({
+        path: { id: userId, transaction_id: transactionId },
+      }),
+    })
+    queryClient.invalidateQueries({
+      queryKey: UseGetUserByIdSummaryAccountsKeyFn({ path: { id: userId } }),
+    })
+    queryClient.invalidateQueries({
+      queryKey: UseGetUserByIdSummaryCategoriesKeyFn({ path: { id: userId } }),
     })
     // Reset the form fields
     setDate(null)
@@ -164,7 +183,7 @@ export default function EditTransactionRow(props: EditTransactionRowProps) {
 
   return (
     <ThemeProvider theme={tableTheme}>
-      <TableRow className={show === false ? "hidden" : ""}>
+      <TableRow>
         <TableCell>
           <Datepicker value={date} onChange={setDate} />
         </TableCell>

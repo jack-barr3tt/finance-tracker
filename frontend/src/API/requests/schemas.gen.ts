@@ -436,3 +436,32 @@ export const TransactionSchema = {
     },
     required: ['id', 'amount', 'account', 'description', 'date', 'created_at']
 } as const;
+
+export const AccountSummarySchema = {
+    type: 'object',
+    properties: {
+        account: {
+            '$ref': '#/components/schemas/Account'
+        },
+        balance: {
+            type: 'number'
+        }
+    },
+    required: ['account', 'balance']
+} as const;
+
+export const CategorySummarySchema = {
+    type: 'object',
+    properties: {
+        category: {
+            '$ref': '#/components/schemas/Category'
+        },
+        total: {
+            type: 'number'
+        },
+        percentage: {
+            type: 'number'
+        }
+    },
+    required: ['category', 'total', 'percentage']
+} as const;
