@@ -74,12 +74,14 @@ export default function Dashboard() {
               .fill(0)
               .map((_, index) => (
                 <TableRow key={index} className="animate-pulse">
-                  <TableCell className="h-8 bg-gray-200 dark:bg-gray-700"></TableCell>
-                  <TableCell className="h-8 bg-gray-200 dark:bg-gray-700"></TableCell>
-                  <TableCell className="h-8 bg-gray-200 dark:bg-gray-700"></TableCell>
-                  <TableCell className="h-8 bg-gray-200 dark:bg-gray-700"></TableCell>
-                  <TableCell className="h-8 bg-gray-200 dark:bg-gray-700"></TableCell>
-                  <TableCell className="h-8 bg-gray-200 dark:bg-gray-700"></TableCell>
+                  {Array(5)
+                    .fill(0)
+                    .map(() => (
+                      <TableCell>
+                        <div className="h-8 bg-gray-200 rounded-md dark:bg-gray-600"></div>
+                      </TableCell>
+                    ))}
+                  <TableCell />
                 </TableRow>
               ))
           ) : (
@@ -109,8 +111,8 @@ export default function Dashboard() {
                           currency: "GBP",
                         })}
                       </TableCell>
-                      <TableCell className="p-0">
-                        <div className="flex flex-row items-center invisible gap-2 group-hover/trnscrow:visible">
+                      <TableCell className="p-0 px-[18px] py-[10px]">
+                        <div className="flex flex-row items-center justify-end invisible gap-2 group-hover/trnscrow:visible">
                           <Button
                             className="p-0 size-8"
                             color="light"

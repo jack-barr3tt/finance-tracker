@@ -218,7 +218,7 @@ export default function EditTransactionRow(props: EditTransactionRowProps) {
           />
         </TableCell>
         <TableCell>
-          <div className="flex flex-row items-center gap-2">
+          <div className="flex flex-row items-center justify-end gap-2">
             <Button
               className="p-0 size-8"
               color="light"
