@@ -1,4 +1,13 @@
-import { Button, Card, Table, TableCell, TableHead, TableHeadCell, TableRow } from "flowbite-react"
+import {
+  Button,
+  Card,
+  Table,
+  TableCell,
+  TableHead,
+  TableHeadCell,
+  TableRow,
+  useThemeMode,
+} from "flowbite-react"
 import { useUser } from "../Hooks/useUser"
 import {
   useDeleteUserByIdTransactionsByTransactionId,
@@ -20,19 +29,25 @@ import { Doughnut } from "react-chartjs-2"
 
 ChartJS.register(ArcElement, Tooltip, Legend)
 
-function getBrightColors(n: number) {
-  const colors: string[] = []
+function getBrightColors(
+  count: number,
+  transparency = 0.25
+): { pieFills: string[]; pieBorders: string[] } {
+  const fills: string[] = []
+  const borders: string[] = []
   const offset = Math.floor(Math.random() * 360)
-  for (let i = 0; i < n; i++) {
-    const hue = (360 / n) * i + offset
-    colors.push(`hsla(${hue}, 100%, 50%, 0.25)`)
+  for (let i = 0; i < count; i++) {
+    const hue = (360 / count) * i + offset
+    fills.push(`hsla(${hue}, 100%, 50%, ${transparency})`)
+    borders.push(`hsla(${hue}, 100%, 50%, 1)`)
   }
-  return colors
+  return { pieFills: fills, pieBorders: borders }
 }
 
 export default function Dashboard() {
   const { userId } = useUser()
   const queryClient = useQueryClient()
+  const { mode } = useThemeMode()
   const { data: accountSummaries } = useGetUserByIdSummaryAccounts({ path: { id: userId } })
   const { data: categorySummaries } = useGetUserByIdSummaryCategories({ path: { id: userId } })
   const { data: transactions, isLoading } = useGetUserByIdTransactions({ path: { id: userId } })
@@ -41,9 +56,9 @@ export default function Dashboard() {
   const [showAdd, setShowAdd] = useState(false)
   const [editingTransactionId, setEditingTransactionId] = useState<string | undefined>(undefined)
 
-  const pieColors = useMemo(
-    () => getBrightColors(categorySummaries?.length || 0),
-    [categorySummaries]
+  const { pieBorders, pieFills } = useMemo(
+    () => getBrightColors(categorySummaries?.length || 0, mode === "dark" ? 0.25 : 0.5),
+    [categorySummaries?.length, mode]
   )
 
   const handleDelete = useCallback(
@@ -71,7 +86,7 @@ export default function Dashboard() {
   )
 
   return (
-    <div className="flex flex-col gap-8 px-16">
+    <div className="flex flex-col gap-4 px-16">
       <h2 className="text-2xl font-medium">Accounts</h2>
       {accountSummaries?.length === 0 ? (
         <p className="text-gray-500">No accounts found</p>
@@ -80,9 +95,9 @@ export default function Dashboard() {
           {accountSummaries?.map((account) => (
             <Card>
               <div className="grid grid-cols-2 gap-2">
-                <h1>{account.account.name}</h1>
-                <h2>{account.account.bank.name}</h2>
-                <p className="col-span-2 text-sm">
+                <h1 className="font-medium">{account.account.name}</h1>
+                <h2 className="font-light">{account.account.bank.name}</h2>
+                <p className="col-span-2 text-4xl">
                   {account.balance.toLocaleString("en-GB", {
                     style: "currency",
                     currency: "GBP",
@@ -111,7 +126,8 @@ export default function Dashboard() {
                     data:
                       categorySummaries?.filter((cat) => cat.total < 0).map((cat) => -cat.total) ||
                       [],
-                    backgroundColor: pieColors,
+                    backgroundColor: pieFills,
+                    borderColor: pieBorders,
                   },
                 ],
               }}
@@ -127,6 +143,7 @@ export default function Dashboard() {
                     text: "Category Breakdown",
                   },
                 },
+                animation: false
               }}
               className="w-full"
             />
@@ -194,7 +211,7 @@ export default function Dashboard() {
                 </TableRow>
               ) : (
                 transactions?.map((transaction) =>
-                  editingTransactionId ? (
+                  editingTransactionId == transaction.id ? (
                     <EditTransactionRow
                       transactionId={transaction.id}
                       cancelCallback={() => setEditingTransactionId(undefined)}
