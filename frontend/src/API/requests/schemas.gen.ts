@@ -73,6 +73,9 @@ export const CategoryAddRuleRequestSchema = {
         account_id: {
             type: 'string'
         },
+        description: {
+            type: 'string'
+        },
         rule: {
             type: 'string',
             example: 'Tesco'
@@ -84,6 +87,9 @@ export const CategoryEditRuleRequestSchema = {
     type: 'object',
     properties: {
         account_id: {
+            type: 'string'
+        },
+        description: {
             type: 'string'
         },
         rule: {
@@ -456,6 +462,9 @@ export const CategoryRuleSchema = {
         },
         account: {
             '$ref': '#/components/schemas/Account'
+        },
+        description: {
+            type: 'string'
         },
         rule: {
             type: 'string'

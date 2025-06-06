@@ -1,6 +1,7 @@
 package api
 
 import (
+	"sort"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -41,7 +42,7 @@ func (s Server) GetUserIdCategories(c *fiber.Ctx, userId string) error {
 		c.Context(),
 		`SELECT 
 			c.id, c.name, c.created_at,
-			cr.id, cr.rule_regex,
+			cr.id, cr.rule_regex, cr.description,
 			a.id, a.name, a.opened_at, a.closed_at
 		FROM category c 
 		LEFT JOIN category_rule cr ON c.id = cr.category_id
@@ -58,10 +59,10 @@ func (s Server) GetUserIdCategories(c *fiber.Ctx, userId string) error {
 		var id string
 		var name string
 		var createdAt time.Time
-		var ruleId, ruleRegex *string
+		var ruleId, ruleRegex, ruleDescription *string
 		var accountId, accountName *string
 		var accountOpenedAt, accountClosedAt *time.Time
-		err = rows.Scan(&id, &name, &createdAt, &ruleId, &ruleRegex, &accountId, &accountName, &accountOpenedAt, &accountClosedAt)
+		err = rows.Scan(&id, &name, &createdAt, &ruleId, &ruleRegex, &ruleDescription, &accountId, &accountName, &accountOpenedAt, &accountClosedAt)
 		if err != nil {
 			return DBError(c, err)
 		}
@@ -70,8 +71,9 @@ func (s Server) GetUserIdCategories(c *fiber.Ctx, userId string) error {
 			category := categories[id]
 
 			category.Rules = append(category.Rules, CategoryRule{
-				Id:   *ruleId,
-				Rule: *ruleRegex,
+				Id:          *ruleId,
+				Rule:        *ruleRegex,
+				Description: ruleDescription,
 				Account: Account{
 					Id:       *accountId,
 					Name:     *accountName,
@@ -91,8 +93,9 @@ func (s Server) GetUserIdCategories(c *fiber.Ctx, userId string) error {
 
 			if ruleId != nil && ruleRegex != nil {
 				category.Rules = append(category.Rules, CategoryRule{
-					Id:   *ruleId,
-					Rule: *ruleRegex,
+					Id:          *ruleId,
+					Rule:        *ruleRegex,
+					Description: ruleDescription,
 					Account: Account{
 						Id:       *accountId,
 						Name:     *accountName,
@@ -110,6 +113,10 @@ func (s Server) GetUserIdCategories(c *fiber.Ctx, userId string) error {
 	for _, category := range categories {
 		result = append(result, category)
 	}
+
+	sort.Slice(result, func(i, j int) bool {
+		return result[i].Name < result[j].Name
+	})
 
 	return c.JSON(result)
 }
@@ -137,7 +144,7 @@ func (s Server) GetUserIdCategoriesCategoryId(c *fiber.Ctx, userId string, categ
 	rows, err := s.DB.Query(
 		c.Context(),
 		`SELECT 
-			cr.id, cr.rule_regex,
+			cr.id, cr.rule_regex, cr.description,
 			a.id, a.name, a.opened_at, a.closed_at
 			FROM category c 
 			INNER JOIN category_rule cr ON c.id = cr.category_id 
@@ -151,7 +158,7 @@ func (s Server) GetUserIdCategoriesCategoryId(c *fiber.Ctx, userId string, categ
 
 	for rows.Next() {
 		rule := CategoryRule{}
-		err = rows.Scan(&rule.Id, &rule.Rule, &rule.Account.Id, &rule.Account.Name, &rule.Account.OpenedAt, &rule.Account.ClosedAt)
+		err = rows.Scan(&rule.Id, &rule.Rule, &rule.Description, &rule.Account.Id, &rule.Account.Name, &rule.Account.OpenedAt, &rule.Account.ClosedAt)
 		if err != nil {
 			return DBError(c, err)
 		}
@@ -222,7 +229,11 @@ func (s *Server) PostUserIdCategoriesCategoryIdRules(c *fiber.Ctx, id string, ca
 
 	var ruleId string
 
-	err = s.DB.QueryRow(c.Context(), "INSERT INTO category_rule (account_id, category_id, rule_regex) VALUES ($1, $2, $3) RETURNING id", body.AccountId, categoryId, body.Rule).Scan(&ruleId)
+	err = s.DB.QueryRow(
+		c.Context(),
+		"INSERT INTO category_rule (account_id, category_id, rule_regex, description) VALUES ($1, $2, $3, $4) RETURNING id",
+		body.AccountId, categoryId, body.Rule, body.Description,
+	).Scan(&ruleId)
 	if err != nil {
 		return DBError(c, err)
 	}
@@ -258,7 +269,11 @@ func (s *Server) PatchUserIdCategoriesCategoryIdRulesRuleId(c *fiber.Ctx, id str
 		return c.SendStatus(fiber.StatusBadRequest)
 	}
 
-	_, err = s.DB.Exec(c.Context(), "UPDATE category_rule SET rule_regex = $1 WHERE id = $2 AND category_id = $3", body.Rule, ruleId, categoryId)
+	_, err = s.DB.Exec(
+		c.Context(),
+		"UPDATE category_rule SET rule_regex = $1, description = $2 WHERE id = $3 AND category_id = $4",
+		body.Rule, body.Description, ruleId, categoryId,
+	)
 	if err != nil {
 		return DBError(c, err)
 	}

@@ -26,11 +26,13 @@ export type CategoryEditRequest = {
 
 export type CategoryAddRuleRequest = {
     account_id?: string;
+    description?: string;
     rule?: string;
 };
 
 export type CategoryEditRuleRequest = {
     account_id?: string;
+    description?: string;
     rule?: string;
 };
 
@@ -166,6 +168,7 @@ export type Category = {
 export type CategoryRule = {
     id: string;
     account: Account;
+    description?: string;
     rule: string;
 };
 

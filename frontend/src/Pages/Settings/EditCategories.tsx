@@ -113,6 +113,7 @@ export default function EditCategories() {
             <TableHead>
               <TableHeadCell>Account</TableHeadCell>
               <TableHeadCell>Rule</TableHeadCell>
+              <TableHeadCell>New Description</TableHeadCell>
               <TableHeadCell>
                 <span className="sr-only">Edit</span>
               </TableHeadCell>
@@ -148,6 +149,7 @@ export default function EditCategories() {
                     <TableRow key={rule.id}>
                       <TableCell>{rule.account.name}</TableCell>
                       <TableCell>{rule.rule}</TableCell>
+                      <TableCell>{rule.description}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex flex-row items-center justify-end">
                           <Button

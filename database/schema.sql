@@ -23,6 +23,7 @@ CREATE TABLE IF NOT EXISTS "category_rule" (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   account_id UUID NOT NULL REFERENCES "account"(id) ON DELETE CASCADE,
   category_id UUID NOT NULL REFERENCES "category"(id) ON DELETE CASCADE,
+  description TEXT,
   rule_regex TEXT NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

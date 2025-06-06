@@ -28,6 +28,7 @@ export default function EditCategoryRuleRow(props: EditCategoryRuleRowProps) {
   const [accountSearch, setAccountSearch] = useState<string | undefined>(undefined)
   const [accountId, setAccountId] = useState<string | undefined>(undefined)
   const [rule, setRule] = useState<string>("")
+  const [description, setDescription] = useState<string>("")
 
   const { data: category } = useGetUserByIdCategoriesByCategoryId(
     {
@@ -54,7 +55,7 @@ export default function EditCategoryRuleRow(props: EditCategoryRuleRowProps) {
     if (accountId && rule) {
       await createRule({
         path: { id: userId, category_id: categoryId },
-        body: { account_id: accountId, rule },
+        body: { account_id: accountId, rule, description },
       })
       queryClient.invalidateQueries({
         queryKey: UseGetUserByIdCategoriesKeyFn({ path: { id: userId } }),
@@ -66,15 +67,16 @@ export default function EditCategoryRuleRow(props: EditCategoryRuleRowProps) {
       })
       setAccountId(undefined)
       setRule("")
+      setDescription("")
       cancelCallback?.()
     }
-  }, [accountId, cancelCallback, categoryId, createRule, queryClient, rule, userId])
+  }, [accountId, cancelCallback, categoryId, createRule, description, queryClient, rule, userId])
 
   const handleEdit = useCallback(async () => {
     if (ruleId && accountId && rule) {
       await editRule({
         path: { id: userId, category_id: categoryId, rule_id: ruleId },
-        body: { account_id: accountId, rule },
+        body: { account_id: accountId, rule, description },
       })
       queryClient.invalidateQueries({
         queryKey: UseGetUserByIdCategoriesKeyFn({ path: { id: userId } }),
@@ -94,9 +96,20 @@ export default function EditCategoryRuleRow(props: EditCategoryRuleRowProps) {
       })
       setAccountId(undefined)
       setRule("")
+      setDescription("")
       cancelCallback?.()
     }
-  }, [accountId, cancelCallback, categoryId, editRule, queryClient, rule, ruleId, userId])
+  }, [
+    accountId,
+    cancelCallback,
+    categoryId,
+    description,
+    editRule,
+    queryClient,
+    rule,
+    ruleId,
+    userId,
+  ])
 
   return (
     <TableRow>
@@ -122,6 +135,14 @@ export default function EditCategoryRuleRow(props: EditCategoryRuleRowProps) {
           value={rule}
           placeholder="Rule"
           onChange={(e) => setRule(e.target.value)}
+        />
+      </TableCell>
+      <TableCell>
+        <TextInput
+          id="description"
+          value={description}
+          placeholder="Description"
+          onChange={(e) => setDescription(e.target.value)}
         />
       </TableCell>
       <TableCell className="text-right">
