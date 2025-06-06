@@ -992,6 +992,8 @@ components:
           type: string
         name:
           type: string
+        short_name:
+          type: string
         fixed_products:
           type: boolean
         csv_import_enabled:
@@ -1001,6 +1003,7 @@ components:
       required:
         - id
         - name
+        - short_name
         - csv_import_enabled
         - api_import_enabled
     Category:

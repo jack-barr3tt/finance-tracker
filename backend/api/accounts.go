@@ -76,7 +76,7 @@ func (s Server) GetUserIdAccounts(c *fiber.Ctx, userId string) error {
 		c.Context(),
 		`SELECT 
 			a.id, a.name, a.opened_at, a.closed_at,
-			b.id, b.name, b.csv_import_enabled, b.api_import_enabled
+			b.id, b.name, b.short_name, b.csv_import_enabled, b.api_import_enabled
 		FROM account a
 		LEFT JOIN bank b ON a.bank_id = b.id
 		WHERE a.user_id = $1`,
@@ -90,7 +90,7 @@ func (s Server) GetUserIdAccounts(c *fiber.Ctx, userId string) error {
 	for rows.Next() {
 		account := Account{}
 		err = rows.Scan(&account.Id, &account.Name, &account.OpenedAt, &account.ClosedAt,
-			&account.Bank.Id, &account.Bank.Name, &account.Bank.CsvImportEnabled, &account.Bank.ApiImportEnabled)
+			&account.Bank.Id, &account.Bank.Name, &account.Bank.ShortName, &account.Bank.CsvImportEnabled, &account.Bank.ApiImportEnabled)
 		if err != nil {
 			return DBError(c, err)
 		}
@@ -137,13 +137,13 @@ func (s Server) GetUserIdAccountsAccountId(c *fiber.Ctx, userId string, accountI
 		c.Context(),
 		`SELECT 
 			a.name, a.opened_at, a.closed_at,
-			b.id, b.name, b.csv_import_enabled, b.api_import_enabled
+			b.id, b.name, b.short_name, b.csv_import_enabled, b.api_import_enabled
 		FROM account a 
 		LEFT JOIN bank b ON a.bank_id = b.id
 		WHERE a.user_id = $1 AND a.id = $2`,
 		userId, accountId,
 	).Scan(&account.Name, &account.OpenedAt, &account.ClosedAt,
-		&account.Bank.Id, &account.Bank.Name, &account.Bank.CsvImportEnabled, &account.Bank.ApiImportEnabled)
+		&account.Bank.Id, &account.Bank.Name, &account.Bank.ShortName, &account.Bank.CsvImportEnabled, &account.Bank.ApiImportEnabled)
 	if err != nil {
 		return DBError(c, err)
 	}

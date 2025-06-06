@@ -409,6 +409,9 @@ export const BankSchema = {
         name: {
             type: 'string'
         },
+        short_name: {
+            type: 'string'
+        },
         fixed_products: {
             type: 'boolean'
         },
@@ -419,7 +422,7 @@ export const BankSchema = {
             type: 'boolean'
         }
     },
-    required: ['id', 'name', 'csv_import_enabled', 'api_import_enabled']
+    required: ['id', 'name', 'short_name', 'csv_import_enabled', 'api_import_enabled']
 } as const;
 
 export const CategorySchema = {

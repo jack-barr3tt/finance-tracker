@@ -150,6 +150,7 @@ export type Account = {
 export type Bank = {
     id: string;
     name: string;
+    short_name: string;
     fixed_products?: boolean;
     csv_import_enabled: boolean;
     api_import_enabled: boolean;

@@ -61,7 +61,7 @@ func (s Server) GetUserIdTransactions(c *fiber.Ctx, userId string, params GetUse
 				t.id, t.amount, t.description, t.date, 
 				c.id, c.name, c.created_at,
 				a.id, a.name, a.opened_at, a.closed_at,
-				b.id, b.name, b.csv_import_enabled, b.api_import_enabled
+				b.id, b.name, b.short_name, b.csv_import_enabled, b.api_import_enabled
 			FROM transaction t
 			LEFT JOIN category c ON t.category_id = c.id
 			LEFT JOIN account a ON t.account_id = a.id
@@ -86,7 +86,7 @@ func (s Server) GetUserIdTransactions(c *fiber.Ctx, userId string, params GetUse
 			&transaction.Id, &transaction.Amount, &transaction.Description, &transaction.Date,
 			&c_id, &c_name, &c_created_at,
 			&transaction.Account.Id, &transaction.Account.Name, &transaction.Account.OpenedAt, &transaction.Account.ClosedAt,
-			&transaction.Account.Bank.Id, &transaction.Account.Bank.Name, &transaction.Account.Bank.CsvImportEnabled, &transaction.Account.Bank.ApiImportEnabled,
+			&transaction.Account.Bank.Id, &transaction.Account.Bank.Name, &transaction.Account.Bank.ShortName, &transaction.Account.Bank.CsvImportEnabled, &transaction.Account.Bank.ApiImportEnabled,
 		)
 		if err != nil {
 			return DBError(c, err)
@@ -118,7 +118,7 @@ func (s *Server) GetUserIdTransactionsTransactionId(c *fiber.Ctx, id string, tra
 			t.id, t.amount, t.description, t.date, 
 			c.id, c.name, c.created_at,
 			a.id, a.name, a.opened_at, a.closed_at,
-			b.id, b.name, b.csv_import_enabled, b.api_import_enabled
+			b.id, b.name, b.short_name, b.csv_import_enabled, b.api_import_enabled
 		FROM transaction t
 		LEFT JOIN category c ON t.category_id = c.id
 		LEFT JOIN account a ON t.account_id = a.id
@@ -134,7 +134,7 @@ func (s *Server) GetUserIdTransactionsTransactionId(c *fiber.Ctx, id string, tra
 		&transaction.Id, &transaction.Amount, &transaction.Description, &transaction.Date,
 		&c_id, &c_name, &c_created_at,
 		&transaction.Account.Id, &transaction.Account.Name, &transaction.Account.OpenedAt, &transaction.Account.ClosedAt,
-		&transaction.Account.Bank.Id, &transaction.Account.Bank.Name, &transaction.Account.Bank.CsvImportEnabled, &transaction.Account.Bank.ApiImportEnabled,
+		&transaction.Account.Bank.Id, &transaction.Account.Bank.Name, &transaction.Account.Bank.ShortName, &transaction.Account.Bank.CsvImportEnabled, &transaction.Account.Bank.ApiImportEnabled,
 	)
 	if err != nil {
 		return DBError(c, err)

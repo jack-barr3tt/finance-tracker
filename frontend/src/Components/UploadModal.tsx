@@ -1,0 +1,95 @@
+import { Button, FileInput, Modal, ModalBody, ModalFooter, ModalHeader } from "flowbite-react"
+import { FiCheck, FiX } from "react-icons/fi"
+import { useUser } from "../Hooks/useUser"
+import {
+  useGetUserByIdAccounts,
+  UseGetUserByIdSummaryAccountsKeyFn,
+  UseGetUserByIdSummaryBalanceKeyFn,
+  UseGetUserByIdSummaryCategoriesKeyFn,
+  UseGetUserByIdTransactionsKeyFn,
+} from "../API/queries"
+import SearchSelect from "./SearchSelect"
+import { useCallback, useState } from "react"
+import { parseNationwide } from "../CSV/nationwide"
+import { useQueryClient } from "@tanstack/react-query"
+
+type UploadModalProps = {
+  show: boolean
+  onClose: () => void
+}
+
+export default function UploadModal(props: UploadModalProps) {
+  const { show, onClose } = props
+
+  const { userId } = useUser()
+  const queryClient = useQueryClient()
+  const { data: accounts } = useGetUserByIdAccounts({ path: { id: userId } })
+
+  const [accountId, setAccountId] = useState<string | undefined>(undefined)
+  const [accountSearch, setAccountSearch] = useState<string | undefined>(undefined)
+  const [file, setFile] = useState<File | null>(null)
+
+  const handleSubmit = useCallback(async () => {
+    if (!file || !accountId) return
+
+    const account = accounts?.find((account) => account.id === accountId)
+
+    switch (account?.bank.short_name) {
+      case "nationwide":
+        await parseNationwide(file, userId, accountId)
+        break
+      default:
+        break
+    }
+
+    queryClient.invalidateQueries({
+      queryKey: UseGetUserByIdTransactionsKeyFn({ path: { id: userId } }),
+    })
+    queryClient.invalidateQueries({
+      queryKey: UseGetUserByIdSummaryAccountsKeyFn({ path: { id: userId } }),
+    })
+    queryClient.invalidateQueries({
+      queryKey: UseGetUserByIdSummaryCategoriesKeyFn({ path: { id: userId } }),
+    })
+    queryClient.invalidateQueries({
+      queryKey: UseGetUserByIdSummaryBalanceKeyFn({ path: { id: userId } }),
+    })
+    onClose()
+  }, [accountId, accounts, file, onClose, queryClient, userId])
+
+  return (
+    <Modal show={show}>
+      <ModalHeader>Upload Transactions</ModalHeader>
+      <ModalBody>
+        <form className="flex flex-col gap-4">
+          <SearchSelect
+            options={
+              accounts
+                ?.filter((account) =>
+                  account.name.toLowerCase().includes(accountSearch?.toLowerCase() || "")
+                )
+                .map((account) => ({
+                  value: account.id,
+                  label: account.name,
+                })) || []
+            }
+            value={accountId}
+            onValueChange={setAccountId}
+            onSearchChange={setAccountSearch}
+            placeholder="Select an account"
+          />
+
+          <FileInput onChange={(e) => setFile(e.target.files ? e.target.files[0] : null)} />
+        </form>
+      </ModalBody>
+      <ModalFooter>
+        <Button color="green" onClick={handleSubmit} disabled={!file || !accountId}>
+          <FiCheck className="mr-2" /> Confirm
+        </Button>
+        <Button color="light" onClick={onClose}>
+          <FiX className="mr-2" /> Cancel
+        </Button>
+      </ModalFooter>
+    </Modal>
+  )
+}

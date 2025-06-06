@@ -27,6 +27,7 @@ import { useQueryClient } from "@tanstack/react-query"
 
 import BalanceGraph from "../Components/BalanceGraph"
 import CategoryPie from "../Components/CategoryPie"
+import UploadModal from "../Components/UploadModal"
 
 export default function Dashboard() {
   const { userId } = useUser()
@@ -36,6 +37,7 @@ export default function Dashboard() {
   const { mutateAsync: deleteTransaction } = useDeleteUserByIdTransactionsByTransactionId()
 
   const [showAdd, setShowAdd] = useState(false)
+  const [showUpload, setShowUpload] = useState(false)
   const [editingTransactionId, setEditingTransactionId] = useState<string | undefined>(undefined)
 
   const handleDelete = useCallback(
@@ -66,7 +68,9 @@ export default function Dashboard() {
   )
 
   return (
-    <div className="flex flex-col gap-4 px-16">
+    <div className="flex flex-col gap-4 px-16 pb-16 overflow-y-auto">
+      <UploadModal show={showUpload} onClose={() => setShowUpload(false)} />
+
       <h2 className="text-2xl font-medium">Accounts</h2>
       {accountSummaries?.length === 0 ? (
         <p className="text-gray-500">No accounts found</p>
@@ -102,7 +106,7 @@ export default function Dashboard() {
 
       <div className="flex flex-row items-center justify-between">
         <h2 className="text-2xl font-medium">Transactions</h2>
-        <Button>
+        <Button onClick={() => setShowUpload(true)}>
           <FiUpload className="mr-2" />
           Import
         </Button>
