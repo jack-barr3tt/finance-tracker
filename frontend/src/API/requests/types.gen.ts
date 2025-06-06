@@ -63,6 +63,7 @@ export type TransactionBulkFinaliseRequest = {
 
 export type TransactionBulkDeleteRequest = {
     hash: string;
+    cancel?: boolean;
 };
 
 export type LoginResponse = {

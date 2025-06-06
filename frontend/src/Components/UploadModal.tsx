@@ -12,6 +12,7 @@ import SearchSelect from "./SearchSelect"
 import { useCallback, useState } from "react"
 import { parseNationwide } from "../CSV/nationwide"
 import { useQueryClient } from "@tanstack/react-query"
+import { parseTrading212 } from "../CSV/trading212"
 
 type UploadModalProps = {
   show: boolean
@@ -38,6 +39,14 @@ export default function UploadModal(props: UploadModalProps) {
       case "nationwide":
         await parseNationwide(file, userId, accountId)
         break
+      case "t212": {
+        const t212Accounts = accounts?.filter((account) => account.bank.short_name == "t212")
+        const portfolioAccountId = t212Accounts?.find((a) => a.name === "Portfolio")?.id
+        const uninvestedAccountId = t212Accounts?.find((a) => a.name === "Uninvested Cash")?.id
+        if (!portfolioAccountId || !uninvestedAccountId) return
+        await parseTrading212(file, userId, portfolioAccountId, uninvestedAccountId)
+        break
+      }
       default:
         break
     }

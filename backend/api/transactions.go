@@ -226,12 +226,13 @@ func (s *Server) PostUserIdTransactionsBulk(c *fiber.Ctx, id string) error {
 	defer tx.Rollback(c.Context())
 
 	var fileId *string
+	var ready *bool
 
 	err = tx.QueryRow(
 		c.Context(),
-		"SELECT id FROM file WHERE file_hash = $1 AND user_id = $2",
+		"SELECT id, ready FROM file WHERE file_hash = $1 AND user_id = $2",
 		body.Hash, id,
-	).Scan(&fileId)
+	).Scan(&fileId, &ready)
 	if err != nil {
 		if !errors.Is(err, sql.ErrNoRows) {
 			return c.SendStatus(fiber.StatusInternalServerError)
@@ -247,6 +248,12 @@ func (s *Server) PostUserIdTransactionsBulk(c *fiber.Ctx, id string) error {
 		if err != nil {
 			return DBError(c, err)
 		}
+	}
+
+	if ready != nil && *ready {
+		return c.Status(fiber.StatusBadRequest).JSON(TransactionBulkResponse{
+			Message: "Bulk upload already finalised",
+		})
 	}
 
 	for _, transaction := range body.Transactions {
@@ -307,13 +314,24 @@ func (s *Server) PostUserIdTransactionsBulkDelete(c *fiber.Ctx, id string) error
 		return c.SendStatus(fiber.StatusBadRequest)
 	}
 
-	_, err = s.DB.Exec(
+	ready := true
+	if body.Cancel != nil && *body.Cancel {
+		ready = false
+	}
+
+	tag, err := s.DB.Exec(
 		c.Context(),
-		"DELETE FROM file WHERE file_hash = $1 AND user_id = $2",
-		body.Hash, id,
+		"DELETE FROM file WHERE file_hash = $1 AND user_id = $2 AND ready = $3",
+		body.Hash, id, ready,
 	)
 	if err != nil {
 		return DBError(c, err)
+	}
+
+	if tag.RowsAffected() == 0 {
+		return c.Status(fiber.StatusNotFound).JSON(TransactionBulkResponse{
+			Message: "Cannot cancel a finalised bulk upload",
+		})
 	}
 
 	return c.Status(fiber.StatusOK).JSON(TransactionBulkResponse{

@@ -820,6 +820,9 @@ components:
       properties:
         hash:
           type: string
+        cancel:
+          type: boolean
+          default: false
       required:
         - hash
     # Responses

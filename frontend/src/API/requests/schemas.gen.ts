@@ -179,6 +179,10 @@ export const TransactionBulkDeleteRequestSchema = {
     properties: {
         hash: {
             type: 'string'
+        },
+        cancel: {
+            type: 'boolean',
+            default: false
         }
     },
     required: ['hash']

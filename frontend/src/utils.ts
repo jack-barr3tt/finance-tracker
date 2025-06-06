@@ -4,11 +4,10 @@ export function getBrightColors(
 ): { fills: string[]; borders: string[] } {
   const fills: string[] = []
   const borders: string[] = []
-  const offset = Math.floor(Math.random() * 360)
   for (let i = 0; i < count; i++) {
-    const hue = (360 / count) * i + offset
-    fills.push(`hsla(${hue}, 100%, 50%, ${transparency})`)
-    borders.push(`hsla(${hue}, 100%, 50%, 1)`)
+    const hue = (360 / count) * i
+    fills.push(`hsla(${hue}, 100%, 65%, ${transparency})`)
+    borders.push(`hsla(${hue}, 100%, 65%, 1)`)
   }
   return { fills, borders }
 }

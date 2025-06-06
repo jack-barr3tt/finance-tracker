@@ -23,13 +23,14 @@ type BaseTransactionData = {
   date: Date
   amount: number
   description: string
+  account_id?: string
 }
 
 export function parseCSV<T>(
   file: File,
   userId: string,
   accountId: string,
-  handler: (data: T) => BaseTransactionData,
+  handler: (data: T) => BaseTransactionData | BaseTransactionData[],
   config?: Partial<Papa.ParseLocalConfig<T, File>>
 ): Promise<boolean> {
   return new Promise((resolve, reject) => {
@@ -67,17 +68,23 @@ export function parseCSV<T>(
                   path: { id: userId },
                   body: {
                     hash,
-                    transactions: results.data.map((row) => {
-                      const data = handler(row)
-                      const { description, category_id } = applyRule(data.description)
-                      return {
-                        date: data.date.toISOString(),
-                        amount: data.amount,
-                        account_id: accountId,
-                        description,
-                        category_id,
-                      }
-                    }),
+                    transactions: results.data
+                      .map((row) => {
+                        const data = handler(row)
+                        const list = Array.isArray(data) ? data : [data]
+
+                        return list.map((data) => {
+                          const { description, category_id } = applyRule(data.description)
+                          return {
+                            date: data.date.toISOString(),
+                            amount: data.amount,
+                            account_id: data.account_id || accountId,
+                            description,
+                            category_id,
+                          }
+                        })
+                      })
+                      .flat(),
                   },
                 })
               )
@@ -100,6 +107,7 @@ export function parseCSV<T>(
                 path: { id: userId },
                 body: {
                   hash,
+                  cancel: true,
                 },
               })
                 .then(() => {
