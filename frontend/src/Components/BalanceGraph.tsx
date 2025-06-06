@@ -19,7 +19,7 @@ ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, T
 
 export default function BalanceGraph() {
   const { userId } = useUser()
-  const { mode } = useThemeMode()
+  const { computedMode: mode } = useThemeMode()
   const { data: balanceSummary } = useGetUserByIdSummaryBalance({ path: { id: userId } })
 
   const { borders: lineBorders, fills: lineFills } = useMemo(
@@ -50,6 +50,16 @@ export default function BalanceGraph() {
                   backgroundColor: lineFills[i + 1],
                 })) || []),
               ],
+            }}
+            options={{
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: {
+                  position: "bottom",
+                },
+              },
+              animation: false,
             }}
           />
         </div>

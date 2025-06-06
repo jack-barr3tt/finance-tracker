@@ -43,11 +43,7 @@ export default function CategoryPie() {
               maintainAspectRatio: false,
               plugins: {
                 legend: {
-                  position: "right",
-                },
-                title: {
-                  display: true,
-                  text: "Category Breakdown",
+                  position: "bottom",
                 },
               },
               animation: false,

@@ -13,6 +13,7 @@ import {
   useDeleteUserByIdTransactionsByTransactionId,
   useGetUserByIdSummaryAccounts,
   UseGetUserByIdSummaryAccountsKeyFn,
+  UseGetUserByIdSummaryBalanceKeyFn,
   UseGetUserByIdSummaryCategoriesKeyFn,
   useGetUserByIdTransactions,
   UseGetUserByIdTransactionsByTransactionIdKeyFn,
@@ -56,6 +57,9 @@ export default function Dashboard() {
       })
       queryClient.invalidateQueries({
         queryKey: UseGetUserByIdSummaryCategoriesKeyFn({ path: { id: userId } }),
+      })
+      queryClient.invalidateQueries({
+        queryKey: UseGetUserByIdSummaryBalanceKeyFn({ path: { id: userId } }),
       })
     },
     [deleteTransaction, userId, editingTransactionId, queryClient]

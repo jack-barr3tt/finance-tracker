@@ -13,6 +13,7 @@ import {
   useGetUserByIdAccounts,
   useGetUserByIdCategories,
   UseGetUserByIdSummaryAccountsKeyFn,
+  UseGetUserByIdSummaryBalanceKeyFn,
   UseGetUserByIdSummaryCategoriesKeyFn,
   useGetUserByIdTransactionsByTransactionId,
   UseGetUserByIdTransactionsByTransactionIdKeyFn,
@@ -76,6 +77,7 @@ export default function EditTransactionRow(props: EditTransactionRowProps) {
         category_id: selectedCategory,
         description,
         amount: parseFloat(amount),
+        date: date.toISOString(),
       },
       path: { id: userId },
     })
@@ -87,6 +89,9 @@ export default function EditTransactionRow(props: EditTransactionRowProps) {
     })
     queryClient.invalidateQueries({
       queryKey: UseGetUserByIdSummaryCategoriesKeyFn({ path: { id: userId } }),
+    })
+    queryClient.invalidateQueries({
+      queryKey: UseGetUserByIdSummaryBalanceKeyFn({ path: { id: userId } }),
     })
     // Reset the form fields
     setDate(null)
@@ -119,6 +124,7 @@ export default function EditTransactionRow(props: EditTransactionRowProps) {
         category_id: selectedCategory,
         description,
         amount: parseFloat(amount),
+        date: date.toISOString(),
       },
       path: { id: userId, transaction_id: transactionId },
     })
@@ -135,6 +141,9 @@ export default function EditTransactionRow(props: EditTransactionRowProps) {
     })
     queryClient.invalidateQueries({
       queryKey: UseGetUserByIdSummaryCategoriesKeyFn({ path: { id: userId } }),
+    })
+    queryClient.invalidateQueries({
+      queryKey: UseGetUserByIdSummaryBalanceKeyFn({ path: { id: userId } }),
     })
     // Reset the form fields
     setDate(null)
