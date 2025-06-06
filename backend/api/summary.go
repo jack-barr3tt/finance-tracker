@@ -195,7 +195,7 @@ func (s *Server) GetUserIdSummaryCategories(c *fiber.Ctx, userId string) error {
 	return c.JSON(result)
 }
 
-func (s *Server) GetUserIdSummaryBalance(c *fiber.Ctx, userId string) error {
+func (s *Server) GetUserIdSummaryBalance(c *fiber.Ctx, userId string, params GetUserIdSummaryBalanceParams) error {
 	tokUserId := GetTokenClaim[string](c, "id")
 
 	if tokUserId != userId {
@@ -274,6 +274,19 @@ func (s *Server) GetUserIdSummaryBalance(c *fiber.Ctx, userId string) error {
 
 	startDate := transactions[0].Date.AddDate(0, 0, -1)
 
+	monthStep := 0
+	dayStep := 1
+	if params.GroupBy != nil {
+		if *params.GroupBy == Week {
+			dayStep = 7
+		} else if *params.GroupBy == Month {
+			monthStep = 1
+			dayStep = 0
+
+			startDate = time.Date(startDate.Year(), startDate.Month(), 1, 0, 0, 0, 0, startDate.Location())
+		}
+	}
+
 	grandTotals := []BalanceDatapoint{
 		{
 			Date:    startDate,
@@ -290,18 +303,20 @@ func (s *Server) GetUserIdSummaryBalance(c *fiber.Ctx, userId string) error {
 		}
 	}
 
-	startDate = startDate.AddDate(0, 0, 1)
+	if params.GroupBy == nil || *params.GroupBy != Month {
+		startDate = startDate.AddDate(0, 0, 1)
+	}
 
 	tIdx := 0
 
-	for currentDate := startDate; currentDate.Before(time.Now()); currentDate = currentDate.AddDate(0, 0, 1) {
+	for currentDate := startDate; currentDate.Before(time.Now()); currentDate = currentDate.AddDate(0, monthStep, dayStep) {
 		dayTotals := map[string]float32{}
 		for _, accountId := range accountIds {
 			dayTotals[accountId] = 0
 		}
 		dayTotal := float32(0)
 
-		for tIdx < len(transactions) && transactions[tIdx].Date.Equal(currentDate) {
+		for tIdx < len(transactions) && transactions[tIdx].Date.Before(currentDate) {
 			t := transactions[tIdx]
 			if _, ok := dayTotals[t.AccountId]; ok {
 				dayTotals[t.AccountId] += t.Amount

@@ -20,7 +20,10 @@ ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, T
 export default function BalanceGraph() {
   const { userId } = useUser()
   const { computedMode: mode } = useThemeMode()
-  const { data: balanceSummary } = useGetUserByIdSummaryBalance({ path: { id: userId } })
+  const { data: balanceSummary } = useGetUserByIdSummaryBalance({
+    path: { id: userId },
+    query: { group_by: "month" },
+  })
 
   const { borders: lineBorders, fills: lineFills } = useMemo(
     () => getBrightColors((balanceSummary?.accounts.length || 0) + 1, mode === "dark" ? 0.25 : 0.5),

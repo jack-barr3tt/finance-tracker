@@ -680,6 +680,11 @@ paths:
         required: true
         schema:
           type: string
+      - name: group_by
+        in: query
+        required: false
+        schema:
+          $ref: "#/components/schemas/SummaryGroupBy"
     get:
       security:
         - BearerAuth: []
@@ -1153,3 +1158,11 @@ components:
       required:
         - date
         - balance
+    # Enums
+    SummaryGroupBy:
+      type: string
+      enum:
+        - day
+        - week
+        - month
+      default: day

@@ -29,6 +29,7 @@ import CategoryPie from "../Components/CategoryPie"
 import UploadModal from "../Components/UploadModal"
 import { useGetUserByIdTransactionsInfinite } from "../API/queries/infiniteQueries"
 import { InView } from "react-intersection-observer"
+import { format, parseISO } from "date-fns"
 
 export default function Dashboard() {
   const { userId } = useUser()
@@ -168,7 +169,7 @@ export default function Dashboard() {
                   />
                 ) : (
                   <TableRow key={transaction.id} className="group/trnscrow">
-                    <TableCell>{new Date(transaction.date).toLocaleDateString()}</TableCell>
+                    <TableCell>{format(parseISO(transaction.date), "dd MMM yyyy")}</TableCell>
                     <TableCell>{transaction.account.name}</TableCell>
                     <TableCell>{transaction.category?.name}</TableCell>
                     <TableCell>{transaction.description}</TableCell>
@@ -221,7 +222,7 @@ export default function Dashboard() {
       </Table>
       <InView
         onChange={(inView) => {
-          if (inView && hasNextPage) fetchNextPage()
+          if (!isLoading && !isFetchingNextPage && inView && hasNextPage) fetchNextPage()
         }}
       />
     </div>

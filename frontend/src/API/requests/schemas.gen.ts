@@ -600,3 +600,9 @@ export const BalanceDatapointSchema = {
     },
     required: ['date', 'balance']
 } as const;
+
+export const SummaryGroupBySchema = {
+    type: 'string',
+    enum: ['day', 'week', 'month'],
+    default: 'day'
+} as const;

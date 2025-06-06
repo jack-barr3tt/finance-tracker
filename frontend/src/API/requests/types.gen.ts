@@ -214,6 +214,8 @@ export type BalanceDatapoint = {
     balance: number;
 };
 
+export type SummaryGroupBy = 'day' | 'week' | 'month';
+
 export type PostLoginData = {
     body?: LoginRequest;
 };
@@ -476,6 +478,9 @@ export type GetUserByIdSummaryAccountsData = {
     path: {
         id: string;
     };
+    query?: {
+        group_by?: SummaryGroupBy;
+    };
 };
 
 export type GetUserByIdSummaryAccountsResponse = (Array<AccountSummary>);
@@ -486,6 +491,9 @@ export type GetUserByIdSummaryCategoriesData = {
     path: {
         id: string;
     };
+    query?: {
+        group_by?: SummaryGroupBy;
+    };
 };
 
 export type GetUserByIdSummaryCategoriesResponse = (Array<CategorySummary>);
@@ -495,6 +503,9 @@ export type GetUserByIdSummaryCategoriesError = unknown;
 export type GetUserByIdSummaryBalanceData = {
     path: {
         id: string;
+    };
+    query?: {
+        group_by?: SummaryGroupBy;
     };
 };
 
