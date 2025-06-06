@@ -111,6 +111,11 @@ export type CategoryDeleteRuleResponse = {
     message: string;
 };
 
+export type TransactionsResponse = {
+    transactions: Array<Transaction>;
+    cursor: string;
+};
+
 export type TransactionCreateResponse = {
     id: string;
 };
@@ -299,10 +304,12 @@ export type GetUserByIdTransactionsData = {
     };
     query?: {
         account_id?: string;
+        cursor?: string;
+        limit?: number;
     };
 };
 
-export type GetUserByIdTransactionsResponse = (Array<Transaction>);
+export type GetUserByIdTransactionsResponse = (TransactionsResponse);
 
 export type GetUserByIdTransactionsError = (NotFound);
 

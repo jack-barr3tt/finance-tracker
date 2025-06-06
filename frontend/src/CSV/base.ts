@@ -39,7 +39,8 @@ export function parseCSV<T>(
         const requests: Promise<BulkResponse>[] = []
 
         const applyRule = (
-          description: string
+          description: string,
+          accountId: string
         ): { description: string; category_id: string | undefined } => {
           for (const category of categories || []) {
             for (const rule of category.rules) {
@@ -74,7 +75,10 @@ export function parseCSV<T>(
                         const list = Array.isArray(data) ? data : [data]
 
                         return list.map((data) => {
-                          const { description, category_id } = applyRule(data.description)
+                          const { description, category_id } = applyRule(
+                            data.description,
+                            data.account_id || accountId
+                          )
                           return {
                             date: data.date.toISOString(),
                             amount: data.amount,

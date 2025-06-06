@@ -306,6 +306,22 @@ export const CategoryDeleteRuleResponseSchema = {
     required: ['id', 'message']
 } as const;
 
+export const TransactionsResponseSchema = {
+    type: 'object',
+    properties: {
+        transactions: {
+            type: 'array',
+            items: {
+                '$ref': '#/components/schemas/Transaction'
+            }
+        },
+        cursor: {
+            type: 'string'
+        }
+    },
+    required: ['transactions', 'cursor']
+} as const;
+
 export const TransactionCreateResponseSchema = {
     type: 'object',
     properties: {

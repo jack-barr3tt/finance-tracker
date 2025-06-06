@@ -257,6 +257,12 @@ type TransactionEditResponse struct {
 	Id string `json:"id"`
 }
 
+// TransactionsResponse defines model for TransactionsResponse.
+type TransactionsResponse struct {
+	Cursor       string        `json:"cursor"`
+	Transactions []Transaction `json:"transactions"`
+}
+
 // User defines model for User.
 type User struct {
 	CreatedAt time.Time `json:"created_at"`
@@ -267,6 +273,8 @@ type User struct {
 // GetUserIdTransactionsParams defines parameters for GetUserIdTransactions.
 type GetUserIdTransactionsParams struct {
 	AccountId *string `form:"account_id,omitempty" json:"account_id,omitempty"`
+	Cursor    *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+	Limit     *int    `form:"limit,omitempty" json:"limit,omitempty"`
 }
 
 // PostLoginJSONRequestBody defines body for PostLogin for application/json ContentType.
@@ -814,6 +822,20 @@ func (siw *ServerInterfaceWrapper) GetUserIdTransactions(c *fiber.Ctx) error {
 	err = runtime.BindQueryParameter("form", true, false, "account_id", query, &params.AccountId)
 	if err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter account_id: %w", err).Error())
+	}
+
+	// ------------- Optional query parameter "cursor" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "cursor", query, &params.Cursor)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter cursor: %w", err).Error())
+	}
+
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "limit", query, &params.Limit)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter limit: %w", err).Error())
 	}
 
 	return siw.Handler.GetUserIdTransactions(c, id, params)

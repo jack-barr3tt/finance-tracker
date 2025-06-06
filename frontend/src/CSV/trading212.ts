@@ -40,8 +40,6 @@ export async function parseTrading212(
     userId,
     "do-not-use",
     (data) => {
-      console.log(data)
-
       const parseDate = (dateString: string) =>
         parse(
           dateString,

@@ -133,7 +133,7 @@ export default function EditCategories() {
             >
               {category?.rules.length === 0 && !showAdd ? (
                 <TableRow>
-                  <TableCell colSpan={3} className="text-center">
+                  <TableCell colSpan={4} className="text-center">
                     No auto-categorisation rules
                   </TableCell>
                 </TableRow>

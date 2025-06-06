@@ -15,7 +15,6 @@ import {
   UseGetUserByIdSummaryAccountsKeyFn,
   UseGetUserByIdSummaryBalanceKeyFn,
   UseGetUserByIdSummaryCategoriesKeyFn,
-  useGetUserByIdTransactions,
   UseGetUserByIdTransactionsByTransactionIdKeyFn,
   UseGetUserByIdTransactionsKeyFn,
 } from "../API/queries"
@@ -28,12 +27,25 @@ import { useQueryClient } from "@tanstack/react-query"
 import BalanceGraph from "../Components/BalanceGraph"
 import CategoryPie from "../Components/CategoryPie"
 import UploadModal from "../Components/UploadModal"
+import { useGetUserByIdTransactionsInfinite } from "../API/queries/infiniteQueries"
+import { InView } from "react-intersection-observer"
 
 export default function Dashboard() {
   const { userId } = useUser()
   const queryClient = useQueryClient()
-  const { data: accountSummaries } = useGetUserByIdSummaryAccounts({ path: { id: userId } })
-  const { data: transactions, isLoading } = useGetUserByIdTransactions({ path: { id: userId } })
+  const { data: accountSummaries } = useGetUserByIdSummaryAccounts({
+    path: { id: userId },
+  })
+  const {
+    data: transactions,
+    isLoading,
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
+  } = useGetUserByIdTransactionsInfinite({
+    path: { id: userId },
+    query: { limit: 50 },
+  })
   const { mutateAsync: deleteTransaction } = useDeleteUserByIdTransactionsByTransactionId()
 
   const [showAdd, setShowAdd] = useState(false)
@@ -138,75 +150,80 @@ export default function Dashboard() {
             ) : null
           }
         >
-          {isLoading ? (
-            Array(10)
-              .fill(0)
-              .map((_, index) => (
-                <TableRow key={index} className="animate-pulse">
-                  {Array(5)
-                    .fill(0)
-                    .map(() => (
-                      <TableCell>
-                        <div className="h-8 bg-gray-200 rounded-md dark:bg-gray-600"></div>
-                      </TableCell>
-                    ))}
-                  <TableCell />
-                </TableRow>
-              ))
+          {showAdd && <EditTransactionRow cancelCallback={() => setShowAdd(false)} />}
+          {transactions?.pages.reduce((acc, page) => acc + (page?.transactions.length || 0), 0) ===
+            0 && !showAdd ? (
+            <TableRow>
+              <TableCell colSpan={6} className="text-center">
+                No transactions found
+              </TableCell>
+            </TableRow>
           ) : (
-            <>
-              {showAdd && <EditTransactionRow cancelCallback={() => setShowAdd(false)} />}
-              {transactions?.length === 0 && !showAdd ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="text-center">
-                    No transactions found
-                  </TableCell>
-                </TableRow>
-              ) : (
-                transactions?.map((transaction) =>
-                  editingTransactionId == transaction.id ? (
-                    <EditTransactionRow
-                      transactionId={transaction.id}
-                      cancelCallback={() => setEditingTransactionId(undefined)}
-                    />
-                  ) : (
-                    <TableRow key={transaction.id} className="group/trnscrow">
-                      <TableCell>{new Date(transaction.date).toLocaleDateString()}</TableCell>
-                      <TableCell>{transaction.account.name}</TableCell>
-                      <TableCell>{transaction.category?.name}</TableCell>
-                      <TableCell>{transaction.description}</TableCell>
-                      <TableCell>
-                        {transaction.amount.toLocaleString("en-GB", {
-                          style: "currency",
-                          currency: "GBP",
-                        })}
-                      </TableCell>
-                      <TableCell className="p-0 px-[18px] py-[10px]">
-                        <div className="flex flex-row items-center justify-end invisible gap-2 group-hover/trnscrow:visible">
-                          <Button
-                            className="p-0 size-8"
-                            color="light"
-                            onClick={() => setEditingTransactionId(transaction.id)}
-                          >
-                            <FiEdit />
-                          </Button>
-                          <Button
-                            className="p-0 size-8"
-                            color="light"
-                            onClick={() => handleDelete(transaction.id)}
-                          >
-                            <FiTrash />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  )
+            transactions?.pages.map((page) =>
+              page?.transactions.map((transaction) =>
+                editingTransactionId == transaction.id ? (
+                  <EditTransactionRow
+                    transactionId={transaction.id}
+                    cancelCallback={() => setEditingTransactionId(undefined)}
+                  />
+                ) : (
+                  <TableRow key={transaction.id} className="group/trnscrow">
+                    <TableCell>{new Date(transaction.date).toLocaleDateString()}</TableCell>
+                    <TableCell>{transaction.account.name}</TableCell>
+                    <TableCell>{transaction.category?.name}</TableCell>
+                    <TableCell>{transaction.description}</TableCell>
+                    <TableCell>
+                      {transaction.amount.toLocaleString("en-GB", {
+                        style: "currency",
+                        currency: "GBP",
+                      })}
+                    </TableCell>
+                    <TableCell className="p-0 px-[18px] py-[10px]">
+                      <div className="flex flex-row items-center justify-end invisible gap-2 group-hover/trnscrow:visible">
+                        <Button
+                          className="p-0 size-8"
+                          color="light"
+                          onClick={() => setEditingTransactionId(transaction.id)}
+                        >
+                          <FiEdit />
+                        </Button>
+                        <Button
+                          className="p-0 size-8"
+                          color="light"
+                          onClick={() => handleDelete(transaction.id)}
+                        >
+                          <FiTrash />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
                 )
-              )}
-            </>
+              )
+            )
           )}
+          {isLoading ||
+            (isFetchingNextPage &&
+              Array(10)
+                .fill(0)
+                .map((_, index) => (
+                  <TableRow key={index} className="animate-pulse">
+                    {Array(5)
+                      .fill(0)
+                      .map(() => (
+                        <TableCell>
+                          <div className="h-8 bg-gray-200 rounded-md dark:bg-gray-600"></div>
+                        </TableCell>
+                      ))}
+                    <TableCell />
+                  </TableRow>
+                )))}
         </TableBodyWithButton>
       </Table>
+      <InView
+        onChange={(inView) => {
+          if (inView && hasNextPage) fetchNextPage()
+        }}
+      />
     </div>
   )
 }

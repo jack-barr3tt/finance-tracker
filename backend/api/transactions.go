@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/jack-barr3tt/finance-tracker/utils"
 )
 
 func (s Server) PostUserIdTransactions(c *fiber.Ctx, userId string) error {
@@ -41,12 +42,22 @@ func (s Server) GetUserIdTransactions(c *fiber.Ctx, userId string, params GetUse
 		return c.SendStatus(fiber.StatusUnauthorized)
 	}
 
-	conditions := []string{"a.user_id = $1"}
+	conditions := []string{"a.user_id = $"}
 	args := []interface{}{userId}
 
 	if params.AccountId != nil {
-		conditions = append(conditions, "t.account_id = $2")
+		conditions = append(conditions, "t.account_id = $")
 		args = append(args, *params.AccountId)
+	}
+
+	if params.Cursor != nil && *params.Cursor != "0" {
+		v, i, err := utils.DecodeCursor(*params.Cursor)
+		if err != nil {
+			return c.SendStatus(fiber.StatusBadRequest)
+		}
+
+		conditions = append(conditions, "(t.date, t.id) < ($, $)")
+		args = append(args, v, i)
 	}
 
 	whereClause := ""
@@ -54,21 +65,31 @@ func (s Server) GetUserIdTransactions(c *fiber.Ctx, userId string, params GetUse
 		whereClause = "WHERE " + strings.Join(conditions, " AND ")
 	}
 
+	limitClause := ""
+	if params.Limit != nil {
+		limitClause = fmt.Sprintf("LIMIT %d", *params.Limit)
+	}
+
 	rows, err := s.DB.Query(
 		c.Context(),
-		fmt.Sprintf(
-			`SELECT 
+		utils.NumberPlaceholders(
+			fmt.Sprintf(
+				`SELECT 
 				t.id, t.amount, t.description, t.date, 
 				c.id, c.name, c.created_at,
 				a.id, a.name, a.opened_at, a.closed_at,
-				b.id, b.name, b.short_name, b.csv_import_enabled, b.api_import_enabled
+				b.id, b.name, b.short_name, b.csv_import_enabled, b.api_import_enabled,
+				ENCODE(CONCAT(t.date, '_', t.id)::bytea, 'base64') AS cursor
 			FROM transaction t
 			LEFT JOIN category c ON t.category_id = c.id
 			LEFT JOIN account a ON t.account_id = a.id
 			LEFT JOIN bank b ON a.bank_id = b.id
 			%[1]s
-			ORDER BY t.date DESC`,
-			whereClause,
+			ORDER BY t.date DESC
+			%[2]s`,
+				whereClause,
+				limitClause,
+			),
 		),
 		args...,
 	)
@@ -76,17 +97,21 @@ func (s Server) GetUserIdTransactions(c *fiber.Ctx, userId string, params GetUse
 		return DBError(c, err)
 	}
 
+	lastCursor := ""
+
 	transactions := []Transaction{}
 	for rows.Next() {
 		transaction := Transaction{}
 		var c_id *string
 		var c_name *string
 		var c_created_at *time.Time
+		var cursor string
 		err = rows.Scan(
 			&transaction.Id, &transaction.Amount, &transaction.Description, &transaction.Date,
 			&c_id, &c_name, &c_created_at,
 			&transaction.Account.Id, &transaction.Account.Name, &transaction.Account.OpenedAt, &transaction.Account.ClosedAt,
 			&transaction.Account.Bank.Id, &transaction.Account.Bank.Name, &transaction.Account.Bank.ShortName, &transaction.Account.Bank.CsvImportEnabled, &transaction.Account.Bank.ApiImportEnabled,
+			&cursor,
 		)
 		if err != nil {
 			return DBError(c, err)
@@ -101,9 +126,13 @@ func (s Server) GetUserIdTransactions(c *fiber.Ctx, userId string, params GetUse
 		}
 
 		transactions = append(transactions, transaction)
+		lastCursor = cursor
 	}
 
-	return c.Status(fiber.StatusOK).JSON(transactions)
+	return c.Status(fiber.StatusOK).JSON(TransactionsResponse{
+		Transactions: transactions,
+		Cursor:       lastCursor,
+	})
 }
 
 func (s *Server) GetUserIdTransactionsTransactionId(c *fiber.Ctx, id string, transactionId string) error {

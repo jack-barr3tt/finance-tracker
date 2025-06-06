@@ -13,8 +13,12 @@ export default function CategoryPie() {
   const { data: categorySummaries } = useGetUserByIdSummaryCategories({ path: { id: userId } })
 
   const { borders: pieBorders, fills: pieFills } = useMemo(
-    () => getBrightColors(categorySummaries?.length || 0, mode === "dark" ? 0.25 : 0.5),
-    [categorySummaries?.length, mode]
+    () =>
+      getBrightColors(
+        categorySummaries?.filter((cat) => cat.total < 0).length || 0,
+        mode === "dark" ? 0.25 : 0.5
+      ),
+    [categorySummaries, mode]
   )
 
   return (
@@ -25,8 +29,9 @@ export default function CategoryPie() {
           <Doughnut
             data={{
               labels:
-                categorySummaries?.filter((cat) => cat.total < 0).map((cat) => cat.category?.name || "Uncategorised") ||
-                [],
+                categorySummaries
+                  ?.filter((cat) => cat.total < 0)
+                  .map((cat) => cat.category?.name || "Uncategorised") || [],
               datasets: [
                 {
                   label: "Total",
