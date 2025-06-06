@@ -330,6 +330,72 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/NotFound"
+  /user/{id}/transactions/bulk:
+    post:
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TransactionBulkCreateRequest"
+      responses:
+        "200":
+          description: Bulk transaction response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransactionBulkResponse"
+  /user/{id}/transactions/bulk/finalise:
+    post:
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TransactionBulkFinaliseRequest"
+      responses:
+        "200":
+          description: Bulk finalise response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransactionBulkResponse"
+  /user/{id}/transactions/bulk/delete:
+    post:
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TransactionBulkDeleteRequest"
+      responses:
+        "200":
+          description: Bulk delete response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransactionBulkResponse"
   /user/{id}/categories:
     post:
       security:
@@ -702,11 +768,14 @@ components:
         description:
           type: string
           example: "Milk"
+        date:
+          type: string
+          format: date-time
       required:
         - account_id
         - amount
-        - category_id
         - description
+        - date
     TransactionEditRequest:
       type: object
       properties:
@@ -720,6 +789,35 @@ components:
         description:
           type: string
           example: "Milk"
+        date:
+          type: string
+          format: date-time
+    TransactionBulkCreateRequest:
+      type: object
+      properties:
+        hash:
+          type: string
+        transactions:
+          type: array
+          items:
+            $ref: "#/components/schemas/TransactionCreateRequest"
+      required:
+        - hash
+        - transactions
+    TransactionBulkFinaliseRequest:
+      type: object
+      properties:
+        hash:
+          type: string
+      required:
+        - hash
+    TransactionBulkDeleteRequest:
+      type: object
+      properties:
+        hash:
+          type: string
+      required:
+        - hash
     # Responses
     LoginResponse:
       type: object
@@ -831,6 +929,13 @@ components:
           type: string
       required:
         - id
+        - message
+    TransactionBulkResponse:
+      type: object
+      properties:
+        message:
+          type: string
+      required:
         - message
     # Errors
     NotAuthorized:
@@ -990,7 +1095,7 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/BalanceSummaryAccount"
-      required: 
+      required:
         - total
         - accounts
     BalanceSummaryAccount:

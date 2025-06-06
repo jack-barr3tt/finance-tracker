@@ -8,19 +8,21 @@ import Settings from "./Pages/Settings"
 
 export default function Router() {
   return (
-    <BrowserRouter>
-      <NavBar />
-      <Routes>
-        <Route path="/" element={<Navigate to="login" />} />
-        <Route path="/dashboard/*" element={<RouteProtector />}>
-          <Route index element={<Dashboard />} />
-        </Route>
-        <Route path="/settings/*" element={<RouteProtector />}>
-          <Route path="*" element={<Settings />} />
-        </Route>
-        <Route path="/signup" element={<SignUp />} />
-        <Route path="/login" element={<Login />} />
-      </Routes>
-    </BrowserRouter>
+    <div className="flex flex-col h-full">
+      <BrowserRouter>
+        <NavBar />
+        <Routes>
+          <Route path="/" element={<Navigate to="login" />} />
+          <Route path="/dashboard/*" element={<RouteProtector />}>
+            <Route index element={<Dashboard />} />
+          </Route>
+          <Route path="/settings/*" element={<RouteProtector />}>
+            <Route path="*" element={<Settings />} />
+          </Route>
+          <Route path="/signup" element={<SignUp />} />
+          <Route path="/login" element={<Login />} />
+        </Routes>
+      </BrowserRouter>
+    </div>
   )
 }

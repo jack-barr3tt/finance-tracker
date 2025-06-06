@@ -1,6 +1,7 @@
 package api
 
 import (
+	"sort"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -77,6 +78,10 @@ func (s *Server) GetUserIdSummaryAccounts(c *fiber.Ctx, userId string) error {
 		result = append(result, account)
 	}
 
+	sort.Slice(result, func(i, j int) bool {
+		return result[i].Account.Name < result[j].Account.Name
+	})
+
 	return c.JSON(result)
 }
 
@@ -152,6 +157,11 @@ func (s *Server) GetUserIdSummaryCategories(c *fiber.Ctx, userId string) error {
 	for _, category := range categories {
 		result = append(result, category)
 	}
+
+	sort.Slice(result, func(i, j int) bool {
+		return result[i].Category.Name < result[j].Category.Name
+	})
+
 	return c.JSON(result)
 }
 
@@ -206,6 +216,30 @@ func (s *Server) GetUserIdSummaryBalance(c *fiber.Ctx, userId string) error {
 			return DBError(c, err)
 		}
 		transactions = append(transactions, t)
+	}
+
+	if len(transactions) == 0 {
+		result := BalanceSummary{
+			Total: []BalanceDatapoint{
+				{
+					Date:    time.Now(),
+					Balance: 0,
+				},
+			},
+		}
+
+		for _, accountId := range accountIds {
+			result.Accounts = append(result.Accounts, BalanceSummaryAccount{
+				Account: accounts[accountId],
+				Balance: []BalanceDatapoint{
+					{
+						Date:    time.Now(),
+						Balance: 0,
+					},
+				},
+			})
+		}
+		return c.JSON(result)
 	}
 
 	startDate := transactions[0].Date.AddDate(0, 0, -1)
@@ -270,6 +304,10 @@ func (s *Server) GetUserIdSummaryBalance(c *fiber.Ctx, userId string) error {
 			Balance: accountTotals,
 		})
 	}
+
+	sort.Slice(result.Accounts, func(i, j int) bool {
+		return result.Accounts[i].Account.Name < result.Accounts[j].Account.Name
+	})
 
 	return c.JSON(result)
 }

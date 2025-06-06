@@ -1,6 +1,8 @@
 package api
 
 import (
+	"database/sql"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -22,7 +24,7 @@ func (s Server) PostUserIdTransactions(c *fiber.Ctx, userId string) error {
 
 	var id string
 
-	err = s.DB.QueryRow(c.Context(), "INSERT INTO transaction (account_id, category_id, amount, description, date) VALUES ($1, $2, $3, $4, $5) RETURNING id", body.AccountId, body.CategoryId, body.Amount, body.Description, time.Now()).Scan(&id)
+	err = s.DB.QueryRow(c.Context(), "INSERT INTO transaction (account_id, category_id, amount, description, date) VALUES ($1, $2, $3, $4, $5) RETURNING id", body.AccountId, body.CategoryId, body.Amount, body.Description, body.Date).Scan(&id)
 	if err != nil {
 		return DBError(c, err)
 	}
@@ -163,9 +165,9 @@ func (s *Server) PatchUserIdTransactionsTransactionId(c *fiber.Ctx, id string, t
 
 	tag, err := s.DB.Exec(c.Context(), `
 		UPDATE transaction 
-		SET account_id = $1, category_id = $2, amount = $3, description = $4 
-		WHERE id = $5
-	`, body.AccountId, body.CategoryId, body.Amount, body.Description, transactionId)
+		SET account_id = $1, category_id = $2, amount = $3, description = $4, date = $5
+		WHERE id = $6
+	`, body.AccountId, body.CategoryId, body.Amount, body.Description, body.Date, transactionId)
 	if err != nil {
 		return DBError(c, err)
 	}
@@ -198,5 +200,123 @@ func (s Server) DeleteUserIdTransactionsTransactionId(c *fiber.Ctx, userId, tran
 	return c.Status(fiber.StatusOK).JSON(TransactionDeleteResponse{
 		Id:      transactionId,
 		Message: "Transaction deleted",
+	})
+}
+
+func (s *Server) PostUserIdTransactionsBulk(c *fiber.Ctx, id string) error {
+	tokenUserId := GetTokenClaim[string](c, "id")
+
+	if tokenUserId != id {
+		return c.SendStatus(fiber.StatusUnauthorized)
+	}
+
+	body, err := GetBody[TransactionBulkCreateRequest](c)
+	if err != nil {
+		return c.SendStatus(fiber.StatusBadRequest)
+	}
+
+	if len(body.Transactions) == 0 {
+		return c.SendStatus(fiber.StatusBadRequest)
+	}
+
+	tx, err := s.DB.Begin(c.Context())
+	if err != nil {
+		return DBError(c, err)
+	}
+	defer tx.Rollback(c.Context())
+
+	var fileId *string
+
+	err = tx.QueryRow(
+		c.Context(),
+		"SELECT id FROM file WHERE file_hash = $1 AND user_id = $2",
+		body.Hash, id,
+	).Scan(&fileId)
+	if err != nil {
+		if !errors.Is(err, sql.ErrNoRows) {
+			return c.SendStatus(fiber.StatusInternalServerError)
+		}
+	}
+
+	if fileId == nil {
+		err = tx.QueryRow(
+			c.Context(),
+			"INSERT INTO file (file_hash, user_id) VALUES ($1, $2) RETURNING id",
+			body.Hash, id,
+		).Scan(&fileId)
+		if err != nil {
+			return DBError(c, err)
+		}
+	}
+
+	for _, transaction := range body.Transactions {
+		_, err = tx.Exec(
+			c.Context(),
+			"INSERT INTO transaction (account_id, category_id, amount, description, date, file_id) VALUES ($1, $2, $3, $4, $5, $6)",
+			transaction.AccountId, transaction.CategoryId, transaction.Amount, transaction.Description, transaction.Date, *fileId,
+		)
+		if err != nil {
+			return DBError(c, err)
+		}
+	}
+
+	if err = tx.Commit(c.Context()); err != nil {
+		return DBError(c, err)
+	}
+
+	return c.Status(fiber.StatusOK).JSON(TransactionBulkResponse{
+		Message: "Upload completed",
+	})
+}
+
+func (s *Server) PostUserIdTransactionsBulkFinalise(c *fiber.Ctx, id string) error {
+	tokenUserId := GetTokenClaim[string](c, "id")
+
+	if tokenUserId != id {
+		return c.SendStatus(fiber.StatusUnauthorized)
+	}
+
+	body, err := GetBody[TransactionBulkFinaliseRequest](c)
+	if err != nil {
+		return c.SendStatus(fiber.StatusBadRequest)
+	}
+
+	_, err = s.DB.Exec(
+		c.Context(),
+		"UPDATE file SET ready = true WHERE file_hash = $1 AND user_id = $2",
+		body.Hash, id,
+	)
+	if err != nil {
+		return DBError(c, err)
+	}
+
+	return c.Status(fiber.StatusOK).JSON(TransactionBulkResponse{
+		Message: "Bulk upload finalised",
+	})
+}
+
+func (s *Server) PostUserIdTransactionsBulkDelete(c *fiber.Ctx, id string) error {
+	tokenUserId := GetTokenClaim[string](c, "id")
+
+	if tokenUserId != id {
+		return c.SendStatus(fiber.StatusUnauthorized)
+	}
+
+	body, err := GetBody[TransactionBulkDeleteRequest](c)
+	if err != nil {
+		return c.SendStatus(fiber.StatusBadRequest)
+	}
+
+	_, err = s.DB.Exec(
+		c.Context(),
+		"DELETE FROM file WHERE file_hash = $1 AND user_id = $2",
+		body.Hash, id,
+	)
+	if err != nil {
+		return DBError(c, err)
+	}
+
+	return c.Status(fiber.StatusOK).JSON(TransactionBulkResponse{
+		Message: "Bulk upload deleted",
 	})
 }

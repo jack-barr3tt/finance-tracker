@@ -37,8 +37,9 @@ export type CategoryEditRuleRequest = {
 export type TransactionCreateRequest = {
     account_id: string;
     amount: number;
-    category_id: string;
+    category_id?: string;
     description: string;
+    date: string;
 };
 
 export type TransactionEditRequest = {
@@ -46,6 +47,20 @@ export type TransactionEditRequest = {
     amount?: number;
     category_id?: string;
     description?: string;
+    date?: string;
+};
+
+export type TransactionBulkCreateRequest = {
+    hash: string;
+    transactions: Array<TransactionCreateRequest>;
+};
+
+export type TransactionBulkFinaliseRequest = {
+    hash: string;
+};
+
+export type TransactionBulkDeleteRequest = {
+    hash: string;
 };
 
 export type LoginResponse = {
@@ -103,6 +118,10 @@ export type TransactionEditResponse = {
 
 export type TransactionDeleteResponse = {
     id: string;
+    message: string;
+};
+
+export type TransactionBulkResponse = {
     message: string;
 };
 
@@ -315,6 +334,39 @@ export type DeleteUserByIdTransactionsByTransactionIdData = {
 export type DeleteUserByIdTransactionsByTransactionIdResponse = (TransactionDeleteResponse);
 
 export type DeleteUserByIdTransactionsByTransactionIdError = (NotFound);
+
+export type PostUserByIdTransactionsBulkData = {
+    body?: TransactionBulkCreateRequest;
+    path: {
+        id: string;
+    };
+};
+
+export type PostUserByIdTransactionsBulkResponse = (TransactionBulkResponse);
+
+export type PostUserByIdTransactionsBulkError = unknown;
+
+export type PostUserByIdTransactionsBulkFinaliseData = {
+    body?: TransactionBulkFinaliseRequest;
+    path: {
+        id: string;
+    };
+};
+
+export type PostUserByIdTransactionsBulkFinaliseResponse = (TransactionBulkResponse);
+
+export type PostUserByIdTransactionsBulkFinaliseError = unknown;
+
+export type PostUserByIdTransactionsBulkDeleteData = {
+    body?: TransactionBulkDeleteRequest;
+    path: {
+        id: string;
+    };
+};
+
+export type PostUserByIdTransactionsBulkDeleteResponse = (TransactionBulkResponse);
+
+export type PostUserByIdTransactionsBulkDeleteError = unknown;
 
 export type PostUserByIdCategoriesData = {
     body?: CategoryCreateRequest;

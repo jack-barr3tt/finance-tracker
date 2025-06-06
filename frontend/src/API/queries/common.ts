@@ -2,7 +2,7 @@
 
 import { type Options } from "@hey-api/client-fetch";
 import { UseQueryResult } from "@tanstack/react-query";
-import { deleteUserByIdAccountsByAccountId, deleteUserByIdCategoriesByCategoryId, deleteUserByIdCategoriesByCategoryIdRulesByRuleId, deleteUserByIdTransactionsByTransactionId, getBanks, getUserById, getUserByIdAccounts, getUserByIdAccountsByAccountId, getUserByIdCategories, getUserByIdCategoriesByCategoryId, getUserByIdSummaryAccounts, getUserByIdSummaryBalance, getUserByIdSummaryCategories, getUserByIdTransactions, getUserByIdTransactionsByTransactionId, patchUserByIdCategoriesByCategoryId, patchUserByIdCategoriesByCategoryIdRulesByRuleId, patchUserByIdTransactionsByTransactionId, postLogin, postSignup, postUserByIdAccounts, postUserByIdCategories, postUserByIdCategoriesByCategoryIdRules, postUserByIdTransactions } from "../requests/services.gen";
+import { deleteUserByIdAccountsByAccountId, deleteUserByIdCategoriesByCategoryId, deleteUserByIdCategoriesByCategoryIdRulesByRuleId, deleteUserByIdTransactionsByTransactionId, getBanks, getUserById, getUserByIdAccounts, getUserByIdAccountsByAccountId, getUserByIdCategories, getUserByIdCategoriesByCategoryId, getUserByIdSummaryAccounts, getUserByIdSummaryBalance, getUserByIdSummaryCategories, getUserByIdTransactions, getUserByIdTransactionsByTransactionId, patchUserByIdCategoriesByCategoryId, patchUserByIdCategoriesByCategoryIdRulesByRuleId, patchUserByIdTransactionsByTransactionId, postLogin, postSignup, postUserByIdAccounts, postUserByIdCategories, postUserByIdCategoriesByCategoryIdRules, postUserByIdTransactions, postUserByIdTransactionsBulk, postUserByIdTransactionsBulkDelete, postUserByIdTransactionsBulkFinalise } from "../requests/services.gen";
 export type GetBanksDefaultResponse = Awaited<ReturnType<typeof getBanks>>["data"];
 export type GetBanksQueryResult<TData = GetBanksDefaultResponse, TError = unknown> = UseQueryResult<TData, TError>;
 export const useGetBanksKey = "GetBanks";
@@ -59,6 +59,15 @@ export const UsePostUserByIdAccountsKeyFn = (mutationKey?: Array<unknown>) => [u
 export type PostUserByIdTransactionsMutationResult = Awaited<ReturnType<typeof postUserByIdTransactions>>;
 export const usePostUserByIdTransactionsKey = "PostUserByIdTransactions";
 export const UsePostUserByIdTransactionsKeyFn = (mutationKey?: Array<unknown>) => [usePostUserByIdTransactionsKey, ...(mutationKey ?? [])];
+export type PostUserByIdTransactionsBulkMutationResult = Awaited<ReturnType<typeof postUserByIdTransactionsBulk>>;
+export const usePostUserByIdTransactionsBulkKey = "PostUserByIdTransactionsBulk";
+export const UsePostUserByIdTransactionsBulkKeyFn = (mutationKey?: Array<unknown>) => [usePostUserByIdTransactionsBulkKey, ...(mutationKey ?? [])];
+export type PostUserByIdTransactionsBulkFinaliseMutationResult = Awaited<ReturnType<typeof postUserByIdTransactionsBulkFinalise>>;
+export const usePostUserByIdTransactionsBulkFinaliseKey = "PostUserByIdTransactionsBulkFinalise";
+export const UsePostUserByIdTransactionsBulkFinaliseKeyFn = (mutationKey?: Array<unknown>) => [usePostUserByIdTransactionsBulkFinaliseKey, ...(mutationKey ?? [])];
+export type PostUserByIdTransactionsBulkDeleteMutationResult = Awaited<ReturnType<typeof postUserByIdTransactionsBulkDelete>>;
+export const usePostUserByIdTransactionsBulkDeleteKey = "PostUserByIdTransactionsBulkDelete";
+export const UsePostUserByIdTransactionsBulkDeleteKeyFn = (mutationKey?: Array<unknown>) => [usePostUserByIdTransactionsBulkDeleteKey, ...(mutationKey ?? [])];
 export type PostUserByIdCategoriesMutationResult = Awaited<ReturnType<typeof postUserByIdCategories>>;
 export const usePostUserByIdCategoriesKey = "PostUserByIdCategories";
 export const UsePostUserByIdCategoriesKeyFn = (mutationKey?: Array<unknown>) => [usePostUserByIdCategoriesKey, ...(mutationKey ?? [])];

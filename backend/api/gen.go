@@ -197,12 +197,34 @@ type Transaction struct {
 	Id          string    `json:"id"`
 }
 
+// TransactionBulkCreateRequest defines model for TransactionBulkCreateRequest.
+type TransactionBulkCreateRequest struct {
+	Hash         string                     `json:"hash"`
+	Transactions []TransactionCreateRequest `json:"transactions"`
+}
+
+// TransactionBulkDeleteRequest defines model for TransactionBulkDeleteRequest.
+type TransactionBulkDeleteRequest struct {
+	Hash string `json:"hash"`
+}
+
+// TransactionBulkFinaliseRequest defines model for TransactionBulkFinaliseRequest.
+type TransactionBulkFinaliseRequest struct {
+	Hash string `json:"hash"`
+}
+
+// TransactionBulkResponse defines model for TransactionBulkResponse.
+type TransactionBulkResponse struct {
+	Message string `json:"message"`
+}
+
 // TransactionCreateRequest defines model for TransactionCreateRequest.
 type TransactionCreateRequest struct {
-	AccountId   string  `json:"account_id"`
-	Amount      float32 `json:"amount"`
-	CategoryId  string  `json:"category_id"`
-	Description string  `json:"description"`
+	AccountId   string    `json:"account_id"`
+	Amount      float32   `json:"amount"`
+	CategoryId  *string   `json:"category_id,omitempty"`
+	Date        time.Time `json:"date"`
+	Description string    `json:"description"`
 }
 
 // TransactionCreateResponse defines model for TransactionCreateResponse.
@@ -218,10 +240,11 @@ type TransactionDeleteResponse struct {
 
 // TransactionEditRequest defines model for TransactionEditRequest.
 type TransactionEditRequest struct {
-	AccountId   *string  `json:"account_id,omitempty"`
-	Amount      *float32 `json:"amount,omitempty"`
-	CategoryId  *string  `json:"category_id,omitempty"`
-	Description *string  `json:"description,omitempty"`
+	AccountId   *string    `json:"account_id,omitempty"`
+	Amount      *float32   `json:"amount,omitempty"`
+	CategoryId  *string    `json:"category_id,omitempty"`
+	Date        *time.Time `json:"date,omitempty"`
+	Description *string    `json:"description,omitempty"`
 }
 
 // TransactionEditResponse defines model for TransactionEditResponse.
@@ -264,6 +287,15 @@ type PatchUserIdCategoriesCategoryIdRulesRuleIdJSONRequestBody = CategoryEditRul
 
 // PostUserIdTransactionsJSONRequestBody defines body for PostUserIdTransactions for application/json ContentType.
 type PostUserIdTransactionsJSONRequestBody = TransactionCreateRequest
+
+// PostUserIdTransactionsBulkJSONRequestBody defines body for PostUserIdTransactionsBulk for application/json ContentType.
+type PostUserIdTransactionsBulkJSONRequestBody = TransactionBulkCreateRequest
+
+// PostUserIdTransactionsBulkDeleteJSONRequestBody defines body for PostUserIdTransactionsBulkDelete for application/json ContentType.
+type PostUserIdTransactionsBulkDeleteJSONRequestBody = TransactionBulkDeleteRequest
+
+// PostUserIdTransactionsBulkFinaliseJSONRequestBody defines body for PostUserIdTransactionsBulkFinalise for application/json ContentType.
+type PostUserIdTransactionsBulkFinaliseJSONRequestBody = TransactionBulkFinaliseRequest
 
 // PatchUserIdTransactionsTransactionIdJSONRequestBody defines body for PatchUserIdTransactionsTransactionId for application/json ContentType.
 type PatchUserIdTransactionsTransactionIdJSONRequestBody = TransactionEditRequest
@@ -333,6 +365,15 @@ type ServerInterface interface {
 
 	// (POST /user/{id}/transactions)
 	PostUserIdTransactions(c *fiber.Ctx, id string) error
+
+	// (POST /user/{id}/transactions/bulk)
+	PostUserIdTransactionsBulk(c *fiber.Ctx, id string) error
+
+	// (POST /user/{id}/transactions/bulk/delete)
+	PostUserIdTransactionsBulkDelete(c *fiber.Ctx, id string) error
+
+	// (POST /user/{id}/transactions/bulk/finalise)
+	PostUserIdTransactionsBulkFinalise(c *fiber.Ctx, id string) error
 
 	// (DELETE /user/{id}/transactions/{transaction_id})
 	DeleteUserIdTransactionsTransactionId(c *fiber.Ctx, id string, transactionId string) error
@@ -791,6 +832,60 @@ func (siw *ServerInterfaceWrapper) PostUserIdTransactions(c *fiber.Ctx) error {
 	return siw.Handler.PostUserIdTransactions(c, id)
 }
 
+// PostUserIdTransactionsBulk operation middleware
+func (siw *ServerInterfaceWrapper) PostUserIdTransactionsBulk(c *fiber.Ctx) error {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", c.Params("id"), &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter id: %w", err).Error())
+	}
+
+	c.Context().SetUserValue(BearerAuthScopes, []string{})
+
+	return siw.Handler.PostUserIdTransactionsBulk(c, id)
+}
+
+// PostUserIdTransactionsBulkDelete operation middleware
+func (siw *ServerInterfaceWrapper) PostUserIdTransactionsBulkDelete(c *fiber.Ctx) error {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", c.Params("id"), &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter id: %w", err).Error())
+	}
+
+	c.Context().SetUserValue(BearerAuthScopes, []string{})
+
+	return siw.Handler.PostUserIdTransactionsBulkDelete(c, id)
+}
+
+// PostUserIdTransactionsBulkFinalise operation middleware
+func (siw *ServerInterfaceWrapper) PostUserIdTransactionsBulkFinalise(c *fiber.Ctx) error {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", c.Params("id"), &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter id: %w", err).Error())
+	}
+
+	c.Context().SetUserValue(BearerAuthScopes, []string{})
+
+	return siw.Handler.PostUserIdTransactionsBulkFinalise(c, id)
+}
+
 // DeleteUserIdTransactionsTransactionId operation middleware
 func (siw *ServerInterfaceWrapper) DeleteUserIdTransactionsTransactionId(c *fiber.Ctx) error {
 
@@ -932,6 +1027,12 @@ func RegisterHandlersWithOptions(router fiber.Router, si ServerInterface, option
 
 	router.Post(options.BaseURL+"/user/:id/transactions", wrapper.PostUserIdTransactions)
 
+	router.Post(options.BaseURL+"/user/:id/transactions/bulk", wrapper.PostUserIdTransactionsBulk)
+
+	router.Post(options.BaseURL+"/user/:id/transactions/bulk/delete", wrapper.PostUserIdTransactionsBulkDelete)
+
+	router.Post(options.BaseURL+"/user/:id/transactions/bulk/finalise", wrapper.PostUserIdTransactionsBulkFinalise)
+
 	router.Delete(options.BaseURL+"/user/:id/transactions/:transaction_id", wrapper.DeleteUserIdTransactionsTransactionId)
 
 	router.Get(options.BaseURL+"/user/:id/transactions/:transaction_id", wrapper.GetUserIdTransactionsTransactionId)
@@ -943,35 +1044,37 @@ func RegisterHandlersWithOptions(router fiber.Router, si ServerInterface, option
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
-	"MSrv7HBru+2FghNCZJ7n/wcAAP//7ip99nFGAAA=",
+	"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",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

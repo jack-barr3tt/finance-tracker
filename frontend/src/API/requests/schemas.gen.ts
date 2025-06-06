@@ -109,9 +109,13 @@ export const TransactionCreateRequestSchema = {
         description: {
             type: 'string',
             example: 'Milk'
+        },
+        date: {
+            type: 'string',
+            format: 'date-time'
         }
     },
-    required: ['account_id', 'amount', 'category_id', 'description']
+    required: ['account_id', 'amount', 'description', 'date']
 } as const;
 
 export const TransactionEditRequestSchema = {
@@ -130,8 +134,48 @@ export const TransactionEditRequestSchema = {
         description: {
             type: 'string',
             example: 'Milk'
+        },
+        date: {
+            type: 'string',
+            format: 'date-time'
         }
     }
+} as const;
+
+export const TransactionBulkCreateRequestSchema = {
+    type: 'object',
+    properties: {
+        hash: {
+            type: 'string'
+        },
+        transactions: {
+            type: 'array',
+            items: {
+                '$ref': '#/components/schemas/TransactionCreateRequest'
+            }
+        }
+    },
+    required: ['hash', 'transactions']
+} as const;
+
+export const TransactionBulkFinaliseRequestSchema = {
+    type: 'object',
+    properties: {
+        hash: {
+            type: 'string'
+        }
+    },
+    required: ['hash']
+} as const;
+
+export const TransactionBulkDeleteRequestSchema = {
+    type: 'object',
+    properties: {
+        hash: {
+            type: 'string'
+        }
+    },
+    required: ['hash']
 } as const;
 
 export const LoginResponseSchema = {
@@ -283,6 +327,16 @@ export const TransactionDeleteResponseSchema = {
         }
     },
     required: ['id', 'message']
+} as const;
+
+export const TransactionBulkResponseSchema = {
+    type: 'object',
+    properties: {
+        message: {
+            type: 'string'
+        }
+    },
+    required: ['message']
 } as const;
 
 export const NotAuthorizedSchema = {
