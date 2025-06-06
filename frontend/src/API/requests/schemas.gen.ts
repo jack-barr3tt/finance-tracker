@@ -529,7 +529,7 @@ export const CategorySummarySchema = {
             type: 'number'
         }
     },
-    required: ['category', 'total', 'percentage']
+    required: ['total', 'percentage']
 } as const;
 
 export const BalanceSummarySchema = {

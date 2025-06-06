@@ -1090,7 +1090,6 @@ components:
         percentage:
           type: number
       required:
-        - category
         - total
         - percentage
     BalanceSummary:

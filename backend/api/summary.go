@@ -92,7 +92,13 @@ func (s *Server) GetUserIdSummaryCategories(c *fiber.Ctx, userId string) error {
 		return c.SendStatus(fiber.StatusUnauthorized)
 	}
 
-	categories := map[string]CategorySummary{}
+	categories := map[string]CategorySummary{
+		"uncategorized": {
+			Category:   nil,
+			Total:      0,
+			Percentage: 0,
+		},
+	}
 
 	rows, err := s.DB.Query(
 		c.Context(),
@@ -114,41 +120,59 @@ func (s *Server) GetUserIdSummaryCategories(c *fiber.Ctx, userId string) error {
 			return DBError(c, err)
 		}
 		categories[category.Id] = CategorySummary{
-			Category:   category,
+			Category:   &category,
 			Total:      0,
 			Percentage: 0,
 		}
 	}
 
+	var totalCount int
+	err = s.DB.QueryRow(
+		c.Context(),
+		`SELECT COUNT(*) FROM transaction t
+		LEFT JOIN account a ON t.account_id = a.id
+		WHERE a.user_id = $1`,
+		userId,
+	).Scan(&totalCount)
+	if err != nil {
+		return DBError(c, err)
+	}
+
 	rows, err = s.DB.Query(
 		c.Context(),
 		`SELECT
-			c.id, 
-			SUM(CASE WHEN c.id = t.category_id THEN t.amount ELSE 0 END) AS total_amount, 
-			COUNT(CASE WHEN c.id = t.category_id THEN 1 END) / COUNT(t.id) AS percentage
-		FROM category c
-		LEFT JOIN account a ON c.user_id = a.user_id
-		LEFT JOIN transaction t ON t.account_id = a.id
-		WHERE a.user_id = $1 AND t.category_id IS NOT NULL
-		GROUP BY c.id`,
+			t.category_id,
+			SUM(t.amount) AS total_amount,
+			COUNT(t.id) AS count
+		FROM transaction t
+		LEFT JOIN category c ON t.category_id = c.id
+		LEFT JOIN account a ON t.account_id = a.id
+		WHERE a.user_id = $1
+		GROUP BY t.category_id`,
 		userId,
 	)
 	if err != nil {
 		return DBError(c, err)
 	}
 	for rows.Next() {
-		var categoryId string
+		var categoryId *string
 		var totalAmount float32
-		var percentage float32
-		err = rows.Scan(&categoryId, &totalAmount, &percentage)
+		var count int
+		err = rows.Scan(&categoryId, &totalAmount, &count)
 		if err != nil {
 			return DBError(c, err)
 		}
-		if _, ok := categories[categoryId]; ok {
-			categories[categoryId] = CategorySummary{
-				Category:   categories[categoryId].Category,
+		if categoryId == nil {
+			categories["uncategorized"] = CategorySummary{
+				Category:   nil,
 				Total:      totalAmount,
-				Percentage: percentage,
+				Percentage: float32(count) / float32(totalCount) * 100,
+			}
+		} else if _, ok := categories[*categoryId]; ok {
+			categories[*categoryId] = CategorySummary{
+				Category:   categories[*categoryId].Category,
+				Total:      totalAmount,
+				Percentage: float32(count) / float32(totalCount) * 100,
 			}
 		}
 	}
@@ -159,6 +183,12 @@ func (s *Server) GetUserIdSummaryCategories(c *fiber.Ctx, userId string) error {
 	}
 
 	sort.Slice(result, func(i, j int) bool {
+		if result[i].Category == nil {
+			return true
+		}
+		if result[j].Category == nil {
+			return false
+		}
 		return result[i].Category.Name < result[j].Category.Name
 	})
 

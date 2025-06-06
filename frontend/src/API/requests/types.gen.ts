@@ -188,7 +188,7 @@ export type AccountSummary = {
 };
 
 export type CategorySummary = {
-    category: Category;
+    category?: Category;
     total: number;
     percentage: number;
 };

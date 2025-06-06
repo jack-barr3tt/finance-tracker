@@ -25,7 +25,7 @@ export default function CategoryPie() {
           <Doughnut
             data={{
               labels:
-                categorySummaries?.filter((cat) => cat.total < 0).map((cat) => cat.category.name) ||
+                categorySummaries?.filter((cat) => cat.total < 0).map((cat) => cat.category?.name || "Uncategorised") ||
                 [],
               datasets: [
                 {
