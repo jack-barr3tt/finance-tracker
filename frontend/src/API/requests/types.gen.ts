@@ -306,6 +306,7 @@ export type GetUserByIdTransactionsData = {
     };
     query?: {
         account_id?: string;
+        category_id?: string;
         cursor?: string;
         limit?: number;
     };
@@ -478,9 +479,6 @@ export type GetUserByIdSummaryAccountsData = {
     path: {
         id: string;
     };
-    query?: {
-        group_by?: SummaryGroupBy;
-    };
 };
 
 export type GetUserByIdSummaryAccountsResponse = (Array<AccountSummary>);
@@ -490,9 +488,6 @@ export type GetUserByIdSummaryAccountsError = unknown;
 export type GetUserByIdSummaryCategoriesData = {
     path: {
         id: string;
-    };
-    query?: {
-        group_by?: SummaryGroupBy;
     };
 };
 

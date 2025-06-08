@@ -104,12 +104,7 @@ export default function EditCategories() {
             onChange={(e) => setCategoryName(e.target.value)}
           />
 
-          <Table
-            theme={{
-              head: { cell: { base: "bg-gray-200 dark:bg-gray-800" } },
-              body: { cell: { base: "bg-gray-100 dark:bg-gray-900" } },
-            }}
-          >
+          <Table>
             <TableHead>
               <TableHeadCell>Account</TableHeadCell>
               <TableHeadCell>Rule</TableHeadCell>

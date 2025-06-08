@@ -11,6 +11,8 @@ import {
 import { useUser } from "../Hooks/useUser"
 import {
   useDeleteUserByIdTransactionsByTransactionId,
+  useGetUserByIdAccounts,
+  useGetUserByIdCategories,
   useGetUserByIdSummaryAccounts,
   UseGetUserByIdSummaryAccountsKeyFn,
   UseGetUserByIdSummaryBalanceKeyFn,
@@ -30,6 +32,7 @@ import UploadModal from "../Components/UploadModal"
 import { useGetUserByIdTransactionsInfinite } from "../API/queries/infiniteQueries"
 import { InView } from "react-intersection-observer"
 import { format, parseISO } from "date-fns"
+import FilterButton from "../Components/FilterButton"
 
 export default function Dashboard() {
   const { userId } = useUser()
@@ -37,6 +40,15 @@ export default function Dashboard() {
   const { data: accountSummaries } = useGetUserByIdSummaryAccounts({
     path: { id: userId },
   })
+  const { data: accounts } = useGetUserByIdAccounts({ path: { id: userId } })
+  const { data: categories } = useGetUserByIdCategories({ path: { id: userId } })
+  const { mutateAsync: deleteTransaction } = useDeleteUserByIdTransactionsByTransactionId()
+
+  const [accountFilterId, setAccountFilterId] = useState<string | undefined>(undefined)
+  const [categoryFilterId, setCategoryFilterId] = useState<string | undefined>(undefined)
+
+  console.log(categoryFilterId)
+
   const {
     data: transactions,
     isLoading,
@@ -45,9 +57,8 @@ export default function Dashboard() {
     fetchNextPage,
   } = useGetUserByIdTransactionsInfinite({
     path: { id: userId },
-    query: { limit: 50 },
+    query: { limit: 50, account_id: accountFilterId, category_id: categoryFilterId },
   })
-  const { mutateAsync: deleteTransaction } = useDeleteUserByIdTransactionsByTransactionId()
 
   const [showAdd, setShowAdd] = useState(false)
   const [showUpload, setShowUpload] = useState(false)
@@ -129,8 +140,44 @@ export default function Dashboard() {
         <TableHead>
           <TableRow>
             <TableHeadCell>Date</TableHeadCell>
-            <TableHeadCell>Account</TableHeadCell>
-            <TableHeadCell>Category</TableHeadCell>
+            <TableHeadCell>
+              <div className="flex items-center">
+                Account
+                <FilterButton
+                  options={
+                    accounts?.map((account) => ({
+                      label: account.name,
+                      value: account.id,
+                    })) || []
+                  }
+                  value={accountFilterId}
+                  onChange={(value) => setAccountFilterId(value)}
+                />
+              </div>
+            </TableHeadCell>
+            <TableHeadCell>
+              <div className="flex items-center">
+                Category
+                <FilterButton
+                  options={
+                    categories
+                      ? [
+                          ...categories.map((category) => ({
+                            label: category.name,
+                            value: category.id,
+                          })),
+                          {
+                            label: "Uncategorised",
+                            value: "uncategorised",
+                          },
+                        ]
+                      : []
+                  }
+                  value={categoryFilterId}
+                  onChange={(value) => setCategoryFilterId(value)}
+                />
+              </div>
+            </TableHeadCell>
             <TableHeadCell>Description</TableHeadCell>
             <TableHeadCell>Amount</TableHeadCell>
             <TableHeadCell>

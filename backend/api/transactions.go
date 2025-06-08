@@ -50,6 +50,15 @@ func (s Server) GetUserIdTransactions(c *fiber.Ctx, userId string, params GetUse
 		args = append(args, *params.AccountId)
 	}
 
+	if params.CategoryId != nil {
+		if *params.CategoryId == "uncategorised" {
+			conditions = append(conditions, "t.category_id IS NULL")
+		} else {
+			conditions = append(conditions, "t.category_id = $")
+			args = append(args, *params.CategoryId)
+		}
+	}
+
 	if params.Cursor != nil && *params.Cursor != "0" {
 		v, i, err := utils.DecodeCursor(*params.Cursor)
 		if err != nil {
