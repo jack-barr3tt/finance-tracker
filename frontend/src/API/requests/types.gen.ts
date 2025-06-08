@@ -16,6 +16,13 @@ export type AccountCreateRequest = {
     opened_at: string;
 };
 
+export type AccountEditRequest = {
+    name?: string;
+    bank_id?: string;
+    opened_at?: string;
+    closed_at?: string;
+};
+
 export type CategoryCreateRequest = {
     name: string;
 };
@@ -77,6 +84,10 @@ export type SignupResponse = {
 
 export type AccountCreateResponse = {
     ids: Array<(string)>;
+};
+
+export type AccountEditResponse = {
+    id: string;
 };
 
 export type AccountDeleteResponse = {
@@ -277,6 +288,18 @@ export type GetUserByIdAccountsByAccountIdData = {
 export type GetUserByIdAccountsByAccountIdResponse = (Account);
 
 export type GetUserByIdAccountsByAccountIdError = (NotFound);
+
+export type PatchUserByIdAccountsByAccountIdData = {
+    body?: AccountEditRequest;
+    path: {
+        account_id: string;
+        id: string;
+    };
+};
+
+export type PatchUserByIdAccountsByAccountIdResponse = (AccountEditResponse);
+
+export type PatchUserByIdAccountsByAccountIdError = (NotFound);
 
 export type DeleteUserByIdAccountsByAccountIdData = {
     path: {

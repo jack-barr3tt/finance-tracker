@@ -1,7 +1,7 @@
 import { useQueryClient } from "@tanstack/react-query"
 import { Card, Button } from "flowbite-react"
 import { useCallback } from "react"
-import { FiTrash, FiPlus } from "react-icons/fi"
+import { FiTrash, FiPlus, FiEdit } from "react-icons/fi"
 import { useNavigate } from "react-router-dom"
 import {
   useGetUserByIdAccounts,
@@ -40,6 +40,14 @@ export default function ViewAccounts() {
               <p className="text-sm">{account.bank.name}</p>
             </div>
             <div className="flex flex-col">
+              <Button
+                className="p-0 mb-2 size-8"
+                color="light"
+                onClick={() => navigate(`account/${account.id}/edit`)}
+              >
+                <FiEdit />
+              </Button>
+
               <Button
                 className="p-0 size-8"
                 color="light"

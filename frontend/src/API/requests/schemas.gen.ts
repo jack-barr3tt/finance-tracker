@@ -45,6 +45,27 @@ export const AccountCreateRequestSchema = {
     required: ['name', 'bank_id', 'opened_at']
 } as const;
 
+export const AccountEditRequestSchema = {
+    type: 'object',
+    properties: {
+        name: {
+            type: 'string',
+            example: 'Checking Account'
+        },
+        bank_id: {
+            type: 'string'
+        },
+        opened_at: {
+            type: 'string',
+            format: 'date-time'
+        },
+        closed_at: {
+            type: 'string',
+            format: 'date-time'
+        }
+    }
+} as const;
+
 export const CategoryCreateRequestSchema = {
     type: 'object',
     properties: {
@@ -222,6 +243,16 @@ export const AccountCreateResponseSchema = {
         }
     },
     required: ['ids']
+} as const;
+
+export const AccountEditResponseSchema = {
+    type: 'object',
+    properties: {
+        id: {
+            type: 'string'
+        }
+    },
+    required: ['id']
 } as const;
 
 export const AccountDeleteResponseSchema = {

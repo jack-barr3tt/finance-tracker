@@ -165,6 +165,38 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/NotFound"
+    patch:
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: account_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AccountEditRequest"
+      responses:
+        "200":
+          description: Account response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountEditResponse"
+        "404":
+          description: Account not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFound"
     delete:
       security:
         - BearerAuth: []
@@ -742,6 +774,20 @@ components:
         - name
         - bank_id
         - opened_at
+    AccountEditRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "Checking Account"
+        bank_id:
+          type: string
+        opened_at:
+          type: string
+          format: date-time
+        closed_at:
+          type: string
+          format: date-time
     CategoryCreateRequest:
       type: object
       properties:
@@ -871,6 +917,13 @@ components:
             type: string
       required:
         - ids
+    AccountEditResponse:
+      type: object
+      properties:
+        id:
+          type: string
+      required:
+        - id
     AccountDeleteResponse:
       type: object
       properties:

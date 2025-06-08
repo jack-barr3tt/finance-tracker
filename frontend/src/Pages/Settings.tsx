@@ -4,6 +4,7 @@ import ViewAccounts from "./Settings/ViewAccounts"
 import ViewCategories from "./Settings/ViewCategories"
 import NewCategory from "./Settings/NewCategory"
 import EditCategories from "./Settings/EditCategories"
+import EditAccount from "./Settings/EditAccount"
 
 export default function Settings() {
   return (
@@ -11,6 +12,7 @@ export default function Settings() {
       <NewAccount />
       <NewCategory />
       <EditCategories />
+      <EditAccount />
 
       <h2 className="text-2xl font-medium">Settings</h2>
 

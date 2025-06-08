@@ -65,6 +65,34 @@ func (s Server) PostUserIdAccounts(c *fiber.Ctx, userId string) error {
 		JSON(AccountCreateResponse{Ids: createdIds})
 }
 
+func (s *Server) PatchUserIdAccountsAccountId(c *fiber.Ctx, id string, accountId string) error {
+	tokUserId := GetTokenClaim[string](c, "id")
+
+	if tokUserId != id {
+		return c.SendStatus(fiber.StatusUnauthorized)
+	}
+
+	body, err := GetBody[AccountEditRequest](c)
+	if err != nil {
+		log.Println(err)
+		return c.SendStatus(fiber.StatusBadRequest)
+	}
+
+	tag, err := s.DB.Exec(c.Context(), "UPDATE account SET name = $1, opened_at = $2, closed_at = $3 WHERE user_id = $4 AND id = $5",
+		body.Name, body.OpenedAt, body.ClosedAt, id, accountId)
+	if err != nil {
+		return DBError(c, err)
+	}
+
+	if tag.RowsAffected() == 0 {
+		return c.SendStatus(fiber.StatusNotFound)
+	}
+
+	return c.JSON(AccountEditResponse{
+		Id: accountId,
+	})
+}
+
 func (s Server) GetUserIdAccounts(c *fiber.Ctx, userId string) error {
 	tokUserId := GetTokenClaim[string](c, "id")
 
@@ -137,13 +165,13 @@ func (s Server) GetUserIdAccountsAccountId(c *fiber.Ctx, userId string, accountI
 		c.Context(),
 		`SELECT 
 			a.name, a.opened_at, a.closed_at,
-			b.id, b.name, b.short_name, b.csv_import_enabled, b.api_import_enabled
+			b.id, b.name, b.short_name, b.csv_import_enabled, b.api_import_enabled, b.fixed_products
 		FROM account a 
 		LEFT JOIN bank b ON a.bank_id = b.id
 		WHERE a.user_id = $1 AND a.id = $2`,
 		userId, accountId,
 	).Scan(&account.Name, &account.OpenedAt, &account.ClosedAt,
-		&account.Bank.Id, &account.Bank.Name, &account.Bank.ShortName, &account.Bank.CsvImportEnabled, &account.Bank.ApiImportEnabled)
+		&account.Bank.Id, &account.Bank.Name, &account.Bank.ShortName, &account.Bank.CsvImportEnabled, &account.Bank.ApiImportEnabled, &account.Bank.FixedProducts)
 	if err != nil {
 		return DBError(c, err)
 	}
