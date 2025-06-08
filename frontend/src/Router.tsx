@@ -8,7 +8,7 @@ import Settings from "./Pages/Settings"
 
 export default function Router() {
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full overflow-y-auto">
       <BrowserRouter>
         <NavBar />
         <Routes>

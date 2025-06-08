@@ -15,3 +15,11 @@
     @apply bg-white dark:bg-neutral-900 text-black dark:text-white;
   }
 }
+
+@layer components {
+  .custom-scrollbar {
+    @apply [&::-webkit-scrollbar]:h-2
+    [&::-webkit-scrollbar-track]:bg-gray-100 [&::-webkit-scrollbar-track]:dark:bg-gray-900
+    [&::-webkit-scrollbar-thumb]:bg-gray-300 [&::-webkit-scrollbar-thumb]:dark:bg-gray-800;
+  }
+}

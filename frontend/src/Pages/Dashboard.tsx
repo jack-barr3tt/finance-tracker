@@ -8,6 +8,7 @@ import {
   TableHead,
   TableHeadCell,
   TableRow,
+  Tooltip,
 } from "flowbite-react"
 import { useUser } from "../Hooks/useUser"
 import {
@@ -101,7 +102,7 @@ export default function Dashboard() {
   )
 
   return (
-    <div className="flex flex-col gap-4 px-16 pb-16 overflow-y-auto">
+    <div className="flex flex-col gap-2 px-8 pb-8 md:gap-4 md:pb-16 md:px-16">
       <UploadModal show={showUpload} onClose={() => setShowUpload(false)} />
 
       <h2 className="text-2xl font-medium">Accounts</h2>
@@ -109,13 +110,13 @@ export default function Dashboard() {
         <p className="text-gray-500">No accounts found</p>
       ) : (
         <>
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:flex 2xl:flex-wrap">
             {accountSummaries?.map((account) => (
               <Card>
-                <div className="grid grid-cols-2 gap-2">
-                  <h1 className="font-medium">{account.account.name}</h1>
+                <div className="grid grid-cols-2 gap-2 -m-2 auto-cols-auto md:m-0">
+                  <h1 className="order-3 font-medium md:order-1">{account.account.name}</h1>
                   <h2 className="font-light">{account.account.bank.name}</h2>
-                  <p className="col-span-2 text-4xl">
+                  <p className="order-first col-span-1 row-span-2 text-3xl md:text-4xl md:order-3 md:col-span-2 md:row-span-1">
                     {account.balance.toLocaleString("en-GB", {
                       style: "currency",
                       currency: "GBP",
@@ -130,14 +131,14 @@ export default function Dashboard() {
 
       <HR />
 
-      <div className="flex flex-row items-center gap-4">
+      <div className="grid grid-cols-1 gap-8 md:grid-cols-2 *:w-full md:gap-4">
         <CategoryPie colorMap={categoryColorMap} />
         <BalanceGraph colorMap={accountColorMap} />
       </div>
 
       <HR />
 
-      <div className="flex flex-row items-center justify-between">
+      <div className="flex flex-row items-center justify-between mb-2 md:mb-0">
         <h2 className="text-2xl font-medium">Transactions</h2>
         <Button onClick={() => setShowUpload(true)}>
           <FiUpload className="mr-2" />
@@ -145,7 +146,7 @@ export default function Dashboard() {
         </Button>
       </div>
 
-      <Table striped>
+      <Table striped theme={{ root: { wrapper: "overflow-x-auto rounded-md custom-scrollbar" } }}>
         <TableHead>
           <TableRow>
             <TableHeadCell>Date</TableHeadCell>
@@ -232,7 +233,7 @@ export default function Dashboard() {
                           backgroundColor: accountColorMap[transaction.account.id].fill,
                           color: accountColorMap[transaction.account.id].text,
                         }}
-                        className="w-fit"
+                        className="-mx-2 w-fit"
                       >
                         {transaction.account.name}
                       </Badge>
@@ -244,12 +245,23 @@ export default function Dashboard() {
                             categoryColorMap[transaction.category?.id || "uncategorised"].fill,
                           color: categoryColorMap[transaction.category?.id || "uncategorised"].text,
                         }}
-                        className="w-fit"
+                        className="-mx-2 w-fit"
                       >
                         {transaction.category?.name || "Uncategorised"}
                       </Badge>
                     </TableCell>
-                    <TableCell>{transaction.description}</TableCell>
+                    <TableCell>
+                      <span className="hidden xl:block">{transaction.description}</span>
+                      <span className="xl:hidden">
+                        {transaction.description.length > 30 ? (
+                          <Tooltip content={transaction.description} placement="top">
+                            {transaction.description.slice(0, 30)}...
+                          </Tooltip>
+                        ) : (
+                          transaction.description
+                        )}
+                      </span>
+                    </TableCell>
                     <TableCell>
                       {transaction.amount.toLocaleString("en-GB", {
                         style: "currency",

@@ -104,7 +104,13 @@ export default function EditCategories() {
             onChange={(e) => setCategoryName(e.target.value)}
           />
 
-          <Table>
+          <Table
+            theme={{
+              root: { wrapper: "overflow-x-auto rounded-md custom-scrollbar" },
+              head: { cell: { base: "bg-gray-200 dark:bg-gray-800" } },
+              body: { cell: { base: "bg-gray-100 dark:bg-gray-900" } },
+            }}
+          >
             <TableHead>
               <TableHeadCell>Account</TableHeadCell>
               <TableHeadCell>Rule</TableHeadCell>

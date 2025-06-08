@@ -31,19 +31,18 @@ export default function ViewCategories() {
   )
 
   return (
-    <div className="grid grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 2xl:grid-cols-4">
       {categories?.map((category) => (
-        <Card key={category.id}>
-          <div className="flex flex-row">
-            <div className="flex flex-col flex-1 gap-4">
-              <h3 className="font-medium">{category.name}</h3>
-              <p className="text-sm">
-                {category.rules.length} rule{category.rules.length !== 1 ? "s" : ""}
-              </p>
-            </div>
-            <div className="flex flex-col">
+        <Card key={category.id} theme={{ root: { children: "p-2! md:p-6!" } }}>
+          <div className="grid items-center grid-cols-3 md:grid-cols-2">
+            <h3 className="font-medium">{category.name}</h3>
+            <p className="text-sm md:order-last">
+              {category.rules.length} rule{category.rules.length !== 1 ? "s" : ""}
+            </p>
+
+            <div className="flex flex-row items-center justify-end gap-2 md:row-span-2 md:items-end md:flex-col">
               <Button
-                className="p-0 mb-2 size-8"
+                className="p-0 md:mb-2 size-8"
                 color="light"
                 onClick={() => navigate(`category/${category.id}/edit`)}
               >

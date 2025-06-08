@@ -8,7 +8,7 @@ export default function NavBar() {
   const navigate = useNavigate()
 
   return (
-    <div className="flex items-center w-full gap-8 px-16 py-4">
+    <div className="flex items-center w-full gap-8 px-8 py-4 md:px-16">
       <Button
         onClick={() => (userId ? navigate("/dashboard") : null)}
         className="w-10 p-0 mr-auto"
