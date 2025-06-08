@@ -1,4 +1,5 @@
 import {
+  Badge,
   Button,
   Card,
   HR,
@@ -23,7 +24,7 @@ import {
 import { FiEdit, FiPlus, FiTrash, FiUpload } from "react-icons/fi"
 import EditTransactionRow from "./Dashboard/EditTransactionRow"
 import TableBodyWithButton from "../Components/TableBodyWithButton"
-import { useCallback, useState } from "react"
+import { useCallback, useMemo, useState } from "react"
 import { useQueryClient } from "@tanstack/react-query"
 
 import BalanceGraph from "../Components/BalanceGraph"
@@ -33,6 +34,7 @@ import { useGetUserByIdTransactionsInfinite } from "../API/queries/infiniteQueri
 import { InView } from "react-intersection-observer"
 import { format, parseISO } from "date-fns"
 import FilterButton from "../Components/FilterButton"
+import { getChartColors } from "../utils"
 
 export default function Dashboard() {
   const { userId } = useUser()
@@ -47,7 +49,14 @@ export default function Dashboard() {
   const [accountFilterId, setAccountFilterId] = useState<string | undefined>(undefined)
   const [categoryFilterId, setCategoryFilterId] = useState<string | undefined>(undefined)
 
-  console.log(categoryFilterId)
+  const accountColorMap = useMemo(
+    () => getChartColors(accounts ? ["total", ...accounts.map((acc) => acc.id)] : []),
+    [accounts]
+  )
+  const categoryColorMap = useMemo(
+    () => getChartColors(categories ? ["uncategorised", ...categories.map((cat) => cat.id)] : []),
+    [categories]
+  )
 
   const {
     data: transactions,
@@ -122,8 +131,8 @@ export default function Dashboard() {
       <HR />
 
       <div className="flex flex-row items-center gap-4">
-        <CategoryPie />
-        <BalanceGraph />
+        <CategoryPie colorMap={categoryColorMap} />
+        <BalanceGraph colorMap={accountColorMap} />
       </div>
 
       <HR />
@@ -217,8 +226,29 @@ export default function Dashboard() {
                 ) : (
                   <TableRow key={transaction.id} className="group/trnscrow">
                     <TableCell>{format(parseISO(transaction.date), "dd MMM yyyy")}</TableCell>
-                    <TableCell>{transaction.account.name}</TableCell>
-                    <TableCell>{transaction.category?.name}</TableCell>
+                    <TableCell>
+                      <Badge
+                        style={{
+                          backgroundColor: accountColorMap[transaction.account.id].fill,
+                          color: accountColorMap[transaction.account.id].text,
+                        }}
+                        className="w-fit"
+                      >
+                        {transaction.account.name}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Badge
+                        style={{
+                          backgroundColor:
+                            categoryColorMap[transaction.category?.id || "uncategorised"].fill,
+                          color: categoryColorMap[transaction.category?.id || "uncategorised"].text,
+                        }}
+                        className="w-fit"
+                      >
+                        {transaction.category?.name || "Uncategorised"}
+                      </Badge>
+                    </TableCell>
                     <TableCell>{transaction.description}</TableCell>
                     <TableCell>
                       {transaction.amount.toLocaleString("en-GB", {

@@ -1,5 +1,6 @@
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js"
-import { Card, useThemeMode } from "flowbite-react"
+import { Card } from "flowbite-react"
+import Color from "color"
 import { useMemo } from "react"
 import { Doughnut } from "react-chartjs-2"
 import { useGetUserByIdSummaryCategories } from "../API/queries"
@@ -7,18 +8,17 @@ import { getBrightColors } from "../utils"
 import { useUser } from "../Hooks/useUser"
 ChartJS.register(ArcElement, Tooltip, Legend)
 
-export default function CategoryPie() {
+type CategoryPieProps = {
+  colorMap?: Record<string, { border: string; fill: string }>
+}
+
+export default function CategoryPie({ colorMap }: CategoryPieProps) {
   const { userId } = useUser()
-  const { mode } = useThemeMode()
   const { data: categorySummaries } = useGetUserByIdSummaryCategories({ path: { id: userId } })
 
   const { borders: pieBorders, fills: pieFills } = useMemo(
-    () =>
-      getBrightColors(
-        categorySummaries?.filter((cat) => cat.total < 0).length || 0,
-        mode === "dark" ? 0.25 : 0.5
-      ),
-    [categorySummaries, mode]
+    () => getBrightColors(categorySummaries?.filter((cat) => cat.total < 0).length || 0),
+    [categorySummaries]
   )
 
   return (
@@ -38,8 +38,20 @@ export default function CategoryPie() {
                   data:
                     categorySummaries?.filter((cat) => cat.total < 0).map((cat) => -cat.total) ||
                     [],
-                  backgroundColor: pieFills,
-                  borderColor: pieBorders,
+                  backgroundColor: colorMap
+                    ? categorySummaries
+                        ?.filter((cat) => cat.total < 0)
+                        .map((cat) =>
+                          Color(colorMap[cat.category?.id || "uncategorised"]?.fill)
+                            .alpha(0.25)
+                            .string()
+                        )
+                    : pieFills,
+                  borderColor: colorMap
+                    ? categorySummaries
+                        ?.filter((cat) => cat.total < 0)
+                        .map((cat) => colorMap[cat.category?.id || "uncategorised"]?.border)
+                    : pieBorders,
                 },
               ],
             }}

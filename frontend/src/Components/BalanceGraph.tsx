@@ -8,7 +8,8 @@ import {
   Tooltip,
   Chart as ChartJS,
 } from "chart.js"
-import { Card, useThemeMode } from "flowbite-react"
+import Color from "color"
+import { Card } from "flowbite-react"
 import { useMemo } from "react"
 import { Line } from "react-chartjs-2"
 import { useGetUserByIdSummaryBalance } from "../API/queries"
@@ -17,17 +18,20 @@ import { getBrightColors } from "../utils"
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend)
 
-export default function BalanceGraph() {
+type BalanceGraphProps = {
+  colorMap?: Record<string, { border: string; fill: string }>
+}
+
+export default function BalanceGraph({ colorMap }: BalanceGraphProps) {
   const { userId } = useUser()
-  const { computedMode: mode } = useThemeMode()
   const { data: balanceSummary } = useGetUserByIdSummaryBalance({
     path: { id: userId },
     query: { group_by: "month" },
   })
 
   const { borders: lineBorders, fills: lineFills } = useMemo(
-    () => getBrightColors((balanceSummary?.accounts.length || 0) + 1, mode === "dark" ? 0.25 : 0.5),
-    [balanceSummary?.accounts.length, mode]
+    () => getBrightColors((balanceSummary?.accounts.length || 0) + 1),
+    [balanceSummary?.accounts.length]
   )
 
   return (
@@ -43,14 +47,18 @@ export default function BalanceGraph() {
                 {
                   label: "Total",
                   data: balanceSummary?.total.map((item) => item.balance) || [],
-                  borderColor: lineBorders[0],
-                  backgroundColor: lineFills[0],
+                  borderColor: colorMap ? colorMap["total"]?.border : lineBorders[0],
+                  backgroundColor: colorMap
+                    ? Color(colorMap["total"]?.fill).alpha(0.25).string()
+                    : lineFills[0],
                 },
                 ...(balanceSummary?.accounts.map((account, i) => ({
                   label: account.account.name,
                   data: account.balance.map((item) => item.balance),
-                  borderColor: lineBorders[i + 1],
-                  backgroundColor: lineFills[i + 1],
+                  borderColor: colorMap ? colorMap[account.account.id].border : lineBorders[i + 1],
+                  backgroundColor: colorMap
+                    ? Color(colorMap[account.account.id].fill).alpha(0.25).string()
+                    : lineFills[i + 1],
                 })) || []),
               ],
             }}
