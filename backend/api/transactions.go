@@ -131,6 +131,7 @@ func (s Server) GetUserIdTransactions(c *fiber.Ctx, userId string, params GetUse
 				Id:        *c_id,
 				Name:      *c_name,
 				CreatedAt: *c_created_at,
+				Rules:     []CategoryRule{},
 			}
 		}
 
@@ -138,9 +139,14 @@ func (s Server) GetUserIdTransactions(c *fiber.Ctx, userId string, params GetUse
 		lastCursor = cursor
 	}
 
+	var cursor *string
+	if lastCursor != "" {
+		cursor = &lastCursor
+	}
+
 	return c.Status(fiber.StatusOK).JSON(TransactionsResponse{
 		Transactions: transactions,
-		Cursor:       lastCursor,
+		Cursor:       cursor,
 	})
 }
 

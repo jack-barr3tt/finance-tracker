@@ -9,13 +9,24 @@ import { FiTrash, FiPlus, FiEdit } from "react-icons/fi"
 import { useCallback } from "react"
 import { useQueryClient } from "@tanstack/react-query"
 import { useNavigate } from "react-router-dom"
+import { useAsyncMemo } from "../../Hooks/useAsyncMemo"
+import { decryptCategory } from "../../Security/data"
 
 export default function ViewCategories() {
-  const { userId } = useUser()
+  const { userId, decrypt } = useUser()
   const queryClient = useQueryClient()
-  const { data: categories } = useGetUserByIdCategories({ path: { id: userId } }, undefined, {
-    enabled: !!userId,
-  })
+  const { data: encryptedCategories } = useGetUserByIdCategories(
+    { path: { id: userId } },
+    undefined,
+    {
+      enabled: !!userId,
+    }
+  )
+
+  const categories = useAsyncMemo(
+    async () => Promise.all(encryptedCategories?.map((cat) => decryptCategory(cat, decrypt)) ?? []),
+    [decrypt, encryptedCategories]
+  )
 
   const { mutateAsync: deleteCategory } = useDeleteUserByIdCategoriesByCategoryId()
   const navigate = useNavigate()

@@ -2,7 +2,17 @@ CREATE TABLE IF NOT EXISTS "user" (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   email VARCHAR(100) UNIQUE NOT NULL,
   password_hash VARCHAR(255) NOT NULL,
+  master_key VARCHAR(24) NOT NULL,
+  salt VARCHAR(255) NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS "bank" (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  name VARCHAR(100) NOT NULL,
+  short_name VARCHAR(50) NOT NULL,
+  fixed_products BOOLEAN DEFAULT FALSE,
+  csv_import_enabled BOOLEAN DEFAULT TRUE,
+  api_import_enabled BOOLEAN DEFAULT FALSE
 );
 CREATE TABLE IF NOT EXISTS "account" (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -27,6 +37,13 @@ CREATE TABLE IF NOT EXISTS "category_rule" (
   rule_regex TEXT NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+CREATE TABLE IF NOT EXISTS "file" (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
+  file_hash TEXT NOT NULL,
+  ready BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 CREATE TABLE IF NOT EXISTS "transaction" (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   account_id UUID NOT NULL REFERENCES "account"(id) ON DELETE CASCADE,
@@ -35,20 +52,5 @@ CREATE TABLE IF NOT EXISTS "transaction" (
   description TEXT,
   date TIMESTAMP NOT NULL,
   file_id UUID REFERENCES "file"(id) ON DELETE CASCADE,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-CREATE TABLE IF NOT EXISTS "bank" (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  name VARCHAR(100) NOT NULL,
-  short_name VARCHAR(50) NOT NULL,
-  fixed_products BOOLEAN DEFAULT FALSE,
-  csv_import_enabled BOOLEAN DEFAULT TRUE,
-  api_import_enabled BOOLEAN DEFAULT FALSE
-);
-CREATE TABLE IF NOT EXISTS "file" (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  user_id UUID NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
-  file_hash TEXT NOT NULL,
-  ready BOOLEAN DEFAULT FALSE,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

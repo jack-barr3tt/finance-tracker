@@ -18,7 +18,9 @@ func (s Server) PostLogin(c *fiber.Ctx) error {
 
 	var id string
 	var passwordHash string
-	err = s.DB.QueryRow(c.Context(), `SELECT id, password_hash FROM "user" WHERE email = $1`, body.Email).Scan(&id, &passwordHash)
+	var masterKey string
+	var salt string
+	err = s.DB.QueryRow(c.Context(), `SELECT id, password_hash, master_key, salt FROM "user" WHERE email = $1`, body.Email).Scan(&id, &passwordHash, &masterKey, &salt)
 	if err != nil {
 		return DBError(c, err)
 	}
@@ -45,8 +47,10 @@ func (s Server) PostLogin(c *fiber.Ctx) error {
 	return c.
 		Status(http.StatusOK).
 		JSON(LoginResponse{
-			Id:    id,
-			Token: t,
+			Id:        id,
+			Token:     t,
+			MasterKey: masterKey,
+			Salt:      salt,
 		})
 }
 
@@ -56,13 +60,16 @@ func (s Server) PostSignup(c *fiber.Ctx) error {
 		return c.SendStatus(fiber.StatusBadRequest)
 	}
 
-	bytes, err := bcrypt.GenerateFromPassword([]byte(*body.Password), 14)
+	bytes, err := bcrypt.GenerateFromPassword([]byte(body.Password), 14)
 	if err != nil {
 		log.Println(err)
 		return c.SendStatus(fiber.StatusInternalServerError)
 	}
-
-	_, err = s.DB.Exec(c.Context(), `INSERT INTO "user" (email, password_hash) VALUES ($1, $2)`, body.Email, string(bytes))
+	_, err = s.DB.Exec(
+		c.Context(),
+		`INSERT INTO "user" (email, password_hash, master_key, salt) VALUES ($1, $2, $3, $4)`,
+		body.Email, bytes, body.MasterKey, body.Salt,
+	)
 	if err != nil {
 		return DBError(c, err)
 	}

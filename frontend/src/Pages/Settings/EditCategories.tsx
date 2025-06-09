@@ -25,17 +25,19 @@ import { useQueryClient } from "@tanstack/react-query"
 import { FiEdit, FiPlus, FiTrash } from "react-icons/fi"
 import TableBodyWithButton from "../../Components/TableBodyWithButton"
 import EditCategoryRuleRow from "./EditCategoryRuleRow"
+import { useAsyncMemo } from "../../Hooks/useAsyncMemo"
+import { decryptCategory } from "../../Security/data"
 
 export default function EditCategories() {
   const location = useLocation()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
-  const { userId } = useUser()
+  const { userId, decrypt, encrypt } = useUser()
   const categoryId = useMemo(
     () => /category\/(.+)\/edit/.exec(location.pathname)?.[1] ?? "",
     [location.pathname]
   )
-  const { data: category } = useGetUserByIdCategoriesByCategoryId(
+  const { data: encCategory } = useGetUserByIdCategoriesByCategoryId(
     {
       path: { id: userId, category_id: categoryId },
     },
@@ -44,6 +46,11 @@ export default function EditCategories() {
   )
   const { mutateAsync: editCategory } = usePatchUserByIdCategoriesByCategoryId()
   const { mutateAsync: deleteRule } = useDeleteUserByIdCategoriesByCategoryIdRulesByRuleId()
+
+  const category = useAsyncMemo(
+    async () => decryptCategory(encCategory, decrypt),
+    [decrypt, encCategory]
+  )
 
   const [categoryName, setCategoryName] = useState<string>("")
   const [showAdd, setShowAdd] = useState(false)
@@ -59,7 +66,7 @@ export default function EditCategories() {
     if (categoryName.trim() != category?.name) {
       await editCategory({
         path: { id: userId, category_id: categoryId },
-        body: { name: categoryName },
+        body: { name: await encrypt(categoryName) },
       })
       queryClient.invalidateQueries({
         queryKey: UseGetUserByIdCategoriesByCategoryIdKeyFn({
@@ -72,7 +79,16 @@ export default function EditCategories() {
     }
 
     navigate("/settings")
-  }, [categoryName, category, navigate, editCategory, userId, categoryId, queryClient])
+  }, [
+    categoryName,
+    category?.name,
+    navigate,
+    editCategory,
+    userId,
+    categoryId,
+    encrypt,
+    queryClient,
+  ])
 
   const handleDelete = useCallback(
     async (ruleId: string) => {

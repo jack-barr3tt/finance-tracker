@@ -758,7 +758,15 @@ components:
           example: user@example.com
         password:
           type: string
-          example: password
+        master_key:
+          type: string
+        salt:
+          type: string
+      required:
+        - email
+        - password
+        - master_key
+        - salt
     AccountCreateRequest:
       type: object
       properties:
@@ -793,7 +801,6 @@ components:
       properties:
         name:
           type: string
-          example: "Groceries"
       required:
         - name
     CategoryEditRequest:
@@ -801,7 +808,6 @@ components:
       properties:
         name:
           type: string
-          example: "Groceries"
       required:
         - name
     CategoryAddRuleRequest:
@@ -813,7 +819,6 @@ components:
           type: string
         rule:
           type: string
-          example: "Tesco"
     CategoryEditRuleRequest:
       type: object
       properties:
@@ -823,7 +828,6 @@ components:
           type: string
         rule:
           type: string
-          example: "Tesco"
     TransactionCreateRequest:
       type: object
       properties:
@@ -836,7 +840,6 @@ components:
           type: string
         description:
           type: string
-          example: "Milk"
         date:
           type: string
           format: date-time
@@ -857,7 +860,6 @@ components:
           type: string
         description:
           type: string
-          example: "Milk"
         date:
           type: string
           format: date-time
@@ -894,13 +896,19 @@ components:
     LoginResponse:
       type: object
       properties:
-        token:
-          type: string
         id:
           type: string
+        token:
+          type: string
+        master_key:
+          type: string
+        salt:
+          type: string
       required:
-        - token
         - id
+        - token
+        - master_key
+        - salt
     SignupResponse:
       type: object
       properties:
@@ -946,11 +954,8 @@ components:
       properties:
         id:
           type: string
-        name:
-          type: string
       required:
         - id
-        - name
     CategoryDeleteResponse:
       type: object
       properties:
@@ -996,7 +1001,6 @@ components:
           type: string
       required:
         - transactions
-        - cursor
     TransactionCreateResponse:
       type: object
       properties:

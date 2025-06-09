@@ -182,16 +182,6 @@ func (s *Server) GetUserIdSummaryCategories(c *fiber.Ctx, userId string) error {
 		result = append(result, category)
 	}
 
-	sort.Slice(result, func(i, j int) bool {
-		if result[i].Category == nil {
-			return true
-		}
-		if result[j].Category == nil {
-			return false
-		}
-		return result[i].Category.Name < result[j].Category.Name
-	})
-
 	return c.JSON(result)
 }
 
@@ -256,6 +246,7 @@ func (s *Server) GetUserIdSummaryBalance(c *fiber.Ctx, userId string, params Get
 					Balance: 0,
 				},
 			},
+			Accounts: []BalanceSummaryAccount{},
 		}
 
 		for _, accountId := range accountIds {

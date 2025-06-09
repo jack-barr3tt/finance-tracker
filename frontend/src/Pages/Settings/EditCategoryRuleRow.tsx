@@ -12,6 +12,8 @@ import {
 } from "../../API/queries"
 import { useUser } from "../../Hooks/useUser"
 import { useQueryClient } from "@tanstack/react-query"
+import { useAsyncMemo } from "../../Hooks/useAsyncMemo"
+import { decryptCategory } from "../../Security/data"
 
 type EditCategoryRuleRowProps = {
   categoryId: string
@@ -22,7 +24,7 @@ type EditCategoryRuleRowProps = {
 export default function EditCategoryRuleRow(props: EditCategoryRuleRowProps) {
   const { categoryId, ruleId, cancelCallback } = props
 
-  const { userId } = useUser()
+  const { userId, encrypt, decrypt } = useUser()
   const queryClient = useQueryClient()
   const { data: accounts } = useGetUserByIdAccounts({ path: { id: userId } })
   const [accountSearch, setAccountSearch] = useState<string | undefined>(undefined)
@@ -30,12 +32,17 @@ export default function EditCategoryRuleRow(props: EditCategoryRuleRowProps) {
   const [rule, setRule] = useState<string>("")
   const [description, setDescription] = useState<string>("")
 
-  const { data: category } = useGetUserByIdCategoriesByCategoryId(
+  const { data: encCategory } = useGetUserByIdCategoriesByCategoryId(
     {
       path: { id: userId, category_id: categoryId },
     },
     undefined,
     { enabled: !!categoryId }
+  )
+
+  const category = useAsyncMemo(
+    async () => decryptCategory(encCategory, decrypt),
+    [decrypt, encCategory]
   )
 
   const { mutateAsync: createRule } = usePostUserByIdCategoriesByCategoryIdRules()
@@ -47,6 +54,7 @@ export default function EditCategoryRuleRow(props: EditCategoryRuleRowProps) {
       if (rule) {
         setAccountId(rule.account.id)
         setRule(rule.rule)
+        setDescription(rule.description || "")
       }
     }
   }, [category, ruleId])
@@ -55,7 +63,11 @@ export default function EditCategoryRuleRow(props: EditCategoryRuleRowProps) {
     if (accountId && rule) {
       await createRule({
         path: { id: userId, category_id: categoryId },
-        body: { account_id: accountId, rule, description },
+        body: {
+          account_id: accountId,
+          rule: await encrypt(rule),
+          description: await encrypt(description),
+        },
       })
       queryClient.invalidateQueries({
         queryKey: UseGetUserByIdCategoriesKeyFn({ path: { id: userId } }),
@@ -70,13 +82,27 @@ export default function EditCategoryRuleRow(props: EditCategoryRuleRowProps) {
       setDescription("")
       cancelCallback?.()
     }
-  }, [accountId, cancelCallback, categoryId, createRule, description, queryClient, rule, userId])
+  }, [
+    accountId,
+    cancelCallback,
+    categoryId,
+    createRule,
+    description,
+    encrypt,
+    queryClient,
+    rule,
+    userId,
+  ])
 
   const handleEdit = useCallback(async () => {
     if (ruleId && accountId && rule) {
       await editRule({
         path: { id: userId, category_id: categoryId, rule_id: ruleId },
-        body: { account_id: accountId, rule, description },
+        body: {
+          account_id: accountId,
+          rule: await encrypt(rule),
+          description: await encrypt(description),
+        },
       })
       queryClient.invalidateQueries({
         queryKey: UseGetUserByIdCategoriesKeyFn({ path: { id: userId } }),
@@ -105,6 +131,7 @@ export default function EditCategoryRuleRow(props: EditCategoryRuleRowProps) {
     categoryId,
     description,
     editRule,
+    encrypt,
     queryClient,
     rule,
     ruleId,

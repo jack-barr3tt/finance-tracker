@@ -6,6 +6,8 @@ import { Doughnut } from "react-chartjs-2"
 import { useGetUserByIdSummaryCategories } from "../API/queries"
 import { getBrightColors } from "../utils"
 import { useUser } from "../Hooks/useUser"
+import { useAsyncMemo } from "../Hooks/useAsyncMemo"
+import { CategorySummary } from "../API/requests"
 ChartJS.register(ArcElement, Tooltip, Legend)
 
 type CategoryPieProps = {
@@ -13,8 +15,31 @@ type CategoryPieProps = {
 }
 
 export default function CategoryPie({ colorMap }: CategoryPieProps) {
-  const { userId } = useUser()
-  const { data: categorySummaries } = useGetUserByIdSummaryCategories({ path: { id: userId } })
+  const { userId, decrypt } = useUser()
+  const { data: encCategorySummaries } = useGetUserByIdSummaryCategories(
+    { path: { id: userId } },
+    undefined,
+    {
+      enabled: !!userId,
+    }
+  )
+  const categorySummaries = useAsyncMemo(
+    async (): Promise<CategorySummary[] | null> =>
+      encCategorySummaries
+        ? Promise.all(
+            encCategorySummaries?.map(async (cat) => ({
+              ...cat,
+              category: cat.category
+                ? {
+                    ...cat.category,
+                    name: await decrypt(cat.category.name),
+                  }
+                : undefined,
+            }))
+          )
+        : null,
+    [encCategorySummaries]
+  )
 
   const { borders: pieBorders, fills: pieFills } = useMemo(
     () => getBrightColors(categorySummaries?.filter((cat) => cat.total < 0).length || 0),

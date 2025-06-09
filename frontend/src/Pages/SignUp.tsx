@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom"
 import { usePostSignup } from "../API/queries"
 import { Button, TextInput } from "flowbite-react"
 import { FiArrowRight } from "react-icons/fi"
+import { generateKeySalt } from "../Security/keys"
 
 export default function SignUp() {
   const [email, setEmail] = useState("")
@@ -24,11 +25,15 @@ export default function SignUp() {
         return
       }
 
+      const { salt, master_key } = await generateKeySalt(password)
+
       try {
         await signUp({
           body: {
             email,
-            password,
+            password: password,
+            salt,
+            master_key,
           },
         })
 

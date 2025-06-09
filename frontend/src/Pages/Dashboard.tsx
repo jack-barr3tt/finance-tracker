@@ -36,16 +36,23 @@ import { InView } from "react-intersection-observer"
 import { format, parseISO } from "date-fns"
 import FilterButton from "../Components/FilterButton"
 import { getChartColors } from "../utils"
+import { useAsyncMemo } from "../Hooks/useAsyncMemo"
+import { decryptCategory, decryptTransaction } from "../Security/data"
 
 export default function Dashboard() {
-  const { userId } = useUser()
+  const { userId, decrypt } = useUser()
   const queryClient = useQueryClient()
   const { data: accountSummaries } = useGetUserByIdSummaryAccounts({
     path: { id: userId },
   })
   const { data: accounts } = useGetUserByIdAccounts({ path: { id: userId } })
-  const { data: categories } = useGetUserByIdCategories({ path: { id: userId } })
+  const { data: encCategories } = useGetUserByIdCategories({ path: { id: userId } })
   const { mutateAsync: deleteTransaction } = useDeleteUserByIdTransactionsByTransactionId()
+
+  const categories = useAsyncMemo(
+    async () => Promise.all(encCategories?.map((cat) => decryptCategory(cat, decrypt)) ?? []),
+    [encCategories, decrypt]
+  )
 
   const [accountFilterId, setAccountFilterId] = useState<string | undefined>(undefined)
   const [categoryFilterId, setCategoryFilterId] = useState<string | undefined>(undefined)
@@ -60,7 +67,7 @@ export default function Dashboard() {
   )
 
   const {
-    data: transactions,
+    data: encTransactions,
     isLoading,
     isFetchingNextPage,
     hasNextPage,
@@ -69,6 +76,20 @@ export default function Dashboard() {
     path: { id: userId },
     query: { limit: 50, account_id: accountFilterId, category_id: categoryFilterId },
   })
+
+  const transactions = useAsyncMemo(
+    async () => ({
+      pages: await Promise.all(
+        encTransactions?.pages.map(async (page) => ({
+          ...page,
+          transactions: await Promise.all(
+            page?.transactions.map((t) => decryptTransaction(t, decrypt)) ?? []
+          ),
+        })) ?? []
+      ),
+    }),
+    [encTransactions, decrypt]
+  )
 
   const [showAdd, setShowAdd] = useState(false)
   const [showUpload, setShowUpload] = useState(false)

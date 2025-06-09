@@ -1,7 +1,6 @@
 package api
 
 import (
-	"sort"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -59,7 +58,8 @@ func (s Server) GetUserIdCategories(c *fiber.Ctx, userId string) error {
 		var id string
 		var name string
 		var createdAt time.Time
-		var ruleId, ruleRegex, ruleDescription *string
+		var ruleId *string
+		var ruleRegex, ruleDescription *string
 		var accountId, accountName *string
 		var accountOpenedAt, accountClosedAt *time.Time
 		err = rows.Scan(&id, &name, &createdAt, &ruleId, &ruleRegex, &ruleDescription, &accountId, &accountName, &accountOpenedAt, &accountClosedAt)
@@ -113,10 +113,6 @@ func (s Server) GetUserIdCategories(c *fiber.Ctx, userId string) error {
 	for _, category := range categories {
 		result = append(result, category)
 	}
-
-	sort.Slice(result, func(i, j int) bool {
-		return result[i].Name < result[j].Name
-	})
 
 	return c.JSON(result)
 }
@@ -188,8 +184,7 @@ func (s *Server) PatchUserIdCategoriesCategoryId(c *fiber.Ctx, id string, catego
 	}
 
 	return c.Status(fiber.StatusOK).JSON(CategoryEditResponse{
-		Id:   categoryId,
-		Name: body.Name,
+		Id: categoryId,
 	})
 }
 

@@ -6,8 +6,10 @@ export type LoginRequest = {
 };
 
 export type SignupRequest = {
-    email?: string;
-    password?: string;
+    email: string;
+    password: string;
+    master_key: string;
+    salt: string;
 };
 
 export type AccountCreateRequest = {
@@ -74,8 +76,10 @@ export type TransactionBulkDeleteRequest = {
 };
 
 export type LoginResponse = {
-    token: string;
     id: string;
+    token: string;
+    master_key: string;
+    salt: string;
 };
 
 export type SignupResponse = {
@@ -101,7 +105,6 @@ export type CategoryCreateResponse = {
 
 export type CategoryEditResponse = {
     id: string;
-    name: string;
 };
 
 export type CategoryDeleteResponse = {
@@ -124,7 +127,7 @@ export type CategoryDeleteRuleResponse = {
 
 export type TransactionsResponse = {
     transactions: Array<Transaction>;
-    cursor: string;
+    cursor?: string;
 };
 
 export type TransactionCreateResponse = {

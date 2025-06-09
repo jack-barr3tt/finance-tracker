@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom"
 import { useQueryClient } from "@tanstack/react-query"
 
 export default function NewCategory() {
-  const { userId } = useUser()
+  const { userId, encrypt } = useUser()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const { mutateAsync: createCategory } = usePostUserByIdCategories()
@@ -14,13 +14,13 @@ export default function NewCategory() {
 
   const handleSubmit = useCallback(async () => {
     if (!categoryName) return
-    await createCategory({ path: { id: userId }, body: { name: categoryName } })
+    await createCategory({ path: { id: userId }, body: { name: await encrypt(categoryName) } })
     queryClient.invalidateQueries({
       queryKey: UseGetUserByIdCategoriesKeyFn({ path: { id: userId } }),
     })
     setCategoryName("")
     navigate("/settings")
-  }, [categoryName, createCategory, navigate, queryClient, userId])
+  }, [categoryName, createCategory, navigate, queryClient, userId, encrypt])
 
   return (
     <Modal show={location.pathname.includes("settings/new-category")}>

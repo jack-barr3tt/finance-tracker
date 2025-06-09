@@ -21,10 +21,16 @@ export const SignupRequestSchema = {
             example: 'user@example.com'
         },
         password: {
-            type: 'string',
-            example: 'password'
+            type: 'string'
+        },
+        master_key: {
+            type: 'string'
+        },
+        salt: {
+            type: 'string'
         }
-    }
+    },
+    required: ['email', 'password', 'master_key', 'salt']
 } as const;
 
 export const AccountCreateRequestSchema = {
@@ -70,8 +76,7 @@ export const CategoryCreateRequestSchema = {
     type: 'object',
     properties: {
         name: {
-            type: 'string',
-            example: 'Groceries'
+            type: 'string'
         }
     },
     required: ['name']
@@ -81,8 +86,7 @@ export const CategoryEditRequestSchema = {
     type: 'object',
     properties: {
         name: {
-            type: 'string',
-            example: 'Groceries'
+            type: 'string'
         }
     },
     required: ['name']
@@ -98,8 +102,7 @@ export const CategoryAddRuleRequestSchema = {
             type: 'string'
         },
         rule: {
-            type: 'string',
-            example: 'Tesco'
+            type: 'string'
         }
     }
 } as const;
@@ -114,8 +117,7 @@ export const CategoryEditRuleRequestSchema = {
             type: 'string'
         },
         rule: {
-            type: 'string',
-            example: 'Tesco'
+            type: 'string'
         }
     }
 } as const;
@@ -134,8 +136,7 @@ export const TransactionCreateRequestSchema = {
             type: 'string'
         },
         description: {
-            type: 'string',
-            example: 'Milk'
+            type: 'string'
         },
         date: {
             type: 'string',
@@ -159,8 +160,7 @@ export const TransactionEditRequestSchema = {
             type: 'string'
         },
         description: {
-            type: 'string',
-            example: 'Milk'
+            type: 'string'
         },
         date: {
             type: 'string',
@@ -212,14 +212,20 @@ export const TransactionBulkDeleteRequestSchema = {
 export const LoginResponseSchema = {
     type: 'object',
     properties: {
+        id: {
+            type: 'string'
+        },
         token: {
             type: 'string'
         },
-        id: {
+        master_key: {
+            type: 'string'
+        },
+        salt: {
             type: 'string'
         }
     },
-    required: ['token', 'id']
+    required: ['id', 'token', 'master_key', 'salt']
 } as const;
 
 export const SignupResponseSchema = {
@@ -283,12 +289,9 @@ export const CategoryEditResponseSchema = {
     properties: {
         id: {
             type: 'string'
-        },
-        name: {
-            type: 'string'
         }
     },
-    required: ['id', 'name']
+    required: ['id']
 } as const;
 
 export const CategoryDeleteResponseSchema = {
@@ -350,7 +353,7 @@ export const TransactionsResponseSchema = {
             type: 'string'
         }
     },
-    required: ['transactions', 'cursor']
+    required: ['transactions']
 } as const;
 
 export const TransactionCreateResponseSchema = {
