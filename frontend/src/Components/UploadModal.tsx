@@ -13,6 +13,8 @@ import { useCallback, useState } from "react"
 import { parseNationwide } from "../CSV/nationwide"
 import { useQueryClient } from "@tanstack/react-query"
 import { parseTrading212 } from "../CSV/trading212"
+import { useAsyncMemo } from "../Hooks/useAsyncMemo"
+import { decryptAccount } from "../Security/data"
 
 type UploadModalProps = {
   show: boolean
@@ -22,9 +24,13 @@ type UploadModalProps = {
 export default function UploadModal(props: UploadModalProps) {
   const { show, onClose } = props
 
-  const { userId } = useUser()
+  const { userId, decrypt } = useUser()
   const queryClient = useQueryClient()
-  const { data: accounts } = useGetUserByIdAccounts({ path: { id: userId } })
+  const { data: encAccounts } = useGetUserByIdAccounts({ path: { id: userId } })
+  const accounts = useAsyncMemo(
+    async () => Promise.all(encAccounts?.map((acc) => decryptAccount(acc, decrypt)) ?? []),
+    [encAccounts, userId]
+  )
 
   const [accountId, setAccountId] = useState<string | undefined>(undefined)
   const [accountSearch, setAccountSearch] = useState<string | undefined>(undefined)

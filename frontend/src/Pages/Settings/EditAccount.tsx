@@ -20,6 +20,8 @@ import {
 import { useUser } from "../../Hooks/useUser"
 import { useQueryClient } from "@tanstack/react-query"
 import { parseISO } from "date-fns"
+import { useAsyncMemo } from "../../Hooks/useAsyncMemo"
+import { decryptAccount } from "../../Security/data"
 
 export default function EditAccount() {
   const location = useLocation()
@@ -29,9 +31,9 @@ export default function EditAccount() {
     () => /account\/(.+)\/edit/.exec(location.pathname)?.[1] ?? "",
     [location.pathname]
   )
-  const { userId } = useUser()
+  const { userId, decrypt, encrypt } = useUser()
   const queryClient = useQueryClient()
-  const { data: account } = useGetUserByIdAccountsByAccountId(
+  const { data: encAccount } = useGetUserByIdAccountsByAccountId(
     {
       path: { account_id: accountId, id: userId },
     },
@@ -40,6 +42,11 @@ export default function EditAccount() {
       enabled: !!userId && !!accountId,
     }
   )
+  const account = useAsyncMemo(
+    async () => decryptAccount(encAccount, decrypt),
+    [encAccount, decrypt]
+  )
+
   const { mutateAsync: editAccount } = usePatchUserByIdAccountsByAccountId()
 
   const [accountName, setAccountName] = useState("")
@@ -59,7 +66,7 @@ export default function EditAccount() {
     await editAccount({
       path: { account_id: accountId, id: userId },
       body: {
-        name: accountName,
+        name: await encrypt(accountName),
         opened_at: openedAt?.toISOString(),
         closed_at: closedAt?.toISOString(),
       },
@@ -78,6 +85,7 @@ export default function EditAccount() {
     editAccount,
     accountId,
     userId,
+    encrypt,
     accountName,
     openedAt,
     closedAt,

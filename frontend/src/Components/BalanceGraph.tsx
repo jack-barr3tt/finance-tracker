@@ -15,6 +15,8 @@ import { Line } from "react-chartjs-2"
 import { useGetUserByIdSummaryBalance } from "../API/queries"
 import { useUser } from "../Hooks/useUser"
 import { getBrightColors } from "../utils"
+import { decryptAccount } from "../Security/data"
+import { useAsyncMemo } from "../Hooks/useAsyncMemo"
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend)
 
@@ -23,12 +25,25 @@ type BalanceGraphProps = {
 }
 
 export default function BalanceGraph({ colorMap }: BalanceGraphProps) {
-  const { userId } = useUser()
-  const { data: balanceSummary } = useGetUserByIdSummaryBalance({
+  const { userId, decrypt } = useUser()
+  const { data: encBalanceSummary } = useGetUserByIdSummaryBalance({
     path: { id: userId },
     query: { group_by: "month" },
   })
 
+  const balanceSummary = useAsyncMemo(async () => {
+    if (!encBalanceSummary) return null
+    return {
+      ...encBalanceSummary,
+      accounts: await Promise.all(
+        encBalanceSummary.accounts.map(async (account) => ({
+          ...account,
+          account: await decryptAccount(account.account, decrypt),
+        }))
+      ),
+    }
+  }, [encBalanceSummary, decrypt])
+  
   const { borders: lineBorders, fills: lineFills } = useMemo(
     () => getBrightColors((balanceSummary?.accounts.length || 0) + 1),
     [balanceSummary?.accounts.length]

@@ -18,12 +18,13 @@ import SearchSelect from "../../Components/SearchSelect"
 import { useCallback, useState } from "react"
 import { useUser } from "../../Hooks/useUser"
 import { useQueryClient } from "@tanstack/react-query"
+import { AccountCreateRequest } from "../../API/requests"
 
 export default function NewAccount() {
   const location = useLocation()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
-  const { userId } = useUser()
+  const { userId, encrypt } = useUser()
 
   const { data: banks } = useGetBanks()
   const { mutateAsync: createAccount } = usePostUserByIdAccounts()
@@ -35,14 +36,46 @@ export default function NewAccount() {
 
   const handleSubmit = useCallback(async () => {
     if (!bankId) return
-    await createAccount({
-      path: { id: userId },
-      body: {
+
+    const bank = banks?.find((b) => b.id.toString() === bankId)
+    if (!bank) return
+
+    const accountsToCreate: AccountCreateRequest[] = []
+
+    if (bank.fixed_products) {
+      switch (bank.short_name) {
+        case "t212": {
+          accountsToCreate.push(
+            {
+              bank_id: bankId,
+              name: "Uninvested Cash",
+              opened_at: (openedAt ?? new Date()).toISOString(),
+            },
+            {
+              bank_id: bankId,
+              name: "Portfolio",
+              opened_at: (openedAt ?? new Date()).toISOString(),
+            }
+          )
+          break
+        }
+      }
+    } else {
+      accountsToCreate.push({
         bank_id: bankId,
         name: accountName,
         opened_at: (openedAt ?? new Date()).toISOString(),
-      },
-    })
+      })
+    }
+
+    await Promise.all(
+      accountsToCreate.map(async (account) =>
+        createAccount({
+          path: { id: userId },
+          body: { ...account, name: await encrypt(account.name) },
+        })
+      )
+    )
     queryClient.invalidateQueries({
       queryKey: UseGetUserByIdAccountsKeyFn({ path: { id: userId } }),
     })
@@ -51,7 +84,7 @@ export default function NewAccount() {
     setAccountName("")
     setOpenedAt(null)
     navigate("/settings")
-  }, [bankId, createAccount, userId, accountName, queryClient, navigate, openedAt])
+  }, [bankId, banks, queryClient, userId, navigate, openedAt, accountName, createAccount, encrypt])
 
   return (
     <Modal show={location.pathname.includes("settings/new-account")}>

@@ -25,7 +25,7 @@ import { useUser } from "../../Hooks/useUser"
 import SearchSelect from "../../Components/SearchSelect"
 import { useQueryClient } from "@tanstack/react-query"
 import { useAsyncMemo } from "../../Hooks/useAsyncMemo"
-import { decryptCategory } from "../../Security/data"
+import { decryptAccount, decryptCategory } from "../../Security/data"
 
 type EditTransactionRowProps = {
   transactionId?: string
@@ -37,7 +37,11 @@ export default function EditTransactionRow(props: EditTransactionRowProps) {
 
   const { userId, decrypt, encrypt } = useUser()
   const queryClient = useQueryClient()
-  const { data: accounts } = useGetUserByIdAccounts({ path: { id: userId } })
+  const { data: encAccounts } = useGetUserByIdAccounts({ path: { id: userId } })
+  const accounts = useAsyncMemo(
+    async () => Promise.all(encAccounts?.map((acc) => decryptAccount(acc, decrypt)) ?? []),
+    [decrypt, encAccounts]
+  )
   const { data: encCategories } = useGetUserByIdCategories({ path: { id: userId } })
   const categories = useAsyncMemo(
     async () => Promise.all(encCategories?.map((cat) => decryptCategory(cat, decrypt)) ?? []),

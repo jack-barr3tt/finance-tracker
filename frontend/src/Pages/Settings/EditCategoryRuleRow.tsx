@@ -13,7 +13,7 @@ import {
 import { useUser } from "../../Hooks/useUser"
 import { useQueryClient } from "@tanstack/react-query"
 import { useAsyncMemo } from "../../Hooks/useAsyncMemo"
-import { decryptCategory } from "../../Security/data"
+import { decryptAccount, decryptCategory } from "../../Security/data"
 
 type EditCategoryRuleRowProps = {
   categoryId: string
@@ -26,7 +26,11 @@ export default function EditCategoryRuleRow(props: EditCategoryRuleRowProps) {
 
   const { userId, encrypt, decrypt } = useUser()
   const queryClient = useQueryClient()
-  const { data: accounts } = useGetUserByIdAccounts({ path: { id: userId } })
+  const { data: encAccounts } = useGetUserByIdAccounts({ path: { id: userId } })
+  const accounts = useAsyncMemo(
+    async () => Promise.all(encAccounts?.map((acc) => decryptAccount(acc, decrypt)) ?? []),
+    [decrypt, encAccounts]
+  )
   const [accountSearch, setAccountSearch] = useState<string | undefined>(undefined)
   const [accountId, setAccountId] = useState<string | undefined>(undefined)
   const [rule, setRule] = useState<string>("")

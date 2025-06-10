@@ -114,7 +114,9 @@ func (s *Server) GetUserIdSummaryCategories(c *fiber.Ctx, userId string) error {
 	}
 
 	for rows.Next() {
-		category := Category{}
+		category := Category{
+			Rules: []CategoryRule{},
+		}
 		err = rows.Scan(&category.Id, &category.Name, &category.CreatedAt)
 		if err != nil {
 			return DBError(c, err)

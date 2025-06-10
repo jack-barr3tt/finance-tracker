@@ -9,13 +9,20 @@ import {
   UseGetUserByIdAccountsKeyFn,
 } from "../../API/queries"
 import { useUser } from "../../Hooks/useUser"
+import { useAsyncMemo } from "../../Hooks/useAsyncMemo"
+import { decryptAccount } from "../../Security/data"
 
 export default function ViewAccounts() {
-  const { userId } = useUser()
+  const { userId, decrypt } = useUser()
   const queryClient = useQueryClient()
-  const { data: accounts } = useGetUserByIdAccounts({ path: { id: userId } }, undefined, {
+  const { data: encAccounts } = useGetUserByIdAccounts({ path: { id: userId } }, undefined, {
     enabled: !!userId,
   })
+  const accounts = useAsyncMemo(
+    async () => Promise.all(encAccounts?.map((acc) => decryptAccount(acc, decrypt)) ?? []),
+    [encAccounts]
+  )
+
   const { mutateAsync: deleteAccount } = useDeleteUserByIdAccountsByAccountId()
 
   const navigate = useNavigate()

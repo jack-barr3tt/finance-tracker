@@ -14,55 +14,25 @@ func (s Server) PostUserIdAccounts(c *fiber.Ctx, userId string) error {
 		return c.SendStatus(fiber.StatusBadRequest)
 	}
 
-	tx, err := s.DB.Begin(c.Context())
-	if err != nil {
-		return DBError(c, err)
-	}
-
-	var shortName string
-	var fixed bool
-	err = tx.QueryRow(c.Context(), "SELECT short_name, fixed_products FROM bank WHERE id = $1", body.BankId).Scan(&shortName, &fixed)
-	if err != nil {
-		return DBError(c, err)
-	}
-
-	accountsToCreate := []string{}
-
-	if fixed {
-		switch shortName {
-		case "t212":
-			accountsToCreate = append(accountsToCreate, "Uninvested Cash", "Portfolio")
-		}
-
-	} else {
-		accountsToCreate = append(accountsToCreate, body.Name)
-	}
-
 	tokUserId := GetTokenClaim[string](c, "id")
 
 	if tokUserId != userId {
 		return c.SendStatus(fiber.StatusUnauthorized)
 	}
 
-	createdIds := []string{}
-
-	for _, name := range accountsToCreate {
-		var id string
-		err = tx.QueryRow(c.Context(), "INSERT INTO account (user_id, bank_id, name, opened_at) VALUES ($1, $2, $3, $4) RETURNING id", userId, body.BankId, name, body.OpenedAt).Scan(&id)
-		if err != nil {
-			return DBError(c, err)
-		}
-		createdIds = append(createdIds, id)
-	}
-
-	err = tx.Commit(c.Context())
+	var id string
+	err = s.DB.QueryRow(
+		c.Context(),
+		"INSERT INTO account (user_id, bank_id, name, opened_at) VALUES ($1, $2, $3, $4) RETURNING id",
+		userId, body.BankId, body.Name, body.OpenedAt,
+	).Scan(&id)
 	if err != nil {
 		return DBError(c, err)
 	}
 
 	return c.
 		Status(http.StatusOK).
-		JSON(AccountCreateResponse{Ids: createdIds})
+		JSON(AccountCreateResponse{Id: id})
 }
 
 func (s *Server) PatchUserIdAccountsAccountId(c *fiber.Ctx, id string, accountId string) error {

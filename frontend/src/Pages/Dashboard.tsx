@@ -37,15 +37,36 @@ import { format, parseISO } from "date-fns"
 import FilterButton from "../Components/FilterButton"
 import { getChartColors } from "../utils"
 import { useAsyncMemo } from "../Hooks/useAsyncMemo"
-import { decryptCategory, decryptTransaction } from "../Security/data"
+import { decryptAccount, decryptCategory, decryptTransaction } from "../Security/data"
 
 export default function Dashboard() {
   const { userId, decrypt } = useUser()
   const queryClient = useQueryClient()
-  const { data: accountSummaries } = useGetUserByIdSummaryAccounts({
+  const { data: encAccountSummaries } = useGetUserByIdSummaryAccounts({
     path: { id: userId },
   })
-  const { data: accounts } = useGetUserByIdAccounts({ path: { id: userId } })
+  const accountSummaries = useAsyncMemo(
+    async () =>
+      encAccountSummaries
+        ? Promise.all(
+            encAccountSummaries.map(async (acc) => ({
+              ...acc,
+              account: {
+                ...acc.account,
+                name: await decrypt(acc.account.name),
+              },
+            }))
+          )
+        : null,
+    [encAccountSummaries, decrypt]
+  )
+
+  const { data: encAccounts } = useGetUserByIdAccounts({ path: { id: userId } })
+  const accounts = useAsyncMemo(
+    async () => Promise.all(encAccounts?.map((acc) => decryptAccount(acc, decrypt)) ?? []),
+    [encAccounts, decrypt]
+  )
+
   const { data: encCategories } = useGetUserByIdCategories({ path: { id: userId } })
   const { mutateAsync: deleteTransaction } = useDeleteUserByIdTransactionsByTransactionId()
 
