@@ -35,7 +35,7 @@ type EditTransactionRowProps = {
 export default function EditTransactionRow(props: EditTransactionRowProps) {
   const { transactionId, cancelCallback } = props
 
-  const { userId, decrypt } = useUser()
+  const { userId, decrypt, encrypt } = useUser()
   const queryClient = useQueryClient()
   const { data: accounts } = useGetUserByIdAccounts({ path: { id: userId } })
   const { data: encCategories } = useGetUserByIdCategories({ path: { id: userId } })
@@ -82,7 +82,7 @@ export default function EditTransactionRow(props: EditTransactionRowProps) {
       body: {
         account_id: selectedAccount,
         category_id: selectedCategory,
-        description,
+        description: await encrypt(description),
         amount: parseFloat(amount),
         date: date.toISOString(),
       },
@@ -117,6 +117,7 @@ export default function EditTransactionRow(props: EditTransactionRowProps) {
     cancelCallback,
     date,
     description,
+    encrypt,
     queryClient,
     selectedAccount,
     selectedCategory,
@@ -129,7 +130,7 @@ export default function EditTransactionRow(props: EditTransactionRowProps) {
       body: {
         account_id: selectedAccount,
         category_id: selectedCategory,
-        description,
+        description: await encrypt(description),
         amount: parseFloat(amount),
         date: date.toISOString(),
       },
@@ -169,6 +170,7 @@ export default function EditTransactionRow(props: EditTransactionRowProps) {
     date,
     description,
     editTransaction,
+    encrypt,
     queryClient,
     selectedAccount,
     selectedCategory,

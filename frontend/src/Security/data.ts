@@ -37,6 +37,7 @@ export async function decryptTransaction<T extends Transaction | undefined>(
 
   return {
     ...transaction,
+    description: await decrypt(transaction.description),
     category: await decryptCategory(transaction.category, decrypt),
   }
 }
