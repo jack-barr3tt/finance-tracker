@@ -2,7 +2,7 @@ CREATE TABLE IF NOT EXISTS "user" (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   email VARCHAR(100) UNIQUE NOT NULL,
   password_hash VARCHAR(255) NOT NULL,
-  master_key VARCHAR(24) NOT NULL,
+  master_key VARCHAR(255) NOT NULL,
   salt VARCHAR(255) NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
