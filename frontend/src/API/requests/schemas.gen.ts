@@ -241,14 +241,11 @@ export const SignupResponseSchema = {
 export const AccountCreateResponseSchema = {
     type: 'object',
     properties: {
-        ids: {
-            type: 'array',
-            items: {
-                type: 'string'
-            }
+        id: {
+            type: 'string'
         }
     },
-    required: ['ids']
+    required: ['id']
 } as const;
 
 export const AccountEditResponseSchema = {

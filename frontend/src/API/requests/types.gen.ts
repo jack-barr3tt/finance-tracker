@@ -87,7 +87,7 @@ export type SignupResponse = {
 };
 
 export type AccountCreateResponse = {
-    ids: Array<(string)>;
+    id: string;
 };
 
 export type AccountEditResponse = {
