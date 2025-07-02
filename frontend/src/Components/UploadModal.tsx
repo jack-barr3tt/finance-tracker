@@ -24,7 +24,7 @@ type UploadModalProps = {
 export default function UploadModal(props: UploadModalProps) {
   const { show, onClose } = props
 
-  const { userId, decrypt } = useUser()
+  const { userId, decrypt, encrypt } = useUser()
   const queryClient = useQueryClient()
   const { data: encAccounts } = useGetUserByIdAccounts({ path: { id: userId } })
   const accounts = useAsyncMemo(
@@ -43,14 +43,14 @@ export default function UploadModal(props: UploadModalProps) {
 
     switch (account?.bank.short_name) {
       case "nationwide":
-        await parseNationwide(file, userId, accountId)
+        await parseNationwide(file, userId, accountId, encrypt)
         break
       case "t212": {
         const t212Accounts = accounts?.filter((account) => account.bank.short_name == "t212")
         const portfolioAccountId = t212Accounts?.find((a) => a.name === "Portfolio")?.id
         const uninvestedAccountId = t212Accounts?.find((a) => a.name === "Uninvested Cash")?.id
         if (!portfolioAccountId || !uninvestedAccountId) return
-        await parseTrading212(file, userId, portfolioAccountId, uninvestedAccountId)
+        await parseTrading212(file, userId, portfolioAccountId, uninvestedAccountId, encrypt)
         break
       }
       default:
@@ -70,7 +70,7 @@ export default function UploadModal(props: UploadModalProps) {
       queryKey: UseGetUserByIdSummaryBalanceKeyFn({ path: { id: userId } }),
     })
     onClose()
-  }, [accountId, accounts, file, onClose, queryClient, userId])
+  }, [accountId, accounts, encrypt, file, onClose, queryClient, userId])
 
   return (
     <Modal show={show}>

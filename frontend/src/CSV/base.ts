@@ -5,6 +5,7 @@ import {
   postUserByIdTransactionsBulkDelete,
   postUserByIdTransactionsBulkFinalise,
   TransactionBulkResponse,
+  TransactionCreateRequest,
 } from "../API/requests"
 
 async function hashFile(file: File): Promise<string> {
@@ -30,6 +31,7 @@ export function parseCSV<T>(
   file: File,
   userId: string,
   accountId: string,
+  encrypt: (text: string) => Promise<string>,
   handler: (data: T) => BaseTransactionData | BaseTransactionData[],
   config?: Partial<Papa.ParseLocalConfig<T, File>>
 ): Promise<boolean> {
@@ -62,35 +64,38 @@ export function parseCSV<T>(
 
         new Promise((resolve, reject) => {
           Papa.parse(file, {
-            chunk: (results: { data: T[] }) => {
-              console.log(results)
+            chunk: async (results: { data: T[] }) => {
+              console.log("chunk", results)
               requests.push(
-                postUserByIdTransactionsBulk({
-                  path: { id: userId },
-                  body: {
-                    hash,
-                    transactions: results.data
-                      .map((row) => {
-                        const data = handler(row)
-                        const list = Array.isArray(data) ? data : [data]
+                (async () =>
+                  postUserByIdTransactionsBulk({
+                    path: { id: userId },
+                    body: {
+                      hash,
+                      transactions: (await Promise.all(
+                        results.data
+                          .map((row) => {
+                            const data = handler(row)
+                            const list = Array.isArray(data) ? data : [data]
 
-                        return list.map((data) => {
-                          const { description, category_id } = applyRule(
-                            data.description,
-                            data.account_id || accountId
-                          )
-                          return {
-                            date: data.date.toISOString(),
-                            amount: data.amount,
-                            account_id: data.account_id || accountId,
-                            description,
-                            category_id,
-                          }
-                        })
-                      })
-                      .flat(),
-                  },
-                })
+                            return list.map(async (data) => {
+                              const { description, category_id } = applyRule(
+                                data.description,
+                                data.account_id || accountId
+                              )
+                              return {
+                                date: data.date.toISOString(),
+                                amount: data.amount,
+                                account_id: data.account_id || accountId,
+                                description: await encrypt(description),
+                                category_id,
+                              }
+                            })
+                          })
+                          .flat()
+                      )) as TransactionCreateRequest[],
+                    },
+                  }))()
               )
             },
             complete: resolve,
@@ -100,6 +105,11 @@ export function parseCSV<T>(
         }).then(() => {
           Promise.allSettled(requests).then((results) => {
             console.log(results)
+
+            if (results.length === 0) {
+              reject(new Error("No transactions to process"))
+              return
+            }
 
             if (
               results.some((result) => result.status === "rejected") ||
