@@ -43,14 +43,21 @@ export default function UploadModal(props: UploadModalProps) {
 
     switch (account?.bank.short_name) {
       case "nationwide":
-        await parseNationwide(file, userId, accountId, encrypt)
+        await parseNationwide(file, userId, accountId, encrypt, decrypt)
         break
       case "t212": {
         const t212Accounts = accounts?.filter((account) => account.bank.short_name == "t212")
         const portfolioAccountId = t212Accounts?.find((a) => a.name === "Portfolio")?.id
         const uninvestedAccountId = t212Accounts?.find((a) => a.name === "Uninvested Cash")?.id
         if (!portfolioAccountId || !uninvestedAccountId) return
-        await parseTrading212(file, userId, portfolioAccountId, uninvestedAccountId, encrypt)
+        await parseTrading212(
+          file,
+          userId,
+          portfolioAccountId,
+          uninvestedAccountId,
+          encrypt,
+          decrypt
+        )
         break
       }
       default:
@@ -70,7 +77,7 @@ export default function UploadModal(props: UploadModalProps) {
       queryKey: UseGetUserByIdSummaryBalanceKeyFn({ path: { id: userId } }),
     })
     onClose()
-  }, [accountId, accounts, encrypt, file, onClose, queryClient, userId])
+  }, [accountId, accounts, decrypt, encrypt, file, onClose, queryClient, userId])
 
   return (
     <Modal show={show}>

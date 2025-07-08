@@ -34,13 +34,15 @@ export async function parseTrading212(
   userId: string,
   portfolioAccountId: string,
   uninvestedAccountId: string,
-  encrypt: (text: string) => Promise<string>
+  encrypt: (text: string) => Promise<string>,
+  decrypt: (text: string) => Promise<string>
 ): Promise<boolean> {
   return parseCSV<Trading212Row>(
     file,
     userId,
     "do-not-use",
     encrypt,
+    decrypt,
     (data) => {
       const parseDate = (dateString: string) =>
         parse(

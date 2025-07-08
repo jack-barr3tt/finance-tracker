@@ -12,7 +12,8 @@ export async function parseNationwide(
   file: File,
   userId: string,
   accountId: string,
-  encrypt: (text: string) => Promise<string>
+  encrypt: (text: string) => Promise<string>,
+  decrypt: (text: string) => Promise<string>
 ): Promise<boolean> {
   const getAmount = (str: string): number => {
     const match = str.match(/[\d.,]+/)
@@ -24,6 +25,7 @@ export async function parseNationwide(
     userId,
     accountId,
     encrypt,
+    decrypt,
     (data) => ({
       date: parse(data.Date, "dd MMM yyyy", startOfDay(new Date())),
       amount: getAmount(data["Paid in"]) - getAmount(data["Paid out"]),
