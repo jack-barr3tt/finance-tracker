@@ -272,8 +272,8 @@ export default function Dashboard() {
                     <TableCell>
                       <Badge
                         style={{
-                          backgroundColor: accountColorMap[transaction.account.id].fill,
-                          color: accountColorMap[transaction.account.id].text,
+                          backgroundColor: accountColorMap[transaction.account.id]?.fill,
+                          color: accountColorMap[transaction.account.id]?.text,
                         }}
                         className="-mx-2 w-fit"
                       >
@@ -284,8 +284,8 @@ export default function Dashboard() {
                       <Badge
                         style={{
                           backgroundColor:
-                            categoryColorMap[transaction.category?.id || "uncategorised"].fill,
-                          color: categoryColorMap[transaction.category?.id || "uncategorised"].text,
+                            categoryColorMap[transaction.category?.id || "uncategorised"]?.fill,
+                          color: categoryColorMap[transaction.category?.id || "uncategorised"]?.text,
                         }}
                         className="-mx-2 w-fit"
                       >
