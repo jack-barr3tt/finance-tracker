@@ -70,14 +70,16 @@ export default function EditTransactionRow(props: EditTransactionRowProps) {
   const [selectedCategory, setSelectedCategory] = useState<string | undefined>(undefined)
 
   useEffect(() => {
-    if (transaction) {
-      setDate(new Date(transaction.date))
-      setDescription(transaction.description || "")
-      setAmount(transaction.amount.toString())
-      setSelectedAccount(transaction.account.id)
-      setSelectedCategory(transaction.category?.id)
-    }
-  }, [transaction])
+    ;(async () => {
+      if (transaction) {
+        setDate(new Date(transaction.date))
+        setDescription(await decrypt(transaction.description || ""))
+        setAmount(transaction.amount.toString())
+        setSelectedAccount(transaction.account.id)
+        setSelectedCategory(transaction.category?.id)
+      }
+    })()
+  }, [decrypt, transaction])
 
   const handleAdd = useCallback(async () => {
     if (!date || !selectedAccount || !selectedCategory || !amount) return
