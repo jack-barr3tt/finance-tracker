@@ -52,5 +52,20 @@ CREATE TABLE IF NOT EXISTS "transaction" (
   description TEXT,
   date TIMESTAMP NOT NULL,
   file_id UUID REFERENCES "file"(id) ON DELETE CASCADE,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  txn_hash TEXT UNIQUE NOT NULL
 );
+CREATE OR REPLACE FUNCTION update_txn_hash() RETURNS TRIGGER AS $$ BEGIN NEW.txn_hash := encode(
+    digest(
+      NEW.account_id::text || NEW.amount::text || NEW.description || NEW.date::text,
+      'sha256'
+    ),
+    'hex'
+  );
+RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+CREATE TRIGGER trg_update_txn_hash BEFORE
+INSERT
+  OR
+UPDATE ON transaction FOR EACH ROW EXECUTE FUNCTION update_txn_hash();
