@@ -688,9 +688,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/AccountSummary"
+                $ref: "#/components/schemas/AllAccountSummary"
   /user/{id}/summary/categories:
     parameters:
       - name: id
@@ -1159,6 +1157,18 @@ components:
         - description
         - date
         - created_at
+    AllAccountSummary:
+      type: object
+      properties:
+        accounts:
+          type: array
+          items:
+            $ref: "#/components/schemas/AccountSummary"
+        total:
+          type: number
+      required:
+        - accounts
+        - total
     AccountSummary:
       type: object
       properties:

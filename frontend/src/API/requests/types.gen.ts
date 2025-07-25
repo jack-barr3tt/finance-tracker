@@ -202,6 +202,11 @@ export type Transaction = {
     created_at: string;
 };
 
+export type AllAccountSummary = {
+    accounts: Array<AccountSummary>;
+    total: number;
+};
+
 export type AccountSummary = {
     account: Account;
     balance: number;
@@ -507,7 +512,7 @@ export type GetUserByIdSummaryAccountsData = {
     };
 };
 
-export type GetUserByIdSummaryAccountsResponse = (Array<AccountSummary>);
+export type GetUserByIdSummaryAccountsResponse = (AllAccountSummary);
 
 export type GetUserByIdSummaryAccountsError = unknown;
 

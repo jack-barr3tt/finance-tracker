@@ -554,6 +554,22 @@ export const TransactionSchema = {
     required: ['id', 'amount', 'account', 'description', 'date', 'created_at']
 } as const;
 
+export const AllAccountSummarySchema = {
+    type: 'object',
+    properties: {
+        accounts: {
+            type: 'array',
+            items: {
+                '$ref': '#/components/schemas/AccountSummary'
+            }
+        },
+        total: {
+            type: 'number'
+        }
+    },
+    required: ['accounts', 'total']
+} as const;
+
 export const AccountSummarySchema = {
     type: 'object',
     properties: {

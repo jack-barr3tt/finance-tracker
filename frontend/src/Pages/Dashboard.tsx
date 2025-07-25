@@ -49,7 +49,7 @@ export default function Dashboard() {
     async () =>
       encAccountSummaries
         ? Promise.all(
-            encAccountSummaries.map(async (acc) => ({
+            encAccountSummaries.accounts.map(async (acc) => ({
               ...acc,
               account: {
                 ...acc.account,
@@ -71,7 +71,10 @@ export default function Dashboard() {
   const { mutateAsync: deleteTransaction } = useDeleteUserByIdTransactionsByTransactionId()
 
   const categories = useAsyncMemo(
-    async () => Promise.all(encCategories?.map((cat) => decryptCategory(cat, decrypt)) ?? []),
+    async () =>
+      (await Promise.all(encCategories?.map((cat) => decryptCategory(cat, decrypt)) ?? [])).sort(
+        (a, b) => a.name.localeCompare(b.name)
+      ),
     [encCategories, decrypt]
   )
 
@@ -170,6 +173,20 @@ export default function Dashboard() {
           </div>
         </>
       )}
+
+      <div className="flex flex-row items-center justify-start">
+        <Card>
+          <div className="flex flex-row items-center gap-4 text-2xl md:text-3xl">
+            <h1 className="font-medium">Total:</h1>
+            <p>
+              {encAccountSummaries?.total.toLocaleString("en-GB", {
+                style: "currency",
+                currency: "GBP",
+              })}
+            </p>
+          </div>
+        </Card>
+      </div>
 
       <HR />
 
@@ -285,7 +302,8 @@ export default function Dashboard() {
                         style={{
                           backgroundColor:
                             categoryColorMap[transaction.category?.id || "uncategorised"]?.fill,
-                          color: categoryColorMap[transaction.category?.id || "uncategorised"]?.text,
+                          color:
+                            categoryColorMap[transaction.category?.id || "uncategorised"]?.text,
                         }}
                         className="-mx-2 w-fit"
                       >

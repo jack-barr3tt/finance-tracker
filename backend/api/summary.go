@@ -73,14 +73,23 @@ func (s *Server) GetUserIdSummaryAccounts(c *fiber.Ctx, userId string) error {
 		}
 	}
 
-	result := []AccountSummary{}
+	accountSummaries := []AccountSummary{}
 	for _, account := range accounts {
-		result = append(result, account)
+		accountSummaries = append(accountSummaries, account)
 	}
 
-	sort.Slice(result, func(i, j int) bool {
-		return result[i].Account.Name < result[j].Account.Name
+	sort.Slice(accountSummaries, func(i, j int) bool {
+		return accountSummaries[i].Account.Name < accountSummaries[j].Account.Name
 	})
+
+	result := AllAccountSummary{
+		Accounts: accountSummaries,
+		Total:    0,
+	}
+
+	for _, account := range accountSummaries {
+		result.Total += account.Balance
+	}
 
 	return c.JSON(result)
 }
