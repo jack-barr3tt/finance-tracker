@@ -38,7 +38,9 @@ export default function CategoryPie({ colorMap }: CategoryPieProps) {
                   : undefined,
               }))
             )
-          ).sort((a, b) => a.category?.name.localeCompare(b.category?.name || "") || 0)
+          ).sort((a, b) =>
+            (a.category?.name || "Uncategorised").localeCompare(b.category?.name || "Uncategorised")
+          )
         : null,
     [encCategorySummaries]
   )
