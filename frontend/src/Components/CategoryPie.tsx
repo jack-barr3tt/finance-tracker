@@ -26,17 +26,19 @@ export default function CategoryPie({ colorMap }: CategoryPieProps) {
   const categorySummaries = useAsyncMemo(
     async (): Promise<CategorySummary[] | null> =>
       encCategorySummaries
-        ? Promise.all(
-            encCategorySummaries?.map(async (cat) => ({
-              ...cat,
-              category: cat.category
-                ? {
-                    ...cat.category,
-                    name: await decrypt(cat.category.name),
-                  }
-                : undefined,
-            }))
-          )
+        ? (
+            await Promise.all(
+              encCategorySummaries?.map(async (cat) => ({
+                ...cat,
+                category: cat.category
+                  ? {
+                      ...cat.category,
+                      name: await decrypt(cat.category.name),
+                    }
+                  : undefined,
+              }))
+            )
+          ).sort((a, b) => a.category?.name.localeCompare(b.category?.name || "") || 0)
         : null,
     [encCategorySummaries]
   )
