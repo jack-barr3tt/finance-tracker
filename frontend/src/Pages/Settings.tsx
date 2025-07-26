@@ -5,6 +5,7 @@ import ViewCategories from "./Settings/ViewCategories"
 import NewCategory from "./Settings/NewCategory"
 import EditCategories from "./Settings/EditCategories"
 import EditAccount from "./Settings/EditAccount"
+import ApplyRules from "../Components/ApplyRules"
 
 export default function Settings() {
   return (
@@ -21,7 +22,10 @@ export default function Settings() {
       <h3 className="text-xl font-medium">Accounts</h3>
       <ViewAccounts />
 
-      <h3 className="mt-4 text-xl font-medium md:mt-0">Categories</h3>
+      <div className="flex items-center gap-4">
+        <h3 className="mt-4 text-xl font-medium md:mt-0">Categories</h3>
+        <ApplyRules />
+      </div>
       <ViewCategories />
     </div>
   )
