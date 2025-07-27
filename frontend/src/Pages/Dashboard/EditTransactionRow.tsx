@@ -131,7 +131,7 @@ export default function EditTransactionRow(props: EditTransactionRowProps) {
   ])
 
   const handleEdit = useCallback(async () => {
-    if (!transactionId || !date || !selectedAccount || !selectedCategory || !amount) return
+    if (!transactionId || !date || !selectedAccount || !amount) return
     await editTransaction({
       body: {
         account_id: selectedAccount,
