@@ -39,12 +39,18 @@ export default function EditTransactionRow(props: EditTransactionRowProps) {
   const queryClient = useQueryClient()
   const { data: encAccounts } = useGetUserByIdAccounts({ path: { id: userId } })
   const accounts = useAsyncMemo(
-    async () => Promise.all(encAccounts?.map((acc) => decryptAccount(acc, decrypt)) ?? []),
+    async () =>
+      (await Promise.all(encAccounts?.map((acc) => decryptAccount(acc, decrypt)) ?? [])).sort(
+        (a, b) => a.name.localeCompare(b.name)
+      ),
     [decrypt, encAccounts]
   )
   const { data: encCategories } = useGetUserByIdCategories({ path: { id: userId } })
   const categories = useAsyncMemo(
-    async () => Promise.all(encCategories?.map((cat) => decryptCategory(cat, decrypt)) ?? []),
+    async () =>
+      (await Promise.all(encCategories?.map((cat) => decryptCategory(cat, decrypt)) ?? [])).sort(
+        (a, b) => a.name.localeCompare(b.name)
+      ),
     [decrypt, encCategories]
   )
 

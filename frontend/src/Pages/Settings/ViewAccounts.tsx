@@ -19,7 +19,10 @@ export default function ViewAccounts() {
     enabled: !!userId,
   })
   const accounts = useAsyncMemo(
-    async () => Promise.all(encAccounts?.map((acc) => decryptAccount(acc, decrypt)) ?? []),
+    async () =>
+      (await Promise.all(encAccounts?.map((acc) => decryptAccount(acc, decrypt)) ?? [])).sort(
+        (a, b) => a.name.localeCompare(b.name)
+      ),
     [encAccounts]
   )
 

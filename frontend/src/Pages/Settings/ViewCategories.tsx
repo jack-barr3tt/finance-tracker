@@ -24,7 +24,10 @@ export default function ViewCategories() {
   )
 
   const categories = useAsyncMemo(
-    async () => Promise.all(encryptedCategories?.map((cat) => decryptCategory(cat, decrypt)) ?? []),
+    async () =>
+      (
+        await Promise.all(encryptedCategories?.map((cat) => decryptCategory(cat, decrypt)) ?? [])
+      ).sort((a, b) => a.name.localeCompare(b.name)),
     [decrypt, encryptedCategories]
   )
 
