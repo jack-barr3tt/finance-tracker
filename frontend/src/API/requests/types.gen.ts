@@ -235,6 +235,8 @@ export type BalanceDatapoint = {
 
 export type SummaryGroupBy = 'day' | 'week' | 'month';
 
+export type TimePeriod = 'week' | 'month' | 'year' | 'ytd' | 'all';
+
 export type PostLoginData = {
     body?: LoginRequest;
 };
@@ -340,6 +342,7 @@ export type GetUserByIdTransactionsData = {
         category_id?: string;
         cursor?: string;
         limit?: number;
+        period?: TimePeriod;
     };
 };
 
@@ -520,6 +523,9 @@ export type GetUserByIdSummaryCategoriesData = {
     path: {
         id: string;
     };
+    query?: {
+        period?: TimePeriod;
+    };
 };
 
 export type GetUserByIdSummaryCategoriesResponse = (Array<CategorySummary>);
@@ -531,7 +537,8 @@ export type GetUserByIdSummaryBalanceData = {
         id: string;
     };
     query?: {
-        group_by?: SummaryGroupBy;
+        group_by?: TimePeriod;
+        period?: TimePeriod;
     };
 };
 

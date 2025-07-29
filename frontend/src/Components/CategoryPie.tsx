@@ -8,16 +8,14 @@ import { getBrightColors } from "../utils"
 import { useUser } from "../Hooks/useUser"
 import { useAsyncMemo } from "../Hooks/useAsyncMemo"
 import { CategorySummary } from "../API/requests"
+import { useDashboard } from "../Hooks/useDashboard"
 ChartJS.register(ArcElement, Tooltip, Legend)
 
-type CategoryPieProps = {
-  colorMap?: Record<string, { border: string; fill: string }>
-}
-
-export default function CategoryPie({ colorMap }: CategoryPieProps) {
+export default function CategoryPie() {
   const { userId, decrypt } = useUser()
+  const { dataPeriod, categoryColorMap: colorMap } = useDashboard()
   const { data: encCategorySummaries } = useGetUserByIdSummaryCategories(
-    { path: { id: userId } },
+    { path: { id: userId }, query: { period: dataPeriod } },
     undefined,
     {
       enabled: !!userId,

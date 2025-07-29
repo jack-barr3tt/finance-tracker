@@ -653,3 +653,9 @@ export const SummaryGroupBySchema = {
     enum: ['day', 'week', 'month'],
     default: 'day'
 } as const;
+
+export const TimePeriodSchema = {
+    type: 'string',
+    enum: ['week', 'month', 'year', 'ytd', 'all'],
+    default: 'year'
+} as const;

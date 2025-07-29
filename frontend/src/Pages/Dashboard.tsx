@@ -1,21 +1,19 @@
 import {
   Badge,
   Button,
-  Card,
   HR,
+  TabItem,
   Table,
   TableCell,
   TableHead,
   TableHeadCell,
   TableRow,
+  Tabs,
   Tooltip,
 } from "flowbite-react"
 import { useUser } from "../Hooks/useUser"
 import {
   useDeleteUserByIdTransactionsByTransactionId,
-  useGetUserByIdAccounts,
-  useGetUserByIdCategories,
-  useGetUserByIdSummaryAccounts,
   UseGetUserByIdSummaryAccountsKeyFn,
   UseGetUserByIdSummaryBalanceKeyFn,
   UseGetUserByIdSummaryCategoriesKeyFn,
@@ -25,7 +23,7 @@ import {
 import { FiEdit, FiPlus, FiTrash, FiUpload } from "react-icons/fi"
 import EditTransactionRow from "./Dashboard/EditTransactionRow"
 import TableBodyWithButton from "../Components/TableBodyWithButton"
-import { useCallback, useMemo, useState } from "react"
+import { useCallback, useState } from "react"
 import { useQueryClient } from "@tanstack/react-query"
 
 import BalanceGraph from "../Components/BalanceGraph"
@@ -35,60 +33,21 @@ import { useGetUserByIdTransactionsInfinite } from "../API/queries/infiniteQueri
 import { InView } from "react-intersection-observer"
 import { format, parseISO } from "date-fns"
 import FilterButton from "../Components/FilterButton"
-import { getChartColors } from "../utils"
 import { useAsyncMemo } from "../Hooks/useAsyncMemo"
-import { decryptAccount, decryptCategory, decryptTransaction } from "../Security/data"
+import { decryptTransaction } from "../Security/data"
+import AccountSummaries from "../Components/AccountSummaries"
+import { TimePeriodSchema } from "../API/requests"
+import { useDashboard } from "../Hooks/useDashboard"
 
 export default function Dashboard() {
   const { userId, decrypt } = useUser()
+  const { setDataPeriod, accounts, categories, accountColorMap, categoryColorMap } = useDashboard()
   const queryClient = useQueryClient()
-  const { data: encAccountSummaries } = useGetUserByIdSummaryAccounts({
-    path: { id: userId },
-  })
-  const accountSummaries = useAsyncMemo(
-    async () =>
-      encAccountSummaries
-        ? Promise.all(
-            encAccountSummaries.accounts.map(async (acc) => ({
-              ...acc,
-              account: {
-                ...acc.account,
-                name: await decrypt(acc.account.name),
-              },
-            }))
-          )
-        : null,
-    [encAccountSummaries, decrypt]
-  )
 
-  const { data: encAccounts } = useGetUserByIdAccounts({ path: { id: userId } })
-  const accounts = useAsyncMemo(
-    async () => Promise.all(encAccounts?.map((acc) => decryptAccount(acc, decrypt)) ?? []),
-    [encAccounts, decrypt]
-  )
-
-  const { data: encCategories } = useGetUserByIdCategories({ path: { id: userId } })
   const { mutateAsync: deleteTransaction } = useDeleteUserByIdTransactionsByTransactionId()
-
-  const categories = useAsyncMemo(
-    async () =>
-      (await Promise.all(encCategories?.map((cat) => decryptCategory(cat, decrypt)) ?? [])).sort(
-        (a, b) => a.name.localeCompare(b.name)
-      ),
-    [encCategories, decrypt]
-  )
 
   const [accountFilterId, setAccountFilterId] = useState<string | undefined>(undefined)
   const [categoryFilterId, setCategoryFilterId] = useState<string | undefined>(undefined)
-
-  const accountColorMap = useMemo(
-    () => getChartColors(accounts ? ["total", ...accounts.map((acc) => acc.id)] : []),
-    [accounts]
-  )
-  const categoryColorMap = useMemo(
-    () => getChartColors(categories ? ["uncategorised", ...categories.map((cat) => cat.id)] : []),
-    [categories]
-  )
 
   const {
     data: encTransactions,
@@ -150,49 +109,21 @@ export default function Dashboard() {
     <div className="flex flex-col gap-2 px-8 pb-8 md:gap-4 md:pb-16 md:px-16">
       <UploadModal show={showUpload} onClose={() => setShowUpload(false)} />
 
-      <h2 className="text-2xl font-medium">Accounts</h2>
-      {accountSummaries?.length === 0 ? (
-        <p className="text-gray-500">No accounts found</p>
-      ) : (
-        <>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:flex 2xl:flex-wrap">
-            {accountSummaries?.map((account) => (
-              <Card>
-                <div className="grid grid-cols-2 gap-2 -m-2 auto-cols-auto md:m-0">
-                  <h1 className="order-3 font-medium md:order-1">{account.account.name}</h1>
-                  <h2 className="font-light">{account.account.bank.name}</h2>
-                  <p className="order-first col-span-1 row-span-2 text-3xl md:text-4xl md:order-3 md:col-span-2 md:row-span-1">
-                    {account.balance.toLocaleString("en-GB", {
-                      style: "currency",
-                      currency: "GBP",
-                    })}
-                  </p>
-                </div>
-              </Card>
-            ))}
-          </div>
-        </>
-      )}
-
-      <div className="flex flex-row items-center justify-start">
-        <Card>
-          <div className="flex flex-row items-center gap-4 text-2xl md:text-3xl">
-            <h1 className="font-medium">Total:</h1>
-            <p>
-              {encAccountSummaries?.total.toLocaleString("en-GB", {
-                style: "currency",
-                currency: "GBP",
-              })}
-            </p>
-          </div>
-        </Card>
-      </div>
+      <AccountSummaries />
 
       <HR />
 
+      <Tabs variant="pills" onActiveTabChange={(tab) => setDataPeriod(TimePeriodSchema.enum[tab])}>
+        <TabItem title="Week" />
+        <TabItem title="Month" />
+        <TabItem title="Year" />
+        <TabItem title="YTD" active />
+        <TabItem title="All" />
+      </Tabs>
+
       <div className="grid grid-cols-1 gap-8 md:grid-cols-2 *:w-full md:gap-4">
-        <CategoryPie colorMap={categoryColorMap} />
-        <BalanceGraph colorMap={accountColorMap} />
+        <CategoryPie />
+        <BalanceGraph />
       </div>
 
       <HR />

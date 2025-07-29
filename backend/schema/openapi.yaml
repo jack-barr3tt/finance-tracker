@@ -265,6 +265,11 @@ paths:
           required: false
           schema:
             type: string
+        - name: period
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/TimePeriod"
         - name: cursor
           in: query
           required: false
@@ -696,6 +701,11 @@ paths:
         required: true
         schema:
           type: string
+      - name: period
+        in: query
+        required: false
+        schema:
+          $ref: "#/components/schemas/TimePeriod"
     get:
       security:
         - BearerAuth: []
@@ -719,7 +729,12 @@ paths:
         in: query
         required: false
         schema:
-          $ref: "#/components/schemas/SummaryGroupBy"
+          $ref: "#/components/schemas/TimePeriod"
+      - name: period
+        in: query
+        required: false
+        schema:
+          $ref: "#/components/schemas/TimePeriod"
     get:
       security:
         - BearerAuth: []
@@ -1236,3 +1251,12 @@ components:
         - week
         - month
       default: day
+    TimePeriod:
+      type: string
+      enum:
+        - week
+        - month
+        - year
+        - ytd
+        - all
+      default: year

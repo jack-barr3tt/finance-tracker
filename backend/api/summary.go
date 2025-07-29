@@ -1,7 +1,9 @@
 package api
 
 import (
+	"fmt"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -94,7 +96,7 @@ func (s *Server) GetUserIdSummaryAccounts(c *fiber.Ctx, userId string) error {
 	return c.JSON(result)
 }
 
-func (s *Server) GetUserIdSummaryCategories(c *fiber.Ctx, userId string) error {
+func (s *Server) GetUserIdSummaryCategories(c *fiber.Ctx, userId string, params GetUserIdSummaryCategoriesParams) error {
 	tokUserId := GetTokenClaim[string](c, "id")
 
 	if tokUserId != userId {
@@ -137,13 +139,38 @@ func (s *Server) GetUserIdSummaryCategories(c *fiber.Ctx, userId string) error {
 		}
 	}
 
+	conditions := []string{"a.user_id = $1"}
+	args := []interface{}{userId}
+
+	if params.Period != nil {
+		switch *params.Period {
+		case Ytd:
+			conditions = append(conditions, "t.date >= $2")
+			args = append(args, time.Date(time.Now().Year(), 1, 1, 0, 0, 0, 0, time.Now().Location()))
+		case Year:
+			conditions = append(conditions, "t.date >= $2")
+			args = append(args, time.Now().AddDate(-1, 0, 0))
+		case Month:
+			conditions = append(conditions, "t.date >= $2")
+			args = append(args, time.Now().AddDate(0, -1, 0))
+		case Week:
+			conditions = append(conditions, "t.date >= $2")
+			args = append(args, time.Now().AddDate(0, 0, -7))
+		}
+	}
+
+	whereClause := strings.Join(conditions, " AND ")
+
 	var totalCount int
 	err = s.DB.QueryRow(
 		c.Context(),
-		`SELECT COUNT(*) FROM transaction t
-		LEFT JOIN account a ON t.account_id = a.id
-		WHERE a.user_id = $1`,
-		userId,
+		fmt.Sprintf(
+			`SELECT COUNT(*) FROM transaction t
+			LEFT JOIN account a ON t.account_id = a.id
+			WHERE %[1]s`,
+			whereClause,
+		),
+		args...,
 	).Scan(&totalCount)
 	if err != nil {
 		return DBError(c, err)
@@ -151,16 +178,19 @@ func (s *Server) GetUserIdSummaryCategories(c *fiber.Ctx, userId string) error {
 
 	rows, err = s.DB.Query(
 		c.Context(),
-		`SELECT
-			t.category_id,
-			SUM(t.amount) AS total_amount,
-			COUNT(t.id) AS count
-		FROM transaction t
-		LEFT JOIN category c ON t.category_id = c.id
-		LEFT JOIN account a ON t.account_id = a.id
-		WHERE a.user_id = $1
-		GROUP BY t.category_id`,
-		userId,
+		fmt.Sprintf(
+			`SELECT
+				t.category_id,
+				SUM(t.amount) AS total_amount,
+				COUNT(t.id) AS count
+			FROM transaction t
+			LEFT JOIN category c ON t.category_id = c.id
+			LEFT JOIN account a ON t.account_id = a.id
+			WHERE %[1]s
+			GROUP BY t.category_id`,
+			whereClause,
+		),
+		args...,
 	)
 	if err != nil {
 		return DBError(c, err)
@@ -276,6 +306,7 @@ func (s *Server) GetUserIdSummaryBalance(c *fiber.Ctx, userId string, params Get
 
 	startDate := transactions[0].Date.AddDate(0, 0, -1)
 
+	yearStep := 0
 	monthStep := 0
 	dayStep := 1
 	if params.GroupBy != nil {
@@ -286,12 +317,32 @@ func (s *Server) GetUserIdSummaryBalance(c *fiber.Ctx, userId string, params Get
 			dayStep = 0
 
 			startDate = time.Date(startDate.Year(), startDate.Month(), 1, 0, 0, 0, 0, startDate.Location())
+		} else if *params.GroupBy == Year || *params.GroupBy == Ytd {
+			yearStep = 1
+			dayStep = 0
+
+			startDate = time.Date(startDate.Year(), 1, 1, 0, 0, 0, 0, startDate.Location())
+		}
+	}
+
+	skipTo := startDate
+
+	if params.Period != nil {
+		switch *params.Period {
+		case Ytd:
+			skipTo = time.Date(time.Now().Year(), 1, 1, 0, 0, 0, 0, time.Now().Location())
+		case Year:
+			skipTo = time.Now().AddDate(-1, 0, 0)
+		case Month:
+			skipTo = time.Now().AddDate(0, -1, 0)
+		case Week:
+			skipTo = time.Now().AddDate(0, 0, -7)
 		}
 	}
 
 	grandTotals := []BalanceDatapoint{
 		{
-			Date:    startDate,
+			Date:    skipTo,
 			Balance: 0,
 		},
 	}
@@ -299,19 +350,38 @@ func (s *Server) GetUserIdSummaryBalance(c *fiber.Ctx, userId string, params Get
 	for _, accountId := range accountIds {
 		totals[accountId] = []BalanceDatapoint{
 			{
-				Date:    startDate,
+				Date:    skipTo,
 				Balance: 0,
 			},
 		}
 	}
 
 	if params.GroupBy == nil || *params.GroupBy != Month {
-		startDate = startDate.AddDate(0, 0, 1)
+		skipTo = skipTo.AddDate(0, 0, 1)
 	}
 
 	tIdx := 0
 
-	for currentDate := startDate; currentDate.Before(time.Now()); currentDate = currentDate.AddDate(0, monthStep, dayStep) {
+	// initialize account totals using the skipTo date
+	dayTotals := map[string]float32{}
+	for _, accountId := range accountIds {
+		dayTotals[accountId] = 0
+	}
+	for tIdx < len(transactions) && transactions[tIdx].Date.Before(skipTo) {
+		t := transactions[tIdx]
+		if _, ok := dayTotals[t.AccountId]; ok {
+			dayTotals[t.AccountId] += t.Amount
+		}
+		totals[t.AccountId][0].Balance += t.Amount
+		grandTotals[0].Balance += t.Amount
+		tIdx++
+	}
+	for accountId, amount := range dayTotals {
+		totals[accountId][0].Balance += amount
+	}
+
+	// now collect the actual data points based on the grouping
+	for currentDate := skipTo.AddDate(yearStep, monthStep, dayStep); currentDate.Before(time.Now()); currentDate = currentDate.AddDate(yearStep, monthStep, dayStep) {
 		dayTotals := map[string]float32{}
 		for _, accountId := range accountIds {
 			dayTotals[accountId] = 0
@@ -351,10 +421,6 @@ func (s *Server) GetUserIdSummaryBalance(c *fiber.Ctx, userId string, params Get
 			Balance: accountTotals,
 		})
 	}
-
-	sort.Slice(result.Accounts, func(i, j int) bool {
-		return result.Accounts[i].Account.Name < result.Accounts[j].Account.Name
-	})
 
 	return c.JSON(result)
 }

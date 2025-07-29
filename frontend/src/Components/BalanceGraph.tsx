@@ -17,18 +17,16 @@ import { useUser } from "../Hooks/useUser"
 import { getBrightColors } from "../utils"
 import { decryptAccount } from "../Security/data"
 import { useAsyncMemo } from "../Hooks/useAsyncMemo"
+import { useDashboard } from "../Hooks/useDashboard"
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend)
 
-type BalanceGraphProps = {
-  colorMap?: Record<string, { border: string; fill: string }>
-}
-
-export default function BalanceGraph({ colorMap }: BalanceGraphProps) {
+export default function BalanceGraph() {
   const { userId, decrypt } = useUser()
+  const { dataPeriod, accountColorMap: colorMap } = useDashboard()
   const { data: encBalanceSummary } = useGetUserByIdSummaryBalance({
     path: { id: userId },
-    query: { group_by: "month" },
+    query: { group_by: "month", period: dataPeriod },
   })
 
   const balanceSummary = useAsyncMemo(async () => {
@@ -43,7 +41,7 @@ export default function BalanceGraph({ colorMap }: BalanceGraphProps) {
       ),
     }
   }, [encBalanceSummary, decrypt])
-  
+
   const { borders: lineBorders, fills: lineFills } = useMemo(
     () => getBrightColors((balanceSummary?.accounts.length || 0) + 1),
     [balanceSummary?.accounts.length]

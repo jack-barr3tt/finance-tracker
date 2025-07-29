@@ -5,6 +5,7 @@ import Login from "./Pages/Login"
 import NavBar from "./Components/NavBar"
 import RouteProtector from "./Components/RouteProtector"
 import Settings from "./Pages/Settings"
+import { DashboardProvider } from "./Hooks/useDashboard"
 
 export default function Router() {
   return (
@@ -14,7 +15,14 @@ export default function Router() {
         <Routes>
           <Route path="/" element={<Navigate to="login" />} />
           <Route path="/dashboard/*" element={<RouteProtector />}>
-            <Route index element={<Dashboard />} />
+            <Route
+              index
+              element={
+                <DashboardProvider>
+                  <Dashboard />
+                </DashboardProvider>
+              }
+            />
           </Route>
           <Route path="/settings/*" element={<RouteProtector />}>
             <Route path="*" element={<Settings />} />
