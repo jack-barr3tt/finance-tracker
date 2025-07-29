@@ -372,7 +372,6 @@ func (s *Server) GetUserIdSummaryBalance(c *fiber.Ctx, userId string, params Get
 		if _, ok := dayTotals[t.AccountId]; ok {
 			dayTotals[t.AccountId] += t.Amount
 		}
-		totals[t.AccountId][0].Balance += t.Amount
 		grandTotals[0].Balance += t.Amount
 		tIdx++
 	}
