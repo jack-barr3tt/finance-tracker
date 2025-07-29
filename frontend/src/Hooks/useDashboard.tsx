@@ -50,7 +50,10 @@ export const DashboardProvider = ({ children }: { children: ReactNode }) => {
 
   const { data: encAccounts } = useGetUserByIdAccounts({ path: { id: userId } })
   const accounts = useAsyncMemo(
-    async () => Promise.all(encAccounts?.map((acc) => decryptAccount(acc, decrypt)) ?? []),
+    async () =>
+      (await Promise.all(encAccounts?.map((acc) => decryptAccount(acc, decrypt)) ?? [])).sort(
+        (a, b) => a.name.localeCompare(b.name)
+      ),
     [encAccounts, decrypt]
   )
 
@@ -68,7 +71,7 @@ export const DashboardProvider = ({ children }: { children: ReactNode }) => {
     [accounts]
   )
   const categoryColorMap = useMemo(
-    () => getChartColors(categories ? ["uncategorised", ...categories.map((cat) => cat.id)] : []),
+    () => getChartColors(categories ? [...categories.map((cat) => cat.id), "uncategorised"] : []),
     [categories]
   )
 
