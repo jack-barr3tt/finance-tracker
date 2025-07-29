@@ -73,7 +73,7 @@ export default function BalanceGraph() {
                     ? Color(colorMap[account.account.id].fill).alpha(0.25).string()
                     : lineFills[i + 1],
                 })) || []),
-              ],
+              ].sort((a, b) => a.label.localeCompare(b.label)),
             }}
             options={{
               responsive: true,

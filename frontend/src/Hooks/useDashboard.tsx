@@ -67,7 +67,7 @@ export const DashboardProvider = ({ children }: { children: ReactNode }) => {
   )
 
   const accountColorMap = useMemo(
-    () => getChartColors(accounts ? ["total", ...accounts.map((acc) => acc.id)] : []),
+    () => getChartColors(accounts ? [...accounts.map((acc) => acc.id), "total"] : []),
     [accounts]
   )
   const categoryColorMap = useMemo(
