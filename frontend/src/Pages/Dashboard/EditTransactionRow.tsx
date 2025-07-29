@@ -209,13 +209,18 @@ export default function EditTransactionRow(props: EditTransactionRowProps) {
     []
   )
 
+  const doneFn = useMemo(
+    () => (transactionId ? handleEdit : handleAdd),
+    [handleAdd, handleEdit, transactionId]
+  )
+
   if (!accounts || !categories) return null
 
   return (
     <ThemeProvider theme={tableTheme}>
       <TableRow>
         <TableCell>
-          <Datepicker value={date} onChange={setDate} />
+          <Datepicker value={date} onChange={setDate} autoFocus />
         </TableCell>
         <TableCell>
           <SearchSelect
@@ -257,6 +262,7 @@ export default function EditTransactionRow(props: EditTransactionRowProps) {
             placeholder="Description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
+            onKeyUp={(e) => e.key === "Enter" && doneFn()}
           />
         </TableCell>
         <TableCell>
@@ -264,15 +270,12 @@ export default function EditTransactionRow(props: EditTransactionRowProps) {
             placeholder="Amount"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
+            onKeyUp={(e) => e.key === "Enter" && doneFn()}
           />
         </TableCell>
         <TableCell>
           <div className="flex flex-row items-center justify-end gap-2">
-            <Button
-              className="p-0 size-8"
-              color="light"
-              onClick={transactionId ? handleEdit : handleAdd}
-            >
+            <Button className="p-0 size-8" color="light" onClick={doneFn}>
               <FiSave />
             </Button>
             <Button className="p-0 size-8" color="light" onClick={cancelCallback}>
