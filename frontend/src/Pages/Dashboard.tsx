@@ -113,7 +113,7 @@ export default function Dashboard() {
 
       <HR />
 
-      <Tabs variant="pills" onActiveTabChange={(tab) => setDataPeriod(TimePeriodSchema.enum[tab])}>
+      <Tabs variant="pills" onActiveTabChange={(tab) => setDataPeriod(TimePeriodSchema.enum[tab])} className="-my-4">
         <TabItem title="Week" />
         <TabItem title="Month" />
         <TabItem title="Year" />

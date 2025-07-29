@@ -51,7 +51,7 @@ export default function BalanceGraph() {
     <Card className="w-1/2">
       <div className="flex flex-col items-center gap-4">
         <h1 className="text-xl font-medium">Balance over Time</h1>
-        <div className="w-full h-64">
+        <div className="w-full h-96">
           <Line
             data={{
               labels:
