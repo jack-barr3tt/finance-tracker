@@ -23,10 +23,10 @@ ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, T
 
 export default function BalanceGraph() {
   const { userId, decrypt } = useUser()
-  const { dataPeriod, accountColorMap: colorMap } = useDashboard()
+  const { dataPeriod, dataGroupBy, accountColorMap: colorMap } = useDashboard()
   const { data: encBalanceSummary } = useGetUserByIdSummaryBalance({
     path: { id: userId },
-    query: { group_by: "month", period: dataPeriod },
+    query: { group_by: dataGroupBy, period: dataPeriod },
   })
 
   const balanceSummary = useAsyncMemo(async () => {

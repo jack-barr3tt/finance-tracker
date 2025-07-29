@@ -18,6 +18,7 @@ type ColorMap = Record<
 
 type DashboardValue = {
   dataPeriod: TimePeriod
+  dataGroupBy: TimePeriod
   setDataPeriod: (period: TimePeriod) => void
   categories: Category[] | null
   accounts: Account[] | null
@@ -39,6 +40,13 @@ export const DashboardProvider = ({ children }: { children: ReactNode }) => {
   const { userId, decrypt } = useUser()
 
   const [dataPeriod, setDataPeriod] = useState<TimePeriod>("ytd")
+  const dataGroupBy = useMemo(
+    () =>
+      (dataPeriod == "all" || dataPeriod === "ytd" || dataPeriod === "year"
+        ? "month"
+        : "day") as TimePeriod,
+    [dataPeriod]
+  )
 
   const { data: encAccounts } = useGetUserByIdAccounts({ path: { id: userId } })
   const accounts = useAsyncMemo(
@@ -67,13 +75,14 @@ export const DashboardProvider = ({ children }: { children: ReactNode }) => {
   const value = useMemo(
     () => ({
       dataPeriod,
+      dataGroupBy,
       setDataPeriod,
       categories,
       accounts,
       categoryColorMap,
       accountColorMap,
     }),
-    [accountColorMap, accounts, categories, categoryColorMap, dataPeriod]
+    [accountColorMap, accounts, categories, categoryColorMap, dataGroupBy, dataPeriod]
   )
 
   return <DashboardContext.Provider value={value}>{children}</DashboardContext.Provider>
