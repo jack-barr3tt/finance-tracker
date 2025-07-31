@@ -15,6 +15,7 @@ import { useQueryClient } from "@tanstack/react-query"
 import { parseTrading212 } from "../CSV/trading212"
 import { useAsyncMemo } from "../Hooks/useAsyncMemo"
 import { decryptAccount } from "../Security/data"
+import { parseBarclaycard } from "../CSV/barclaycard"
 
 type UploadModalProps = {
   show: boolean
@@ -58,6 +59,10 @@ export default function UploadModal(props: UploadModalProps) {
           encrypt,
           decrypt
         )
+        break
+      }
+      case "barclaycard": {
+        await parseBarclaycard(file, userId, accountId, encrypt, decrypt)
         break
       }
       default:
