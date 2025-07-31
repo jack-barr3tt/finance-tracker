@@ -113,7 +113,11 @@ export default function Dashboard() {
 
       <HR />
 
-      <Tabs variant="pills" onActiveTabChange={(tab) => setDataPeriod(TimePeriodSchema.enum[tab])} className="-my-4">
+      <Tabs
+        variant="pills"
+        onActiveTabChange={(tab) => setDataPeriod(TimePeriodSchema.enum[tab])}
+        className="-my-4"
+      >
         <TabItem title="Week" />
         <TabItem title="Month" />
         <TabItem title="Year" />
@@ -136,170 +140,196 @@ export default function Dashboard() {
         </Button>
       </div>
 
-      <Table striped theme={{ root: { wrapper: "overflow-x-auto rounded-md custom-scrollbar" } }}>
-        <TableHead>
-          <TableRow>
-            <TableHeadCell>Date</TableHeadCell>
-            <TableHeadCell>
-              <div className="flex items-center">
-                Account
-                <FilterButton
-                  options={
-                    accounts?.map((account) => ({
-                      label: account.name,
-                      value: account.id,
-                    })) || []
-                  }
-                  value={accountFilterId}
-                  onChange={(value) => setAccountFilterId(value)}
-                />
-              </div>
-            </TableHeadCell>
-            <TableHeadCell>
-              <div className="flex items-center">
-                Category
-                <FilterButton
-                  options={
-                    categories
-                      ? [
-                          ...categories.map((category) => ({
-                            label: category.name,
-                            value: category.id,
-                          })),
-                          {
-                            label: "Uncategorised",
-                            value: "uncategorised",
-                          },
-                        ]
-                      : []
-                  }
-                  value={categoryFilterId}
-                  onChange={(value) => setCategoryFilterId(value)}
-                />
-              </div>
-            </TableHeadCell>
-            <TableHeadCell>Description</TableHeadCell>
-            <TableHeadCell>Amount</TableHeadCell>
-            <TableHeadCell>
-              <span className="sr-only">Edit</span>
-            </TableHeadCell>
-          </TableRow>
-        </TableHead>
-        <TableBodyWithButton
-          button={
-            !showAdd ? (
-              <Button
-                className="p-0 shadow-md size-8"
-                color="light"
-                onClick={() => setShowAdd(true)}
-              >
-                <FiPlus />
-              </Button>
-            ) : null
-          }
+      <div className="-mx-8 md:mx-0">
+        <Table
+          striped
+          theme={{
+            root: {
+              wrapper: "overflow-x-auto md:rounded-md custom-scrollbar",
+            },
+            body: {
+              cell: {
+                base: "px-3 py-2 md:px-6 md:py-4",
+              },
+            },
+            head: {
+              cell: { base: "px-3 py-2 md:px-6 md:py-4" },
+            },
+          }}
         >
-          {showAdd && <EditTransactionRow cancelCallback={() => setShowAdd(false)} />}
-          {transactions?.pages.reduce((acc, page) => acc + (page?.transactions.length || 0), 0) ===
-            0 && !showAdd ? (
+          <TableHead>
             <TableRow>
-              <TableCell colSpan={6} className="text-center">
-                No transactions found
-              </TableCell>
-            </TableRow>
-          ) : (
-            transactions?.pages.map((page) =>
-              page?.transactions.map((transaction) =>
-                editingTransactionId == transaction.id ? (
-                  <EditTransactionRow
-                    transactionId={transaction.id}
-                    cancelCallback={() => setEditingTransactionId(undefined)}
+              <TableHeadCell>Date</TableHeadCell>
+              <TableHeadCell>
+                <div className="flex items-center">
+                  <p className="after:content-['Acc'] after:md:content-['Account']" />
+                  <FilterButton
+                    options={
+                      accounts?.map((account) => ({
+                        label: account.name,
+                        value: account.id,
+                      })) || []
+                    }
+                    value={accountFilterId}
+                    onChange={(value) => setAccountFilterId(value)}
                   />
-                ) : (
-                  <TableRow key={transaction.id} className="group/trnscrow">
-                    <TableCell>{format(parseISO(transaction.date), "dd MMM yyyy")}</TableCell>
-                    <TableCell>
-                      <Badge
-                        style={{
-                          backgroundColor: accountColorMap[transaction.account.id]?.fill,
-                          color: accountColorMap[transaction.account.id]?.text,
-                        }}
-                        className="-mx-2 w-fit"
-                      >
-                        {transaction.account.name}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        style={{
-                          backgroundColor:
-                            categoryColorMap[transaction.category?.id || "uncategorised"]?.fill,
-                          color:
-                            categoryColorMap[transaction.category?.id || "uncategorised"]?.text,
-                        }}
-                        className="-mx-2 w-fit"
-                      >
-                        {transaction.category?.name || "Uncategorised"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <span className="hidden xl:block">{transaction.description}</span>
-                      <span className="xl:hidden">
-                        {transaction.description.length > 30 ? (
-                          <Tooltip content={transaction.description} placement="top">
-                            {transaction.description.slice(0, 30)}...
-                          </Tooltip>
-                        ) : (
-                          transaction.description
-                        )}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      {transaction.amount.toLocaleString("en-GB", {
-                        style: "currency",
-                        currency: "GBP",
-                      })}
-                    </TableCell>
-                    <TableCell className="p-0 px-[18px] py-[10px]">
-                      <div className="flex flex-row items-center justify-end invisible gap-2 group-hover/trnscrow:visible">
-                        <Button
-                          className="p-0 size-8"
-                          color="light"
-                          onClick={() => setEditingTransactionId(transaction.id)}
-                        >
-                          <FiEdit />
-                        </Button>
-                        <Button
-                          className="p-0 size-8"
-                          color="light"
-                          onClick={() => handleDelete(transaction.id)}
-                        >
-                          <FiTrash />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
+                </div>
+              </TableHeadCell>
+              <TableHeadCell>
+                <div className="flex items-center">
+                  <p className="after:content-['Cat'] after:md:content-['Category']" />
+                  <FilterButton
+                    options={
+                      categories
+                        ? [
+                            ...categories.map((category) => ({
+                              label: category.name,
+                              value: category.id,
+                            })),
+                            {
+                              label: "Uncategorised",
+                              value: "uncategorised",
+                            },
+                          ]
+                        : []
+                    }
+                    value={categoryFilterId}
+                    onChange={(value) => setCategoryFilterId(value)}
+                  />
+                </div>
+              </TableHeadCell>
+              <TableHeadCell>Description</TableHeadCell>
+              <TableHeadCell>Amount</TableHeadCell>
+              <TableHeadCell>
+                <span className="sr-only">Edit</span>
+              </TableHeadCell>
+            </TableRow>
+          </TableHead>
+          <TableBodyWithButton
+            button={
+              !showAdd ? (
+                <Button
+                  className="p-0 shadow-md size-8"
+                  color="light"
+                  onClick={() => setShowAdd(true)}
+                >
+                  <FiPlus />
+                </Button>
+              ) : null
+            }
+          >
+            {showAdd && <EditTransactionRow cancelCallback={() => setShowAdd(false)} />}
+            {transactions?.pages.reduce(
+              (acc, page) => acc + (page?.transactions.length || 0),
+              0
+            ) === 0 && !showAdd ? (
+              <TableRow>
+                <TableCell colSpan={6} className="text-center">
+                  No transactions found
+                </TableCell>
+              </TableRow>
+            ) : (
+              transactions?.pages.map((page) =>
+                page?.transactions.map((transaction) =>
+                  editingTransactionId == transaction.id ? (
+                    <EditTransactionRow
+                      transactionId={transaction.id}
+                      cancelCallback={() => setEditingTransactionId(undefined)}
+                    />
+                  ) : (
+                    <TableRow key={transaction.id} className="group/trnscrow">
+                      <TableCell>{format(parseISO(transaction.date), "dd MMM yyyy")}</TableCell>
+                      <TableCell theme={{ base: "max-sm:p-0" }}>
+                        <div className="flex items-center justify-center">
+                          <Badge
+                            style={{
+                              backgroundColor: accountColorMap[transaction.account.id]?.fill,
+                              color: accountColorMap[transaction.account.id]?.text,
+                            }}
+                            className="w-8 h-8 -mx-2 md:h-5 md:w-fit"
+                          >
+                            <span className="hidden md:block">{transaction.account.name}</span>
+                          </Badge>
+                        </div>
+                      </TableCell>
+                      <TableCell theme={{ base: "max-sm:p-0" }}>
+                        <div className="flex items-center justify-center">
+                          <Badge
+                            style={{
+                              backgroundColor:
+                                categoryColorMap[transaction.category?.id || "uncategorised"]?.fill,
+                              color:
+                                categoryColorMap[transaction.category?.id || "uncategorised"]?.text,
+                            }}
+                            className="w-8 h-8 -mx-2 md:h-5 md:w-fit"
+                          >
+                            <span className="hidden md:block">
+                              {transaction.category?.name || "Uncategorised"}
+                            </span>
+                          </Badge>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <span className="hidden xl:block">{transaction.description}</span>
+                        <span className="xl:hidden">
+                          {transaction.description.length > 30 ? (
+                            <Tooltip content={transaction.description} placement="top">
+                              {transaction.description.slice(0, 30)}...
+                            </Tooltip>
+                          ) : (
+                            transaction.description
+                          )}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        {transaction.amount.toLocaleString("en-GB", {
+                          style: "currency",
+                          currency: "GBP",
+                        })}
+                      </TableCell>
+                      <TableCell className="p-0 px-[18px] py-[10px]">
+                        <div className="flex flex-row items-center justify-end invisible gap-2 group-hover/trnscrow:visible">
+                          <Button
+                            className="p-0 size-8"
+                            color="light"
+                            onClick={() => setEditingTransactionId(transaction.id)}
+                          >
+                            <FiEdit />
+                          </Button>
+                          <Button
+                            className="p-0 size-8"
+                            color="light"
+                            onClick={() => handleDelete(transaction.id)}
+                          >
+                            <FiTrash />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  )
                 )
               )
-            )
-          )}
-          {isLoading ||
-            (isFetchingNextPage &&
-              Array(10)
-                .fill(0)
-                .map((_, index) => (
-                  <TableRow key={index} className="animate-pulse">
-                    {Array(5)
-                      .fill(0)
-                      .map(() => (
-                        <TableCell>
-                          <div className="h-8 bg-gray-200 rounded-md dark:bg-gray-600"></div>
-                        </TableCell>
-                      ))}
-                    <TableCell />
-                  </TableRow>
-                )))}
-        </TableBodyWithButton>
-      </Table>
+            )}
+            {isLoading ||
+              (isFetchingNextPage &&
+                Array(10)
+                  .fill(0)
+                  .map((_, index) => (
+                    <TableRow key={index} className="animate-pulse">
+                      {Array(5)
+                        .fill(0)
+                        .map(() => (
+                          <TableCell>
+                            <div className="h-8 bg-gray-200 rounded-md dark:bg-gray-600"></div>
+                          </TableCell>
+                        ))}
+                      <TableCell />
+                    </TableRow>
+                  )))}
+          </TableBodyWithButton>
+        </Table>
+      </div>
+
       <InView
         onChange={(inView) => {
           if (!isLoading && !isFetchingNextPage && inView && hasNextPage) fetchNextPage()

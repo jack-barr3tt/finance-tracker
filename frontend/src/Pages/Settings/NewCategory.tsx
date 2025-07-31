@@ -23,7 +23,7 @@ export default function NewCategory() {
   }, [categoryName, createCategory, navigate, queryClient, userId, encrypt])
 
   return (
-    <Modal show={location.pathname.includes("settings/new-category")}>
+    <Modal show={location.pathname.includes("settings/new-category")} onClose={() => navigate("/settings")}>
       <ModalHeader>New Category</ModalHeader>
 
       <ModalBody>

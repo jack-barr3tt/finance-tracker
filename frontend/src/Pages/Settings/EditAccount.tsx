@@ -94,7 +94,7 @@ export default function EditAccount() {
   ])
 
   return (
-    <Modal show={/settings\/account\/(.+)\/edit/.test(location.pathname)}>
+    <Modal show={/settings\/account\/(.+)\/edit/.test(location.pathname)} onClose={() => navigate("/settings")}>
       <ModalHeader>Edit Account</ModalHeader>
       <ModalBody theme={{ base: "overflow-visible" }}>
         <form className="flex flex-col gap-4">

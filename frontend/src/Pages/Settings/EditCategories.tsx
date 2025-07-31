@@ -108,7 +108,7 @@ export default function EditCategories() {
   )
 
   return (
-    <Modal show={/settings\/category\/(.+)\/edit/.test(location.pathname)}>
+    <Modal show={/settings\/category\/(.+)\/edit/.test(location.pathname)} onClose={() => navigate("/settings")}>
       <ModalHeader>Edit Category</ModalHeader>
 
       <ModalBody className="overflow-visible">

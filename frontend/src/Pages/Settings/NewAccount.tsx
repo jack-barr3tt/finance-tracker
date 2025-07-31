@@ -87,7 +87,10 @@ export default function NewAccount() {
   }, [bankId, banks, queryClient, userId, navigate, openedAt, accountName, createAccount, encrypt])
 
   return (
-    <Modal show={location.pathname.includes("settings/new-account")}>
+    <Modal
+      show={location.pathname.includes("settings/new-account")}
+      onClose={() => navigate("/settings")}
+    >
       <ModalHeader>New Account</ModalHeader>
 
       <ModalBody theme={{ base: "overflow-visible" }}>

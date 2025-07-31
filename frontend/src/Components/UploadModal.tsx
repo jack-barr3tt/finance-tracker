@@ -85,7 +85,7 @@ export default function UploadModal(props: UploadModalProps) {
   }, [accountId, accounts, decrypt, encrypt, file, onClose, queryClient, userId])
 
   return (
-    <Modal show={show}>
+    <Modal show={show} onClose={onClose}>
       <ModalHeader>Upload Transactions</ModalHeader>
       <ModalBody>
         <form className="flex flex-col gap-4">

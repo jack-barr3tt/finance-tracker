@@ -47,23 +47,23 @@ export default function AccountSummaries() {
                 </div>
               </Card>
             ))}
+
+            <div className="flex flex-row items-center justify-start">
+              <Card>
+                <div className="flex flex-row items-center gap-4 text-2xl md:text-3xl">
+                  <h1 className="font-medium">Total:</h1>
+                  <p>
+                    {encAccountSummaries?.total.toLocaleString("en-GB", {
+                      style: "currency",
+                      currency: "GBP",
+                    })}
+                  </p>
+                </div>
+              </Card>
+            </div>
           </div>
         </>
       )}
-
-      <div className="flex flex-row items-center justify-start">
-        <Card>
-          <div className="flex flex-row items-center gap-4 text-2xl md:text-3xl">
-            <h1 className="font-medium">Total:</h1>
-            <p>
-              {encAccountSummaries?.total.toLocaleString("en-GB", {
-                style: "currency",
-                currency: "GBP",
-              })}
-            </p>
-          </div>
-        </Card>
-      </div>
     </>
   )
 }
