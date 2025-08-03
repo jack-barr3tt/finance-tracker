@@ -338,6 +338,10 @@ func (s *Server) GetUserIdSummaryBalance(c *fiber.Ctx, userId string, params Get
 		case Week:
 			skipTo = time.Now().AddDate(0, 0, -7)
 		}
+
+		if *params.Period == Month || *params.Period == Year {
+			skipTo = time.Date(skipTo.Year(), skipTo.Month(), 1, 0, 0, 0, 0, skipTo.Location())
+		}
 	}
 
 	grandTotals := []BalanceDatapoint{
