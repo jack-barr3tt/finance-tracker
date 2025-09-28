@@ -25,7 +25,7 @@ func (s *Server) GetUserIdSummaryAccounts(c *fiber.Ctx, userId string) error {
 			b.id, b.name, b.csv_import_enabled, b.api_import_enabled
 		FROM account a
 		LEFT JOIN bank b ON a.bank_id = b.id
-		WHERE a.user_id = $1
+		WHERE a.user_id = $1 AND (a.closed_at IS NULL OR a.closed_at > NOW())
 		ORDER BY a.name`,
 		userId,
 	)
@@ -310,14 +310,15 @@ func (s *Server) GetUserIdSummaryBalance(c *fiber.Ctx, userId string, params Get
 	monthStep := 0
 	dayStep := 1
 	if params.GroupBy != nil {
-		if *params.GroupBy == Week {
+		switch *params.GroupBy {
+		case Week:
 			dayStep = 7
-		} else if *params.GroupBy == Month {
+		case Month:
 			monthStep = 1
 			dayStep = 0
 
 			startDate = time.Date(startDate.Year(), startDate.Month(), 1, 0, 0, 0, 0, startDate.Location())
-		} else if *params.GroupBy == Year || *params.GroupBy == Ytd {
+		case Year, Ytd:
 			yearStep = 1
 			dayStep = 0
 

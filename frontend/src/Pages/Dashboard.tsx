@@ -240,7 +240,7 @@ export default function Dashboard() {
                     <TableRow key={transaction.id} className="group/trnscrow">
                       <TableCell>{format(parseISO(transaction.date), "dd MMM yyyy")}</TableCell>
                       <TableCell theme={{ base: "max-sm:p-0" }}>
-                        <div className="flex items-center justify-center">
+                        <div className="flex items-center">
                           <Badge
                             style={{
                               backgroundColor: accountColorMap[transaction.account.id]?.fill,
@@ -253,7 +253,7 @@ export default function Dashboard() {
                         </div>
                       </TableCell>
                       <TableCell theme={{ base: "max-sm:p-0" }}>
-                        <div className="flex items-center justify-center">
+                        <div className="flex items-center">
                           <Badge
                             style={{
                               backgroundColor:
