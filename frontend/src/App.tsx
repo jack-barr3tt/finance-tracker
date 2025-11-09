@@ -4,6 +4,7 @@ import { client } from "./API/requests"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { createTheme, ThemeProvider } from "flowbite-react"
 import Cookies from "js-cookie"
+import { DataProvider } from "./Hooks/useData"
 
 client.setConfig({
   baseUrl: import.meta.env.VITE_BACKEND_URL,
@@ -33,7 +34,9 @@ function App() {
     <ThemeProvider theme={theme}>
       <QueryClientProvider client={queryClient}>
         <UserProvider>
-          <Router />
+          <DataProvider>
+            <Router />
+          </DataProvider>
         </UserProvider>
       </QueryClientProvider>
     </ThemeProvider>

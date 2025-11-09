@@ -1,11 +1,10 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom"
-import Dashboard from "./Pages/Dashboard"
+import Transactions from "./Pages/Transactions"
 import SignUp from "./Pages/SignUp"
 import Login from "./Pages/Login"
 import NavBar from "./Components/NavBar"
 import RouteProtector from "./Components/RouteProtector"
 import Settings from "./Pages/Settings"
-import { DashboardProvider } from "./Hooks/useDashboard"
 
 export default function Router() {
   return (
@@ -14,15 +13,8 @@ export default function Router() {
         <NavBar />
         <Routes>
           <Route path="/" element={<Navigate to="login" />} />
-          <Route path="/dashboard/*" element={<RouteProtector />}>
-            <Route
-              index
-              element={
-                <DashboardProvider>
-                  <Dashboard />
-                </DashboardProvider>
-              }
-            />
+          <Route path="/transactions/*" element={<RouteProtector />}>
+            <Route index element={<Transactions />} />
           </Route>
           <Route path="/settings/*" element={<RouteProtector />}>
             <Route path="*" element={<Settings />} />
