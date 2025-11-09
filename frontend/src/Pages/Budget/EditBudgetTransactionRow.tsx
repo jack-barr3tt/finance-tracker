@@ -19,10 +19,11 @@ import { PeriodUnit } from "../../API/requests"
 type EditBudgetTransactionRowProps = {
   budgetTransactionId?: string
   cancelCallback?: () => void
+  isOutgoings?: boolean
 }
 
 export default function EditBudgetTransactionRow(props: EditBudgetTransactionRowProps) {
-  const { budgetTransactionId, cancelCallback } = props
+  const { budgetTransactionId, cancelCallback, isOutgoings = false } = props
 
   const { userId, decrypt, encrypt } = useUser()
   const queryClient = useQueryClient()
@@ -60,7 +61,7 @@ export default function EditBudgetTransactionRow(props: EditBudgetTransactionRow
     ;(async () => {
       if (budgetTransaction) {
         setDescription(await decrypt(budgetTransaction.description || ""))
-        setAmount(budgetTransaction.amount.toString())
+        setAmount(Math.abs(budgetTransaction.amount).toString())
         setSelectedCategory(budgetTransaction.category?.id)
         setRepeatUntil(budgetTransaction.repeat_until)
         setRepeatEvery(budgetTransaction.repeat_every.toString())
@@ -71,11 +72,14 @@ export default function EditBudgetTransactionRow(props: EditBudgetTransactionRow
   const handleAdd = useCallback(async () => {
     if (!selectedCategory || !amount || !repeatEvery) return
 
+    const amountValue = parseFloat(amount)
+    const finalAmount = isOutgoings ? -Math.abs(amountValue) : amountValue
+
     await addBudgetTransaction({
       body: {
         category_id: selectedCategory,
         description: await encrypt(description),
-        amount: parseFloat(amount),
+        amount: finalAmount,
         repeat_until: repeatUntil,
         repeat_every: parseFloat(repeatEvery),
       },
@@ -98,6 +102,7 @@ export default function EditBudgetTransactionRow(props: EditBudgetTransactionRow
     cancelCallback,
     description,
     encrypt,
+    isOutgoings,
     queryClient,
     repeatEvery,
     repeatUntil,
@@ -107,11 +112,15 @@ export default function EditBudgetTransactionRow(props: EditBudgetTransactionRow
 
   const handleEdit = useCallback(async () => {
     if (!budgetTransactionId || !amount || !repeatEvery) return
+
+    const amountValue = parseFloat(amount)
+    const finalAmount = isOutgoings ? -Math.abs(amountValue) : amountValue
+
     await editBudgetTransaction({
       body: {
         category_id: selectedCategory,
         description: await encrypt(description),
-        amount: parseFloat(amount),
+        amount: finalAmount,
         repeat_until: repeatUntil,
         repeat_every: parseFloat(repeatEvery),
       },
@@ -140,6 +149,7 @@ export default function EditBudgetTransactionRow(props: EditBudgetTransactionRow
     description,
     editBudgetTransaction,
     encrypt,
+    isOutgoings,
     queryClient,
     repeatEvery,
     repeatUntil,

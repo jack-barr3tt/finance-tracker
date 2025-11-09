@@ -96,6 +96,7 @@ export default function Budget() {
               onShowAddChange={setShowAddOutgoings}
               onEditChange={setEditingBudgetTransactionId}
               onDelete={handleDelete}
+              isOutgoings={true}
             />
           </div>
         </div>

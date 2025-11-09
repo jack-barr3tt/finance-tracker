@@ -28,7 +28,7 @@ export default function CategoryPie() {
         <h1 className="text-xl font-medium">Spending by Category</h1>
 
         <div className="flex flex-col items-center justify-center w-full gap-8 xl:flex-row">
-          <div className="flex flex-row w-full gap-4 overflow-x-hidden xl:flex-col xl:order-1 xl:w-auto">
+          <div className="flex flex-row w-full gap-4 overflow-x-auto xl:flex-col xl:order-1 xl:w-auto">
             <div className="flex flex-col items-center xl:items-start p-4 bg-gray-50 dark:bg-gray-800 rounded-lg min-w-[140px] flex-1 xl:flex-none">
               <span className="text-sm font-medium text-gray-500 dark:text-gray-400 whitespace-nowrap">
                 Income

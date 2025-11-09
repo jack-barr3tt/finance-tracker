@@ -13,7 +13,7 @@ export default function AccountSummaries() {
         <>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:flex 2xl:flex-wrap">
             {accountSummary?.accounts.map((account) => (
-              <Card>
+              <Card className="h-30">
                 <div className="grid grid-cols-2 gap-2 -m-2 auto-cols-auto md:m-0">
                   <h1 className="order-3 font-medium md:order-1">{account.account.name}</h1>
                   <h2 className="font-light">{account.account.bank.name}</h2>
@@ -28,7 +28,7 @@ export default function AccountSummaries() {
             ))}
 
             <div className="flex flex-row items-center justify-start">
-              <Card>
+              <Card className="h-30">
                 <div className="flex flex-row items-center gap-4 text-2xl md:text-3xl">
                   <h1 className="font-medium">Total:</h1>
                   <p>

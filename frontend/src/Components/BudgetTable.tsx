@@ -22,6 +22,7 @@ type BudgetTableProps = {
   onShowAddChange: (show: boolean) => void
   onEditChange: (id: string | undefined) => void
   onDelete: (id: string) => void
+  isOutgoings?: boolean
 }
 
 export default function BudgetTable(props: BudgetTableProps) {
@@ -33,6 +34,7 @@ export default function BudgetTable(props: BudgetTableProps) {
     onShowAddChange,
     onEditChange,
     onDelete,
+    isOutgoings = false,
   } = props
 
   const activeBudgetTransactions = budgetTransactions
@@ -93,7 +95,12 @@ export default function BudgetTable(props: BudgetTableProps) {
             ) : null
           }
         >
-          {showAdd && <EditBudgetTransactionRow cancelCallback={() => onShowAddChange(false)} />}
+          {showAdd && (
+            <EditBudgetTransactionRow
+              cancelCallback={() => onShowAddChange(false)}
+              isOutgoings={isOutgoings}
+            />
+          )}
           {!activeBudgetTransactions || activeBudgetTransactions.length === 0
             ? !showAdd && (
                 <TableRow>
@@ -108,6 +115,7 @@ export default function BudgetTable(props: BudgetTableProps) {
                     key={budgetTransaction.id}
                     budgetTransactionId={budgetTransaction.id}
                     cancelCallback={() => onEditChange(undefined)}
+                    isOutgoings={isOutgoings}
                   />
                 ) : (
                   <TableRow key={budgetTransaction.id} className="group/budgetrow">
@@ -149,7 +157,10 @@ export default function BudgetTable(props: BudgetTableProps) {
                       )}
                     </TableCell>
                     <TableCell>
-                      {budgetTransaction.amount.toLocaleString("en-GB", {
+                      {(isOutgoings
+                        ? Math.abs(budgetTransaction.amount)
+                        : budgetTransaction.amount
+                      ).toLocaleString("en-GB", {
                         style: "currency",
                         currency: "GBP",
                       })}

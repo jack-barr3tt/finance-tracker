@@ -61,6 +61,6 @@ export function toMonthlyAmount(amount: number, repeatEvery: number, repeatUntil
 }
 
 export function formatRepeat(repeatEvery: number, repeatUntil: string): string {
-  const unit = repeatEvery === 1 ? repeatUntil : `${repeatUntil}s`
-  return `Every ${repeatEvery} ${unit}`
+  if (repeatEvery === 1) return `Every ${repeatUntil}`
+  return `Every ${repeatEvery} ${repeatUntil}s`
 }
