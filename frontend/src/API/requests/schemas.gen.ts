@@ -209,6 +209,53 @@ export const TransactionBulkDeleteRequestSchema = {
     required: ['hash']
 } as const;
 
+export const BudgetTransactionCreateRequestSchema = {
+    type: 'object',
+    properties: {
+        category_id: {
+            type: 'string'
+        },
+        amount: {
+            type: 'number',
+            example: 100
+        },
+        description: {
+            type: 'string'
+        },
+        repeat_until: {
+            '$ref': '#/components/schemas/PeriodUnit'
+        },
+        repeat_every: {
+            type: 'number',
+            example: 1
+        }
+    },
+    required: ['amount', 'repeat_until', 'repeat_every']
+} as const;
+
+export const BudgetTransactionEditRequestSchema = {
+    type: 'object',
+    properties: {
+        category_id: {
+            type: 'string'
+        },
+        amount: {
+            type: 'number',
+            example: 100
+        },
+        description: {
+            type: 'string'
+        },
+        repeat_until: {
+            '$ref': '#/components/schemas/PeriodUnit'
+        },
+        repeat_every: {
+            type: 'number',
+            example: 1
+        }
+    }
+} as const;
+
 export const LoginResponseSchema = {
     type: 'object',
     properties: {
@@ -396,6 +443,39 @@ export const TransactionBulkResponseSchema = {
     required: ['message']
 } as const;
 
+export const BudgetTransactionCreateResponseSchema = {
+    type: 'object',
+    properties: {
+        id: {
+            type: 'string'
+        }
+    },
+    required: ['id']
+} as const;
+
+export const BudgetTransactionEditResponseSchema = {
+    type: 'object',
+    properties: {
+        id: {
+            type: 'string'
+        }
+    },
+    required: ['id']
+} as const;
+
+export const BudgetTransactionDeleteResponseSchema = {
+    type: 'object',
+    properties: {
+        id: {
+            type: 'string'
+        },
+        message: {
+            type: 'string'
+        }
+    },
+    required: ['id', 'message']
+} as const;
+
 export const NotAuthorizedSchema = {
     type: 'object',
     properties: {
@@ -554,6 +634,39 @@ export const TransactionSchema = {
     required: ['id', 'amount', 'account', 'description', 'date', 'created_at']
 } as const;
 
+export const BudgetTransactionSchema = {
+    type: 'object',
+    properties: {
+        id: {
+            type: 'string'
+        },
+        category: {
+            '$ref': '#/components/schemas/Category'
+        },
+        amount: {
+            type: 'number'
+        },
+        description: {
+            type: 'string'
+        },
+        repeat_until: {
+            '$ref': '#/components/schemas/PeriodUnit'
+        },
+        repeat_every: {
+            type: 'number'
+        },
+        created_at: {
+            type: 'string',
+            format: 'date-time'
+        },
+        deleted_at: {
+            type: 'string',
+            format: 'date-time'
+        }
+    },
+    required: ['id', 'amount', 'repeat_until', 'repeat_every', 'created_at']
+} as const;
+
 export const AllAccountSummarySchema = {
     type: 'object',
     properties: {
@@ -646,6 +759,12 @@ export const BalanceDatapointSchema = {
         }
     },
     required: ['date', 'balance']
+} as const;
+
+export const PeriodUnitSchema = {
+    type: 'string',
+    enum: ['day', 'week', 'month', 'year'],
+    default: 'month'
 } as const;
 
 export const SummaryGroupBySchema = {

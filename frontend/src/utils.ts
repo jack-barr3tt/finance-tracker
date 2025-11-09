@@ -42,3 +42,25 @@ export function prependToFile(file: File, line: string): Promise<File> {
     reader.readAsText(file)
   })
 }
+
+export function toMonthlyAmount(amount: number, repeatEvery: number, repeatUntil: string): number {
+  const absAmount = Math.abs(amount)
+
+  switch (repeatUntil) {
+    case "day":
+      return (absAmount / repeatEvery) * (365.25 / 12)
+    case "week":
+      return (absAmount / repeatEvery) * (52 / 12)
+    case "month":
+      return absAmount / repeatEvery
+    case "year":
+      return absAmount / repeatEvery / 12
+    default:
+      return absAmount
+  }
+}
+
+export function formatRepeat(repeatEvery: number, repeatUntil: string): string {
+  const unit = repeatEvery === 1 ? repeatUntil : `${repeatUntil}s`
+  return `Every ${repeatEvery} ${unit}`
+}

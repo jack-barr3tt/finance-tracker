@@ -4,18 +4,20 @@ import {
   Account,
   AllAccountSummary,
   BalanceSummary,
+  BudgetTransaction,
   Category,
   CategorySummary,
   TimePeriod,
 } from "../API/requests"
 import {
   useGetUserByIdAccounts,
+  useGetUserByIdBudgetTransactions,
   useGetUserByIdCategories,
   useGetUserByIdSummaryAccounts,
   useGetUserByIdSummaryBalance,
   useGetUserByIdSummaryCategories,
 } from "../API/queries"
-import { decryptAccount, decryptCategory } from "../Security/data"
+import { decryptAccount, decryptBudgetTransaction, decryptCategory } from "../Security/data"
 import { useAsyncMemo } from "./useAsyncMemo"
 import { useUser } from "./useUser"
 import { getChartColors } from "../utils"
@@ -35,6 +37,7 @@ type DataValue = {
   setDataPeriod: (period: TimePeriod) => void
   categories: Category[] | null
   accounts: Account[] | null
+  budgetTransactions: BudgetTransaction[] | null
   accountSummary: AllAccountSummary | null
   balanceSummary: BalanceSummary | null
   categorySummaries: CategorySummary[] | null
@@ -84,6 +87,23 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         (a, b) => a.name.localeCompare(b.name)
       ),
     [encCategories, decrypt]
+  )
+
+  const { data: encBudgetTransactions } = useGetUserByIdBudgetTransactions(
+    { path: { id: userId } },
+    undefined,
+    {
+      enabled: !!userId,
+    }
+  )
+  const budgetTransactions = useAsyncMemo(
+    async () =>
+      (
+        await Promise.all(
+          encBudgetTransactions?.map((bt) => decryptBudgetTransaction(bt, decrypt)) ?? []
+        )
+      ).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()),
+    [encBudgetTransactions, decrypt]
   )
 
   const { data: encAccountSummaries } = useGetUserByIdSummaryAccounts(
@@ -176,6 +196,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
       setDataPeriod,
       categories,
       accounts,
+      budgetTransactions,
       accountSummary,
       balanceSummary,
       categorySummaries,
@@ -187,6 +208,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
       accountSummary,
       accounts,
       balanceSummary,
+      budgetTransactions,
       categories,
       categoryColorMap,
       categorySummaries,

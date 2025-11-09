@@ -75,6 +75,22 @@ export type TransactionBulkDeleteRequest = {
     cancel?: boolean;
 };
 
+export type BudgetTransactionCreateRequest = {
+    category_id?: string;
+    amount: number;
+    description?: string;
+    repeat_until: PeriodUnit;
+    repeat_every: number;
+};
+
+export type BudgetTransactionEditRequest = {
+    category_id?: string;
+    amount?: number;
+    description?: string;
+    repeat_until?: PeriodUnit;
+    repeat_every?: number;
+};
+
 export type LoginResponse = {
     id: string;
     token: string;
@@ -147,6 +163,19 @@ export type TransactionBulkResponse = {
     message: string;
 };
 
+export type BudgetTransactionCreateResponse = {
+    id: string;
+};
+
+export type BudgetTransactionEditResponse = {
+    id: string;
+};
+
+export type BudgetTransactionDeleteResponse = {
+    id: string;
+    message: string;
+};
+
 export type NotAuthorized = {
     message?: "Not authorized";
 };
@@ -202,6 +231,17 @@ export type Transaction = {
     created_at: string;
 };
 
+export type BudgetTransaction = {
+    id: string;
+    category?: Category;
+    amount: number;
+    description?: string;
+    repeat_until: PeriodUnit;
+    repeat_every: number;
+    created_at: string;
+    deleted_at?: string;
+};
+
 export type AllAccountSummary = {
     accounts: Array<AccountSummary>;
     total: number;
@@ -232,6 +272,8 @@ export type BalanceDatapoint = {
     date: string;
     balance: number;
 };
+
+export type PeriodUnit = 'day' | 'week' | 'month' | 'year';
 
 export type SummaryGroupBy = 'day' | 'week' | 'month';
 
@@ -545,3 +587,58 @@ export type GetUserByIdSummaryBalanceData = {
 export type GetUserByIdSummaryBalanceResponse = (BalanceSummary);
 
 export type GetUserByIdSummaryBalanceError = unknown;
+
+export type PostUserByIdBudgetTransactionsData = {
+    body?: BudgetTransactionCreateRequest;
+    path: {
+        id: string;
+    };
+};
+
+export type PostUserByIdBudgetTransactionsResponse = (BudgetTransactionCreateResponse);
+
+export type PostUserByIdBudgetTransactionsError = unknown;
+
+export type GetUserByIdBudgetTransactionsData = {
+    path: {
+        id: string;
+    };
+};
+
+export type GetUserByIdBudgetTransactionsResponse = (Array<BudgetTransaction>);
+
+export type GetUserByIdBudgetTransactionsError = (NotFound);
+
+export type GetUserByIdBudgetTransactionsByBudgetTransactionIdData = {
+    path: {
+        budget_transaction_id: string;
+        id: string;
+    };
+};
+
+export type GetUserByIdBudgetTransactionsByBudgetTransactionIdResponse = (BudgetTransaction);
+
+export type GetUserByIdBudgetTransactionsByBudgetTransactionIdError = (NotFound);
+
+export type PatchUserByIdBudgetTransactionsByBudgetTransactionIdData = {
+    body?: BudgetTransactionEditRequest;
+    path: {
+        budget_transaction_id: string;
+        id: string;
+    };
+};
+
+export type PatchUserByIdBudgetTransactionsByBudgetTransactionIdResponse = (BudgetTransactionEditResponse);
+
+export type PatchUserByIdBudgetTransactionsByBudgetTransactionIdError = (NotFound);
+
+export type DeleteUserByIdBudgetTransactionsByBudgetTransactionIdData = {
+    path: {
+        budget_transaction_id: string;
+        id: string;
+    };
+};
+
+export type DeleteUserByIdBudgetTransactionsByBudgetTransactionIdResponse = (BudgetTransactionDeleteResponse);
+
+export type DeleteUserByIdBudgetTransactionsByBudgetTransactionIdError = (NotFound);

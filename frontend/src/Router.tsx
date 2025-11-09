@@ -5,6 +5,7 @@ import Login from "./Pages/Login"
 import NavBar from "./Components/NavBar"
 import RouteProtector from "./Components/RouteProtector"
 import Settings from "./Pages/Settings"
+import Budget from "./Pages/Budget"
 
 export default function Router() {
   return (
@@ -15,6 +16,9 @@ export default function Router() {
           <Route path="/" element={<Navigate to="login" />} />
           <Route path="/transactions/*" element={<RouteProtector />}>
             <Route index element={<Transactions />} />
+          </Route>
+          <Route path="/budget/*" element={<RouteProtector />}>
+            <Route path="*" element={<Budget />} />
           </Route>
           <Route path="/settings/*" element={<RouteProtector />}>
             <Route path="*" element={<Settings />} />

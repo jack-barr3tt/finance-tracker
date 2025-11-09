@@ -1,4 +1,4 @@
-import { Account, Category, CategoryRule, Transaction } from "../API/requests"
+import { Account, BudgetTransaction, Category, CategoryRule, Transaction } from "../API/requests"
 import { DecryptFunction } from "../Hooks/useUser"
 
 export async function decryptCategoryRule<T extends CategoryRule | undefined>(
@@ -63,5 +63,23 @@ export async function decryptAccount<T extends Account | undefined>(
   return {
     ...account,
     name: await decrypt(account.name),
+  }
+}
+
+export async function decryptBudgetTransaction<T extends BudgetTransaction | undefined>(
+  budgetTransaction: T,
+  decrypt: DecryptFunction
+): Promise<T> {
+  if (!budgetTransaction) return undefined as T
+
+  const [description, category] = await Promise.all([
+    decrypt(budgetTransaction.description),
+    decryptCategory(budgetTransaction.category, decrypt),
+  ])
+
+  return {
+    ...budgetTransaction,
+    description,
+    category,
   }
 }
