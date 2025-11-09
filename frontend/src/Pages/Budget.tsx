@@ -60,40 +60,44 @@ export default function Budget() {
 
       <HR />
 
-      <BudgetPie
-        budgetTransactions={budgetTransactions || []}
-        categoryColorMap={categoryColorMap}
-      />
-
-      <div className="flex flex-col gap-8">
-        <div>
-          <div className="flex flex-row items-center justify-between mb-2 md:mb-4">
-            <h2 className="text-2xl font-medium">Income</h2>
-          </div>
-          <BudgetTable
-            budgetTransactions={income}
+      <div className="flex flex-col gap-8 2xl:flex-row">
+        <div className="2xl:w-1/2">
+          <BudgetPie
+            budgetTransactions={budgetTransactions || []}
             categoryColorMap={categoryColorMap}
-            showAdd={showAddIncome}
-            editingBudgetTransactionId={editingBudgetTransactionId}
-            onShowAddChange={setShowAddIncome}
-            onEditChange={setEditingBudgetTransactionId}
-            onDelete={handleDelete}
           />
         </div>
 
-        <div>
-          <div className="flex flex-row items-center justify-between mb-2 md:mb-4">
-            <h2 className="text-2xl font-medium">Outgoings</h2>
+        <div className="flex flex-col gap-8 2xl:w-1/2">
+          <div>
+            <div className="flex flex-row items-center justify-between mb-2 md:mb-4">
+              <h2 className="text-2xl font-medium">Income</h2>
+            </div>
+            <BudgetTable
+              budgetTransactions={income}
+              categoryColorMap={categoryColorMap}
+              showAdd={showAddIncome}
+              editingBudgetTransactionId={editingBudgetTransactionId}
+              onShowAddChange={setShowAddIncome}
+              onEditChange={setEditingBudgetTransactionId}
+              onDelete={handleDelete}
+            />
           </div>
-          <BudgetTable
-            budgetTransactions={outgoings}
-            categoryColorMap={categoryColorMap}
-            showAdd={showAddOutgoings}
-            editingBudgetTransactionId={editingBudgetTransactionId}
-            onShowAddChange={setShowAddOutgoings}
-            onEditChange={setEditingBudgetTransactionId}
-            onDelete={handleDelete}
-          />
+
+          <div>
+            <div className="flex flex-row items-center justify-between mb-2 md:mb-4">
+              <h2 className="text-2xl font-medium">Outgoings</h2>
+            </div>
+            <BudgetTable
+              budgetTransactions={outgoings}
+              categoryColorMap={categoryColorMap}
+              showAdd={showAddOutgoings}
+              editingBudgetTransactionId={editingBudgetTransactionId}
+              onShowAddChange={setShowAddOutgoings}
+              onEditChange={setEditingBudgetTransactionId}
+              onDelete={handleDelete}
+            />
+          </div>
         </div>
       </div>
     </div>

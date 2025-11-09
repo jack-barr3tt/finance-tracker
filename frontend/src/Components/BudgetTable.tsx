@@ -12,7 +12,7 @@ import { FiEdit, FiPlus, FiTrash } from "react-icons/fi"
 import EditBudgetTransactionRow from "../Pages/Budget/EditBudgetTransactionRow"
 import TableBodyWithButton from "./TableBodyWithButton"
 import { BudgetTransaction } from "../API/requests"
-import { formatRepeat } from "../utils"
+import { formatRepeat, toMonthlyAmount } from "../utils"
 
 type BudgetTableProps = {
   budgetTransactions: BudgetTransaction[]
@@ -35,7 +35,21 @@ export default function BudgetTable(props: BudgetTableProps) {
     onDelete,
   } = props
 
-  const activeBudgetTransactions = budgetTransactions.filter((bt) => !bt.deleted_at)
+  const activeBudgetTransactions = budgetTransactions
+    .filter((bt) => !bt.deleted_at)
+    .sort((a, b) => {
+      const categoryA = a.category?.name || "Uncategorised"
+      const categoryB = b.category?.name || "Uncategorised"
+      const categoryComparison = categoryA.localeCompare(categoryB)
+
+      if (categoryComparison !== 0) {
+        return categoryComparison
+      }
+
+      const monthlyA = toMonthlyAmount(a.amount, a.repeat_every, a.repeat_until)
+      const monthlyB = toMonthlyAmount(b.amount, b.repeat_every, b.repeat_until)
+      return monthlyB - monthlyA
+    })
 
   return (
     <div className="-mx-8 md:mx-0">

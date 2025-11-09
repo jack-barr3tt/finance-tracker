@@ -60,6 +60,18 @@ export default function SearchSelect(props: SearchSelectProps) {
 
   const chosenOption = useMemo(() => options.find((o) => o.value === selected), [options, selected])
 
+  const handleSelectFirst = () => {
+    if (options.length > 0) {
+      const firstValue = options[0].value
+      if (allowDeselect && selected === firstValue) {
+        onValueChange(undefined)
+      } else {
+        onValueChange(firstValue)
+      }
+      setIsOpen(false)
+    }
+  }
+
   return (
     <>
       <div ref={refs.setReference} {...getReferenceProps()}>
@@ -92,6 +104,12 @@ export default function SearchSelect(props: SearchSelectProps) {
                     onChange={(e) => {
                       setSearch(e.target.value)
                       onSearchChange(e.target.value)
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault()
+                        handleSelectFirst()
+                      }
                     }}
                     placeholder="Search..."
                   />
