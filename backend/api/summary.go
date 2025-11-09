@@ -458,24 +458,91 @@ func (s *Server) GetUserIdSummaryTotals(c *fiber.Ctx, userId string, params GetU
 
 	whereClause := strings.Join(conditions, " AND ")
 
-	var totalIncome float32
-	var totalOutgoing float32
-
-	err := s.DB.QueryRow(
+	rows, err := s.DB.Query(
 		c.Context(),
 		fmt.Sprintf(
 			`SELECT 
-				COALESCE(SUM(CASE WHEN t.amount > 0 THEN t.amount ELSE 0 END), 0) AS income,
-				COALESCE(SUM(CASE WHEN t.amount < 0 THEN -t.amount ELSE 0 END), 0) AS outgoing
+				t.id, t.amount, t.date::DATE, t.account_id
 			FROM transaction t
 			LEFT JOIN account a ON t.account_id = a.id
-			WHERE %[1]s`,
+			WHERE %[1]s
+			ORDER BY t.date`,
 			whereClause,
 		),
 		args...,
-	).Scan(&totalIncome, &totalOutgoing)
+	)
 	if err != nil {
 		return DBError(c, err)
+	}
+
+	type Transaction struct {
+		ID        string
+		Amount    float32
+		Date      time.Time
+		AccountID string
+	}
+
+	transactions := []Transaction{}
+	for rows.Next() {
+		var t Transaction
+		err = rows.Scan(&t.ID, &t.Amount, &t.Date, &t.AccountID)
+		if err != nil {
+			return DBError(c, err)
+		}
+		transactions = append(transactions, t)
+	}
+
+	dateAmountMap := make(map[string]map[float32][]Transaction)
+
+	for _, t := range transactions {
+		dateKey := t.Date.Format("2006-01-02")
+		if dateAmountMap[dateKey] == nil {
+			dateAmountMap[dateKey] = make(map[float32][]Transaction)
+		}
+		dateAmountMap[dateKey][t.Amount] = append(dateAmountMap[dateKey][t.Amount], t)
+	}
+
+	transferIDs := make(map[string]bool)
+
+	for dateKey, amountMap := range dateAmountMap {
+		date, _ := time.Parse("2006-01-02", dateKey)
+
+		checkDates := []string{
+			dateKey,
+			date.AddDate(0, 0, 1).Format("2006-01-02"),
+		}
+
+		for amount, txns := range amountMap {
+			transferAmount := -amount
+
+			for _, checkDateKey := range checkDates {
+				if checkDayMap, exists := dateAmountMap[checkDateKey]; exists {
+					if transferTxns, exists := checkDayMap[transferAmount]; exists {
+						for _, t1 := range txns {
+							for _, t2 := range transferTxns {
+								if t1.AccountID != t2.AccountID {
+									transferIDs[t1.ID] = true
+									transferIDs[t2.ID] = true
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	var totalIncome float32
+	var totalOutgoing float32
+
+	for _, t := range transactions {
+		if !transferIDs[t.ID] {
+			if t.Amount > 0 {
+				totalIncome += t.Amount
+			} else if t.Amount < 0 {
+				totalOutgoing += -t.Amount
+			}
+		}
 	}
 
 	result := TotalsSummary{
