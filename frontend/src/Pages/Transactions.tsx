@@ -170,8 +170,8 @@ export default function Transactions() {
                         value: account.id,
                       })) || []
                     }
-                    value={accountFilterId}
-                    onChange={(value) => setAccountFilterId(value)}
+                    selected={accountFilterId}
+                    onValueChange={(value) => setAccountFilterId(value)}
                   />
                 </div>
               </TableHeadCell>
@@ -193,8 +193,8 @@ export default function Transactions() {
                           ]
                         : []
                     }
-                    value={categoryFilterId}
-                    onChange={(value) => setCategoryFilterId(value)}
+                    selected={categoryFilterId}
+                    onValueChange={(value) => setCategoryFilterId(value)}
                   />
                 </div>
               </TableHeadCell>
