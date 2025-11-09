@@ -26,9 +26,9 @@ export default function BalanceGraph() {
   )
 
   return (
-    <Card className="w-1/2">
-      <div className="flex flex-col items-center gap-4">
-        <h1 className="text-xl font-medium">Balance over Time</h1>
+    <Card className="w-1/2 min-h-full flex flex-col">
+      <div className="flex flex-col gap-4 flex-1 justify-between">
+        <h1 className="text-xl font-medium text-center w-full">Balance over Time</h1>
         <div className="w-full h-96">
           <Line
             data={{

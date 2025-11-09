@@ -761,6 +761,22 @@ export const BalanceDatapointSchema = {
     required: ['date', 'balance']
 } as const;
 
+export const TotalsSummarySchema = {
+    type: 'object',
+    properties: {
+        income: {
+            type: 'number'
+        },
+        outgoing: {
+            type: 'number'
+        },
+        net: {
+            type: 'number'
+        }
+    },
+    required: ['income', 'outgoing', 'net']
+} as const;
+
 export const PeriodUnitSchema = {
     type: 'string',
     enum: ['day', 'week', 'month', 'year'],

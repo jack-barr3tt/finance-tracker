@@ -273,6 +273,12 @@ export type BalanceDatapoint = {
     balance: number;
 };
 
+export type TotalsSummary = {
+    income: number;
+    outgoing: number;
+    net: number;
+};
+
 export type PeriodUnit = 'day' | 'week' | 'month' | 'year';
 
 export type SummaryGroupBy = 'day' | 'week' | 'month';
@@ -587,6 +593,19 @@ export type GetUserByIdSummaryBalanceData = {
 export type GetUserByIdSummaryBalanceResponse = (BalanceSummary);
 
 export type GetUserByIdSummaryBalanceError = unknown;
+
+export type GetUserByIdSummaryTotalsData = {
+    path: {
+        id: string;
+    };
+    query?: {
+        period?: TimePeriod;
+    };
+};
+
+export type GetUserByIdSummaryTotalsResponse = (TotalsSummary);
+
+export type GetUserByIdSummaryTotalsError = unknown;
 
 export type PostUserByIdBudgetTransactionsData = {
     body?: BudgetTransactionCreateRequest;
