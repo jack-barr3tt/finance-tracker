@@ -6,7 +6,12 @@ Work-in-progress project to build a personal finance tracker app. This functions
 
 - ✅ Multiple bank accounts
 - ✅ Spending categories
+- ✅ Automatic transaction categorization
 - ✅ Graphs/charts of spending and saving
-- 🚧 CSV imports
-- 🕒 Sort/filter/aggregate spending
-- 🕒 End-to-end encryption
+- ✅ CSV imports
+- ✅ Sort/filter/aggregate spending
+- ✅ End-to-end encryption
+- 🚧 Budgeting with overspend alerts
+- 🕒 Self-hosting toolkit
+- 🕒 Market integrations for stocks, crypto, etc
+- 🕒 Open Banking integration
