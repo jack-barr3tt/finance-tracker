@@ -1,3 +1,4 @@
+CREATE TYPE IF NOT EXISTS period_unit AS ENUM ('day', 'week', 'month', 'year');
 CREATE TABLE IF NOT EXISTS "user" (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   email VARCHAR(100) UNIQUE NOT NULL,
@@ -54,6 +55,16 @@ CREATE TABLE IF NOT EXISTS "transaction" (
   file_id UUID REFERENCES "file"(id) ON DELETE CASCADE,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   txn_hash TEXT UNIQUE NOT NULL
+);
+CREATE TABLE IF NOT EXISTS "budget_transaction" (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  category_id UUID REFERENCES "category"(id) ON DELETE CASCADE,
+  amount DECIMAL(10, 2) NOT NULL,
+  description TEXT,
+  repeat_until period_unit NOT NULL,
+  repeat_every DECIMAL(4, 1) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  deleted_at TIMESTAMP
 );
 CREATE OR REPLACE FUNCTION update_txn_hash() RETURNS TRIGGER AS $$ BEGIN NEW.txn_hash := encode(
     digest(

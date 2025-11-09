@@ -22,13 +22,21 @@ const (
 	BearerAuthScopes = "BearerAuth.Scopes"
 )
 
+// Defines values for PeriodUnit.
+const (
+	PeriodUnitDay   PeriodUnit = "day"
+	PeriodUnitMonth PeriodUnit = "month"
+	PeriodUnitWeek  PeriodUnit = "week"
+	PeriodUnitYear  PeriodUnit = "year"
+)
+
 // Defines values for TimePeriod.
 const (
-	All   TimePeriod = "all"
-	Month TimePeriod = "month"
-	Week  TimePeriod = "week"
-	Year  TimePeriod = "year"
-	Ytd   TimePeriod = "ytd"
+	TimePeriodAll   TimePeriod = "all"
+	TimePeriodMonth TimePeriod = "month"
+	TimePeriodWeek  TimePeriod = "week"
+	TimePeriodYear  TimePeriod = "year"
+	TimePeriodYtd   TimePeriod = "ytd"
 )
 
 // Account defines model for Account.
@@ -109,6 +117,52 @@ type Bank struct {
 	Id               string `json:"id"`
 	Name             string `json:"name"`
 	ShortName        string `json:"short_name"`
+}
+
+// BudgetTransaction defines model for BudgetTransaction.
+type BudgetTransaction struct {
+	Amount      float32    `json:"amount"`
+	Category    *Category  `json:"category,omitempty"`
+	CreatedAt   time.Time  `json:"created_at"`
+	DeletedAt   *time.Time `json:"deleted_at,omitempty"`
+	Description *string    `json:"description,omitempty"`
+	Id          string     `json:"id"`
+	RepeatEvery float32    `json:"repeat_every"`
+	RepeatUntil PeriodUnit `json:"repeat_until"`
+}
+
+// BudgetTransactionCreateRequest defines model for BudgetTransactionCreateRequest.
+type BudgetTransactionCreateRequest struct {
+	Amount      float32    `json:"amount"`
+	CategoryId  *string    `json:"category_id,omitempty"`
+	Description *string    `json:"description,omitempty"`
+	RepeatEvery float32    `json:"repeat_every"`
+	RepeatUntil PeriodUnit `json:"repeat_until"`
+}
+
+// BudgetTransactionCreateResponse defines model for BudgetTransactionCreateResponse.
+type BudgetTransactionCreateResponse struct {
+	Id string `json:"id"`
+}
+
+// BudgetTransactionDeleteResponse defines model for BudgetTransactionDeleteResponse.
+type BudgetTransactionDeleteResponse struct {
+	Id      string `json:"id"`
+	Message string `json:"message"`
+}
+
+// BudgetTransactionEditRequest defines model for BudgetTransactionEditRequest.
+type BudgetTransactionEditRequest struct {
+	Amount      *float32    `json:"amount,omitempty"`
+	CategoryId  *string     `json:"category_id,omitempty"`
+	Description *string     `json:"description,omitempty"`
+	RepeatEvery *float32    `json:"repeat_every,omitempty"`
+	RepeatUntil *PeriodUnit `json:"repeat_until,omitempty"`
+}
+
+// BudgetTransactionEditResponse defines model for BudgetTransactionEditResponse.
+type BudgetTransactionEditResponse struct {
+	Id string `json:"id"`
 }
 
 // Category defines model for Category.
@@ -207,6 +261,9 @@ type NotAuthorized struct {
 type NotFound struct {
 	Message *string `json:"message,omitempty"`
 }
+
+// PeriodUnit defines model for PeriodUnit.
+type PeriodUnit string
 
 // SignupRequest defines model for SignupRequest.
 type SignupRequest struct {
@@ -336,6 +393,12 @@ type PostUserIdAccountsJSONRequestBody = AccountCreateRequest
 // PatchUserIdAccountsAccountIdJSONRequestBody defines body for PatchUserIdAccountsAccountId for application/json ContentType.
 type PatchUserIdAccountsAccountIdJSONRequestBody = AccountEditRequest
 
+// PostUserIdBudgetTransactionsJSONRequestBody defines body for PostUserIdBudgetTransactions for application/json ContentType.
+type PostUserIdBudgetTransactionsJSONRequestBody = BudgetTransactionCreateRequest
+
+// PatchUserIdBudgetTransactionsBudgetTransactionIdJSONRequestBody defines body for PatchUserIdBudgetTransactionsBudgetTransactionId for application/json ContentType.
+type PatchUserIdBudgetTransactionsBudgetTransactionIdJSONRequestBody = BudgetTransactionEditRequest
+
 // PostUserIdCategoriesJSONRequestBody defines body for PostUserIdCategories for application/json ContentType.
 type PostUserIdCategoriesJSONRequestBody = CategoryCreateRequest
 
@@ -392,6 +455,21 @@ type ServerInterface interface {
 
 	// (PATCH /user/{id}/accounts/{account_id})
 	PatchUserIdAccountsAccountId(c *fiber.Ctx, id string, accountId string) error
+
+	// (GET /user/{id}/budget-transactions)
+	GetUserIdBudgetTransactions(c *fiber.Ctx, id string) error
+
+	// (POST /user/{id}/budget-transactions)
+	PostUserIdBudgetTransactions(c *fiber.Ctx, id string) error
+
+	// (DELETE /user/{id}/budget-transactions/{budget_transaction_id})
+	DeleteUserIdBudgetTransactionsBudgetTransactionId(c *fiber.Ctx, id string, budgetTransactionId string) error
+
+	// (GET /user/{id}/budget-transactions/{budget_transaction_id})
+	GetUserIdBudgetTransactionsBudgetTransactionId(c *fiber.Ctx, id string, budgetTransactionId string) error
+
+	// (PATCH /user/{id}/budget-transactions/{budget_transaction_id})
+	PatchUserIdBudgetTransactionsBudgetTransactionId(c *fiber.Ctx, id string, budgetTransactionId string) error
 
 	// (GET /user/{id}/categories)
 	GetUserIdCategories(c *fiber.Ctx, id string) error
@@ -608,6 +686,120 @@ func (siw *ServerInterfaceWrapper) PatchUserIdAccountsAccountId(c *fiber.Ctx) er
 	c.Context().SetUserValue(BearerAuthScopes, []string{})
 
 	return siw.Handler.PatchUserIdAccountsAccountId(c, id, accountId)
+}
+
+// GetUserIdBudgetTransactions operation middleware
+func (siw *ServerInterfaceWrapper) GetUserIdBudgetTransactions(c *fiber.Ctx) error {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", c.Params("id"), &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter id: %w", err).Error())
+	}
+
+	c.Context().SetUserValue(BearerAuthScopes, []string{})
+
+	return siw.Handler.GetUserIdBudgetTransactions(c, id)
+}
+
+// PostUserIdBudgetTransactions operation middleware
+func (siw *ServerInterfaceWrapper) PostUserIdBudgetTransactions(c *fiber.Ctx) error {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", c.Params("id"), &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter id: %w", err).Error())
+	}
+
+	c.Context().SetUserValue(BearerAuthScopes, []string{})
+
+	return siw.Handler.PostUserIdBudgetTransactions(c, id)
+}
+
+// DeleteUserIdBudgetTransactionsBudgetTransactionId operation middleware
+func (siw *ServerInterfaceWrapper) DeleteUserIdBudgetTransactionsBudgetTransactionId(c *fiber.Ctx) error {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", c.Params("id"), &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter id: %w", err).Error())
+	}
+
+	// ------------- Path parameter "budget_transaction_id" -------------
+	var budgetTransactionId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "budget_transaction_id", c.Params("budget_transaction_id"), &budgetTransactionId, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter budget_transaction_id: %w", err).Error())
+	}
+
+	c.Context().SetUserValue(BearerAuthScopes, []string{})
+
+	return siw.Handler.DeleteUserIdBudgetTransactionsBudgetTransactionId(c, id, budgetTransactionId)
+}
+
+// GetUserIdBudgetTransactionsBudgetTransactionId operation middleware
+func (siw *ServerInterfaceWrapper) GetUserIdBudgetTransactionsBudgetTransactionId(c *fiber.Ctx) error {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", c.Params("id"), &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter id: %w", err).Error())
+	}
+
+	// ------------- Path parameter "budget_transaction_id" -------------
+	var budgetTransactionId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "budget_transaction_id", c.Params("budget_transaction_id"), &budgetTransactionId, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter budget_transaction_id: %w", err).Error())
+	}
+
+	c.Context().SetUserValue(BearerAuthScopes, []string{})
+
+	return siw.Handler.GetUserIdBudgetTransactionsBudgetTransactionId(c, id, budgetTransactionId)
+}
+
+// PatchUserIdBudgetTransactionsBudgetTransactionId operation middleware
+func (siw *ServerInterfaceWrapper) PatchUserIdBudgetTransactionsBudgetTransactionId(c *fiber.Ctx) error {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", c.Params("id"), &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter id: %w", err).Error())
+	}
+
+	// ------------- Path parameter "budget_transaction_id" -------------
+	var budgetTransactionId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "budget_transaction_id", c.Params("budget_transaction_id"), &budgetTransactionId, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter budget_transaction_id: %w", err).Error())
+	}
+
+	c.Context().SetUserValue(BearerAuthScopes, []string{})
+
+	return siw.Handler.PatchUserIdBudgetTransactionsBudgetTransactionId(c, id, budgetTransactionId)
 }
 
 // GetUserIdCategories operation middleware
@@ -1162,6 +1354,16 @@ func RegisterHandlersWithOptions(router fiber.Router, si ServerInterface, option
 
 	router.Patch(options.BaseURL+"/user/:id/accounts/:account_id", wrapper.PatchUserIdAccountsAccountId)
 
+	router.Get(options.BaseURL+"/user/:id/budget-transactions", wrapper.GetUserIdBudgetTransactions)
+
+	router.Post(options.BaseURL+"/user/:id/budget-transactions", wrapper.PostUserIdBudgetTransactions)
+
+	router.Delete(options.BaseURL+"/user/:id/budget-transactions/:budget_transaction_id", wrapper.DeleteUserIdBudgetTransactionsBudgetTransactionId)
+
+	router.Get(options.BaseURL+"/user/:id/budget-transactions/:budget_transaction_id", wrapper.GetUserIdBudgetTransactionsBudgetTransactionId)
+
+	router.Patch(options.BaseURL+"/user/:id/budget-transactions/:budget_transaction_id", wrapper.PatchUserIdBudgetTransactionsBudgetTransactionId)
+
 	router.Get(options.BaseURL+"/user/:id/categories", wrapper.GetUserIdCategories)
 
 	router.Post(options.BaseURL+"/user/:id/categories", wrapper.PostUserIdCategories)
@@ -1205,40 +1407,44 @@ func RegisterHandlersWithOptions(router fiber.Router, si ServerInterface, option
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"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",
+	"95nw7XOHesZrReTxePx/AAAA//8OhGw29mcAAA==",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

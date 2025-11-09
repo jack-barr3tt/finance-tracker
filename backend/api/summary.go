@@ -144,16 +144,16 @@ func (s *Server) GetUserIdSummaryCategories(c *fiber.Ctx, userId string, params 
 
 	if params.Period != nil {
 		switch *params.Period {
-		case Ytd:
+		case TimePeriodYtd:
 			conditions = append(conditions, "t.date >= $2")
 			args = append(args, time.Date(time.Now().Year(), 1, 1, 0, 0, 0, 0, time.Now().Location()))
-		case Year:
+		case TimePeriodYear:
 			conditions = append(conditions, "t.date >= $2")
 			args = append(args, time.Now().AddDate(-1, 0, 0))
-		case Month:
+		case TimePeriodMonth:
 			conditions = append(conditions, "t.date >= $2")
 			args = append(args, time.Now().AddDate(0, -1, 0))
-		case Week:
+		case TimePeriodWeek:
 			conditions = append(conditions, "t.date >= $2")
 			args = append(args, time.Now().AddDate(0, 0, -7))
 		}
@@ -311,14 +311,14 @@ func (s *Server) GetUserIdSummaryBalance(c *fiber.Ctx, userId string, params Get
 	dayStep := 1
 	if params.GroupBy != nil {
 		switch *params.GroupBy {
-		case Week:
+		case TimePeriodWeek:
 			dayStep = 7
-		case Month:
+		case TimePeriodMonth:
 			monthStep = 1
 			dayStep = 0
 
 			startDate = time.Date(startDate.Year(), startDate.Month(), 1, 0, 0, 0, 0, startDate.Location())
-		case Year, Ytd:
+		case TimePeriodYear, TimePeriodYtd:
 			yearStep = 1
 			dayStep = 0
 
@@ -330,17 +330,17 @@ func (s *Server) GetUserIdSummaryBalance(c *fiber.Ctx, userId string, params Get
 
 	if params.Period != nil {
 		switch *params.Period {
-		case Ytd:
+		case TimePeriodYtd:
 			skipTo = time.Date(time.Now().Year(), 1, 1, 0, 0, 0, 0, time.Now().Location())
-		case Year:
+		case TimePeriodYear:
 			skipTo = time.Now().AddDate(-1, 0, 0)
-		case Month:
+		case TimePeriodMonth:
 			skipTo = time.Now().AddDate(0, -1, 0)
-		case Week:
+		case TimePeriodWeek:
 			skipTo = time.Now().AddDate(0, 0, -7)
 		}
 
-		if *params.Period == Month || *params.Period == Year {
+		if *params.Period == TimePeriodMonth || *params.Period == TimePeriodYear {
 			skipTo = time.Date(skipTo.Year(), skipTo.Month(), 1, 0, 0, 0, 0, skipTo.Location())
 		}
 	}
@@ -361,7 +361,7 @@ func (s *Server) GetUserIdSummaryBalance(c *fiber.Ctx, userId string, params Get
 		}
 	}
 
-	if params.GroupBy == nil || *params.GroupBy != Month {
+	if params.GroupBy == nil || *params.GroupBy != TimePeriodMonth {
 		skipTo = skipTo.AddDate(0, 0, 1)
 	}
 

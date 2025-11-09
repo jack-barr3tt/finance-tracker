@@ -745,6 +745,139 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/BalanceSummary"
+  /user/{id}/budget-transactions:
+    post:
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BudgetTransactionCreateRequest"
+      responses:
+        "200":
+          description: Budget transaction response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BudgetTransactionCreateResponse"
+    get:
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Budget transaction response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BudgetTransaction"
+        "404":
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFound"
+  /user/{id}/budget-transactions/{budget_transaction_id}:
+    get:
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: budget_transaction_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Budget transaction response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BudgetTransaction"
+        "404":
+          description: Budget transaction not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFound"
+    patch:
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: budget_transaction_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BudgetTransactionEditRequest"
+      responses:
+        "200":
+          description: Budget transaction response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BudgetTransactionEditResponse"
+        "404":
+          description: Budget transaction not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFound"
+    delete:
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: budget_transaction_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Budget transaction response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BudgetTransactionDeleteResponse"
+        "404":
+          description: Budget transaction not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFound"
 components:
   securitySchemes:
     BearerAuth:
@@ -905,6 +1038,40 @@ components:
           default: false
       required:
         - hash
+    BudgetTransactionCreateRequest:
+      type: object
+      properties:
+        category_id:
+          type: string
+        amount:
+          type: number
+          example: 100.00
+        description:
+          type: string
+        repeat_until:
+          $ref: "#/components/schemas/PeriodUnit"
+        repeat_every:
+          type: number
+          example: 1.0
+      required:
+        - amount
+        - repeat_until
+        - repeat_every
+    BudgetTransactionEditRequest:
+      type: object
+      properties:
+        category_id:
+          type: string
+        amount:
+          type: number
+          example: 100.00
+        description:
+          type: string
+        repeat_until:
+          $ref: "#/components/schemas/PeriodUnit"
+        repeat_every:
+          type: number
+          example: 1.0
     # Responses
     LoginResponse:
       type: object
@@ -1043,6 +1210,30 @@ components:
           type: string
       required:
         - message
+    BudgetTransactionCreateResponse:
+      type: object
+      properties:
+        id:
+          type: string
+      required:
+        - id
+    BudgetTransactionEditResponse:
+      type: object
+      properties:
+        id:
+          type: string
+      required:
+        - id
+    BudgetTransactionDeleteResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        message:
+          type: string
+      required:
+        - id
+        - message
     # Errors
     NotAuthorized:
       type: object
@@ -1172,6 +1363,33 @@ components:
         - description
         - date
         - created_at
+    BudgetTransaction:
+      type: object
+      properties:
+        id:
+          type: string
+        category:
+          $ref: "#/components/schemas/Category"
+        amount:
+          type: number
+        description:
+          type: string
+        repeat_until:
+          $ref: "#/components/schemas/PeriodUnit"
+        repeat_every:
+          type: number
+        created_at:
+          type: string
+          format: date-time
+        deleted_at:
+          type: string
+          format: date-time
+      required:
+        - id
+        - amount
+        - repeat_until
+        - repeat_every
+        - created_at
     AllAccountSummary:
       type: object
       properties:
@@ -1244,6 +1462,14 @@ components:
         - date
         - balance
     # Enums
+    PeriodUnit:
+      type: string
+      enum:
+        - day
+        - week
+        - month
+        - year
+      default: month
     SummaryGroupBy:
       type: string
       enum:
