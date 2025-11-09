@@ -1,4 +1,4 @@
-CREATE TYPE IF NOT EXISTS period_unit AS ENUM ('day', 'week', 'month', 'year');
+CREATE TYPE period_unit AS ENUM ('day', 'week', 'month', 'year');
 CREATE TABLE IF NOT EXISTS "user" (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   email VARCHAR(100) UNIQUE NOT NULL,
