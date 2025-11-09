@@ -1,26 +1,25 @@
 import { Button, DarkThemeToggle } from "flowbite-react"
 import { useUser } from "../Hooks/useUser"
-import { useNavigate } from "react-router-dom"
-import { FiHome } from "react-icons/fi"
+import { Link, useNavigate } from "react-router-dom"
 
 export default function NavBar() {
   const { userId } = useUser()
   const navigate = useNavigate()
 
+  if (!userId) return null
+
   return (
-    <div className="flex items-center w-full gap-8 px-8 py-4 md:px-16">
-      <Button
-        onClick={() => (userId ? navigate("/dashboard") : null)}
-        className="w-10 p-0 mr-auto"
-        color="light"
-      >
-        <FiHome />
-      </Button>
-      {userId ? (
-        <>
-          <Button onClick={() => navigate("/settings")}>Settings</Button>
-        </>
-      ) : null}
+    <div className="flex items-center w-full gap-4 px-8 py-4 md:px-16">
+      <Link to="/transactions">
+        <Button color="light">Transactions</Button>
+      </Link>
+      <Link to="/budget">
+        <Button color="light">Budget</Button>
+      </Link>
+
+      <div className="mr-auto" />
+
+      <Button onClick={() => navigate("/settings")}>Settings</Button>
       <DarkThemeToggle />
     </div>
   )

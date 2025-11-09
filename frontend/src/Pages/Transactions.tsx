@@ -21,7 +21,7 @@ import {
   UseGetUserByIdTransactionsKeyFn,
 } from "../API/queries"
 import { FiEdit, FiPlus, FiTrash, FiUpload } from "react-icons/fi"
-import EditTransactionRow from "./Dashboard/EditTransactionRow"
+import EditTransactionRow from "./Transactions/EditTransactionRow"
 import TableBodyWithButton from "../Components/TableBodyWithButton"
 import { useCallback, useState } from "react"
 import { useQueryClient } from "@tanstack/react-query"
@@ -37,11 +37,11 @@ import { useAsyncMemo } from "../Hooks/useAsyncMemo"
 import { decryptTransaction } from "../Security/data"
 import AccountSummaries from "../Components/AccountSummaries"
 import { TimePeriodSchema } from "../API/requests"
-import { useDashboard } from "../Hooks/useDashboard"
+import { useData } from "../Hooks/useData"
 
-export default function Dashboard() {
+export default function Transactions() {
   const { userId, decrypt } = useUser()
-  const { setDataPeriod, accounts, categories, accountColorMap, categoryColorMap } = useDashboard()
+  const { setDataPeriod, accounts, categories, accountColorMap, categoryColorMap } = useData()
   const queryClient = useQueryClient()
 
   const { mutateAsync: deleteTransaction } = useDeleteUserByIdTransactionsByTransactionId()

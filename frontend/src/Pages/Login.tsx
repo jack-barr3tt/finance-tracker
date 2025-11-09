@@ -16,7 +16,7 @@ export default function Login() {
       e.preventDefault()
 
       if (await login(email, password)) {
-        navigate("/dashboard")
+        navigate("/transactions")
       } else {
         alert("Login failed")
       }

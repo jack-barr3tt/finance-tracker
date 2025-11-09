@@ -1,38 +1,16 @@
 import { Button } from "flowbite-react"
 import { FiRefreshCw } from "react-icons/fi"
 import { useUser } from "../Hooks/useUser"
-import { useAsyncMemo } from "../Hooks/useAsyncMemo"
 import { decryptTransaction } from "../Security/data"
 import { useCallback } from "react"
-import {
-  useGetUserByIdCategories,
-  usePatchUserByIdTransactionsByTransactionId,
-} from "../API/queries"
+import { usePatchUserByIdTransactionsByTransactionId } from "../API/queries"
 import { getUserByIdTransactions } from "../API/requests"
+import { useData } from "../Hooks/useData"
 
 export default function ApplyRules() {
   const { userId, decrypt, encrypt } = useUser()
 
-  const { data: encCategories } = useGetUserByIdCategories({
-    path: { id: userId },
-  })
-
-  const categories = useAsyncMemo(
-    async () =>
-      await Promise.all(
-        encCategories?.map(async (category) => ({
-          ...category,
-          rules: await Promise.all(
-            category.rules.map(async (rule) => ({
-              ...rule,
-              rule: rule.rule ? await decrypt(rule.rule) : "",
-              description: rule.description ? await decrypt(rule.description) : "",
-            }))
-          ),
-        })) ?? []
-      ),
-    [encCategories, decrypt]
-  )
+  const { categories } = useData()
 
   const { mutateAsync: editTransaction } = usePatchUserByIdTransactionsByTransactionId()
 

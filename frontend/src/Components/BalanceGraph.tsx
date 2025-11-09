@@ -12,35 +12,13 @@ import Color from "color"
 import { Card } from "flowbite-react"
 import { useMemo } from "react"
 import { Line } from "react-chartjs-2"
-import { useGetUserByIdSummaryBalance } from "../API/queries"
-import { useUser } from "../Hooks/useUser"
 import { getBrightColors } from "../utils"
-import { decryptAccount } from "../Security/data"
-import { useAsyncMemo } from "../Hooks/useAsyncMemo"
-import { useDashboard } from "../Hooks/useDashboard"
+import { useData } from "../Hooks/useData"
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend)
 
 export default function BalanceGraph() {
-  const { userId, decrypt } = useUser()
-  const { dataPeriod, dataGroupBy, accountColorMap: colorMap } = useDashboard()
-  const { data: encBalanceSummary } = useGetUserByIdSummaryBalance({
-    path: { id: userId },
-    query: { group_by: dataGroupBy, period: dataPeriod },
-  })
-
-  const balanceSummary = useAsyncMemo(async () => {
-    if (!encBalanceSummary) return null
-    return {
-      ...encBalanceSummary,
-      accounts: await Promise.all(
-        encBalanceSummary.accounts.map(async (account) => ({
-          ...account,
-          account: await decryptAccount(account.account, decrypt),
-        }))
-      ),
-    }
-  }, [encBalanceSummary, decrypt])
+  const { balanceSummary, accountColorMap: colorMap } = useData()
 
   const { borders: lineBorders, fills: lineFills } = useMemo(
     () => getBrightColors((balanceSummary?.accounts.length || 0) + 1),

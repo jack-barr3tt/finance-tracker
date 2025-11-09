@@ -39,7 +39,7 @@ export default function SignUp() {
 
         await login(email, password)
 
-        navigate("/dashboard")
+        navigate("/transactions")
       } catch {
         alert("Sign up failed")
       }
