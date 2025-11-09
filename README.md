@@ -11,7 +11,9 @@ Work-in-progress project to build a personal finance tracker app. This functions
 - ✅ CSV imports
 - ✅ Sort/filter/aggregate spending
 - ✅ End-to-end encryption
-- 🚧 Budgeting with overspend alerts
+- 🚧 Budget planner
+- 🕒 Budget overspend checker 
 - 🕒 Self-hosting toolkit
+- 🕒 Passkey support
 - 🕒 Market integrations for stocks, crypto, etc
 - 🕒 Open Banking integration
