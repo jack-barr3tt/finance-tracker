@@ -745,6 +745,28 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/BalanceSummary"
+  /user/{id}/summary/totals:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: period
+        in: query
+        required: false
+        schema:
+          $ref: "#/components/schemas/TimePeriod"
+    get:
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Income and outgoing totals summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TotalsSummary"
   /user/{id}/budget-transactions:
     post:
       security:
@@ -1461,6 +1483,19 @@ components:
       required:
         - date
         - balance
+    TotalsSummary:
+      type: object
+      properties:
+        income:
+          type: number
+        outgoing:
+          type: number
+        net:
+          type: number
+      required:
+        - income
+        - outgoing
+        - net
     # Enums
     PeriodUnit:
       type: string

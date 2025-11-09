@@ -428,3 +428,61 @@ func (s *Server) GetUserIdSummaryBalance(c *fiber.Ctx, userId string, params Get
 
 	return c.JSON(result)
 }
+
+func (s *Server) GetUserIdSummaryTotals(c *fiber.Ctx, userId string, params GetUserIdSummaryTotalsParams) error {
+	tokUserId := GetTokenClaim[string](c, "id")
+
+	if tokUserId != userId {
+		return c.SendStatus(fiber.StatusUnauthorized)
+	}
+
+	conditions := []string{"a.user_id = $1"}
+	args := []interface{}{userId}
+
+	if params.Period != nil {
+		switch *params.Period {
+		case TimePeriodYtd:
+			conditions = append(conditions, "t.date >= $2")
+			args = append(args, time.Date(time.Now().Year(), 1, 1, 0, 0, 0, 0, time.Now().Location()))
+		case TimePeriodYear:
+			conditions = append(conditions, "t.date >= $2")
+			args = append(args, time.Now().AddDate(-1, 0, 0))
+		case TimePeriodMonth:
+			conditions = append(conditions, "t.date >= $2")
+			args = append(args, time.Now().AddDate(0, -1, 0))
+		case TimePeriodWeek:
+			conditions = append(conditions, "t.date >= $2")
+			args = append(args, time.Now().AddDate(0, 0, -7))
+		}
+	}
+
+	whereClause := strings.Join(conditions, " AND ")
+
+	var totalIncome float32
+	var totalOutgoing float32
+
+	err := s.DB.QueryRow(
+		c.Context(),
+		fmt.Sprintf(
+			`SELECT 
+				COALESCE(SUM(CASE WHEN t.amount > 0 THEN t.amount ELSE 0 END), 0) AS income,
+				COALESCE(SUM(CASE WHEN t.amount < 0 THEN -t.amount ELSE 0 END), 0) AS outgoing
+			FROM transaction t
+			LEFT JOIN account a ON t.account_id = a.id
+			WHERE %[1]s`,
+			whereClause,
+		),
+		args...,
+	).Scan(&totalIncome, &totalOutgoing)
+	if err != nil {
+		return DBError(c, err)
+	}
+
+	result := TotalsSummary{
+		Income:   totalIncome,
+		Outgoing: totalOutgoing,
+		Net:      totalIncome - totalOutgoing,
+	}
+
+	return c.JSON(result)
+}
