@@ -188,6 +188,13 @@ export async function parseTrading212(
             description: "New card cost",
             account_id: uninvestedAccountId,
           }
+        case "ADR Fee":
+          return {
+            date: parseDate(data.Time),
+            amount: parseFloat(data.Total),
+            description: "ADR Fee",
+            account_id: uninvestedAccountId,
+          }
         default:
           throw new Error(`Unsupported action: ${data.Action}`)
       }
