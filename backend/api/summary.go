@@ -279,11 +279,13 @@ func (s *Server) GetUserIdSummaryBalance(c *fiber.Ctx, userId string, params Get
 		transactions = append(transactions, t)
 	}
 
+	now := time.Now().UTC()
+
 	if len(transactions) == 0 {
 		result := BalanceSummary{
 			Total: []BalanceDatapoint{
 				{
-					Date:    time.Now(),
+					Date:    now,
 					Balance: 0,
 				},
 			},
@@ -295,7 +297,7 @@ func (s *Server) GetUserIdSummaryBalance(c *fiber.Ctx, userId string, params Get
 				Account: accounts[accountId],
 				Balance: []BalanceDatapoint{
 					{
-						Date:    time.Now(),
+						Date:    now,
 						Balance: 0,
 					},
 				},
@@ -331,17 +333,17 @@ func (s *Server) GetUserIdSummaryBalance(c *fiber.Ctx, userId string, params Get
 	if params.Period != nil {
 		switch *params.Period {
 		case TimePeriodYtd:
-			skipTo = time.Date(time.Now().Year(), 1, 1, 0, 0, 0, 0, time.Now().Location())
+			skipTo = time.Date(now.Year(), 1, 1, 0, 0, 0, 0, time.UTC)
 		case TimePeriodYear:
-			skipTo = time.Now().AddDate(-1, 0, 0)
+			skipTo = now.AddDate(-1, 0, 0)
 		case TimePeriodMonth:
-			skipTo = time.Now().AddDate(0, -1, 0)
+			skipTo = now.AddDate(0, -1, 0)
 		case TimePeriodWeek:
-			skipTo = time.Now().AddDate(0, 0, -7)
+			skipTo = now.AddDate(0, 0, -7)
 		}
 
 		if *params.Period == TimePeriodMonth || *params.Period == TimePeriodYear {
-			skipTo = time.Date(skipTo.Year(), skipTo.Month(), 1, 0, 0, 0, 0, skipTo.Location())
+			skipTo = time.Date(skipTo.Year(), skipTo.Month(), 1, 0, 0, 0, 0, time.UTC)
 		}
 	}
 
@@ -385,7 +387,7 @@ func (s *Server) GetUserIdSummaryBalance(c *fiber.Ctx, userId string, params Get
 	}
 
 	// now collect the actual data points based on the grouping
-	for currentDate := skipTo.AddDate(yearStep, monthStep, dayStep); currentDate.Before(time.Now()); currentDate = currentDate.AddDate(yearStep, monthStep, dayStep) {
+	for currentDate := skipTo.AddDate(yearStep, monthStep, dayStep); currentDate.Before(now); currentDate = currentDate.AddDate(yearStep, monthStep, dayStep) {
 		dayTotals := map[string]float32{}
 		for _, accountId := range accountIds {
 			dayTotals[accountId] = 0
@@ -411,6 +413,38 @@ func (s *Server) GetUserIdSummaryBalance(c *fiber.Ctx, userId string, params Get
 
 		grandTotals = append(grandTotals, BalanceDatapoint{
 			Date:    currentDate,
+			Balance: dayTotal + grandTotals[len(grandTotals)-1].Balance,
+		})
+	}
+
+	// When grouping by month, add a trailing datapoint for today if today is not
+	// the 1st. This captures the partial month's transactions between the last
+	// 1st-of-month datapoint and now.
+	if params.GroupBy != nil && *params.GroupBy == TimePeriodMonth && now.Day() != 1 {
+		dayTotals := map[string]float32{}
+		for _, accountId := range accountIds {
+			dayTotals[accountId] = 0
+		}
+		dayTotal := float32(0)
+
+		for tIdx < len(transactions) {
+			t := transactions[tIdx]
+			if _, ok := dayTotals[t.AccountId]; ok {
+				dayTotals[t.AccountId] += t.Amount
+			}
+			dayTotal += t.Amount
+			tIdx++
+		}
+
+		for accountId, amount := range dayTotals {
+			totals[accountId] = append(totals[accountId], BalanceDatapoint{
+				Date:    now,
+				Balance: amount + totals[accountId][len(totals[accountId])-1].Balance,
+			})
+		}
+
+		grandTotals = append(grandTotals, BalanceDatapoint{
+			Date:    now,
 			Balance: dayTotal + grandTotals[len(grandTotals)-1].Balance,
 		})
 	}
