@@ -41,17 +41,17 @@ export default function EditTransactionRow(props: EditTransactionRowProps) {
   const accounts = useAsyncMemo(
     async () =>
       (await Promise.all(encAccounts?.map((acc) => decryptAccount(acc, decrypt)) ?? [])).sort(
-        (a, b) => a.name.localeCompare(b.name)
+        (a, b) => a.name.localeCompare(b.name),
       ),
-    [decrypt, encAccounts]
+    [decrypt, encAccounts],
   )
   const { data: encCategories } = useGetUserByIdCategories({ path: { id: userId } })
   const categories = useAsyncMemo(
     async () =>
       (await Promise.all(encCategories?.map((cat) => decryptCategory(cat, decrypt)) ?? [])).sort(
-        (a, b) => a.name.localeCompare(b.name)
+        (a, b) => a.name.localeCompare(b.name),
       ),
-    [decrypt, encCategories]
+    [decrypt, encCategories],
   )
 
   const { mutateAsync: addTransaction } = usePostUserByIdTransactions()
@@ -63,7 +63,7 @@ export default function EditTransactionRow(props: EditTransactionRowProps) {
     undefined,
     {
       enabled: !!transactionId,
-    }
+    },
   )
 
   const [accountSearch, setAccountSearch] = useState<string | undefined>(undefined)
@@ -206,15 +206,16 @@ export default function EditTransactionRow(props: EditTransactionRowProps) {
           },
         },
       }),
-    []
+    [],
   )
 
   const doneFn = useMemo(
     () => (transactionId ? handleEdit : handleAdd),
-    [handleAdd, handleEdit, transactionId]
+    [handleAdd, handleEdit, transactionId],
   )
 
   if (!accounts || !categories) return null
+  if (transactionId && !date) return null
 
   return (
     <ThemeProvider theme={tableTheme}>
@@ -228,7 +229,8 @@ export default function EditTransactionRow(props: EditTransactionRowProps) {
             options={accounts
               .filter(
                 (account) =>
-                  !accountSearch || account.name.toLowerCase().includes(accountSearch.toLowerCase())
+                  !accountSearch ||
+                  account.name.toLowerCase().includes(accountSearch.toLowerCase()),
               )
               .map((account) => ({
                 label: account.name,
@@ -246,7 +248,7 @@ export default function EditTransactionRow(props: EditTransactionRowProps) {
               .filter(
                 (category) =>
                   !categorySearch ||
-                  category.name.toLowerCase().includes(categorySearch.toLowerCase())
+                  category.name.toLowerCase().includes(categorySearch.toLowerCase()),
               )
               .map((category) => ({
                 label: category.name,
