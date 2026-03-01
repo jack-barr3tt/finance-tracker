@@ -4,6 +4,8 @@ import { Link, useNavigate } from "react-router-dom"
 import { Button, TextInput } from "flowbite-react"
 import { FiArrowRight } from "react-icons/fi"
 
+const signupEnabled = import.meta.env.VITE_ENABLE_SIGNUP === "true"
+
 export default function Login() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -21,7 +23,7 @@ export default function Login() {
         alert("Login failed")
       }
     },
-    [login, email, password, navigate]
+    [login, email, password, navigate],
   )
 
   return (
@@ -48,9 +50,14 @@ export default function Login() {
         <Button className="w-full gap-1" type="submit">
           Submit <FiArrowRight />
         </Button>
-        <p className="text-sm">
-          Need an account? <Link className="text-blue-400"  to="/signup">Sign Up</Link>
-        </p>
+        {signupEnabled && (
+          <p className="text-sm">
+            Need an account?{" "}
+            <Link className="text-blue-400" to="/signup">
+              Sign Up
+            </Link>
+          </p>
+        )}
       </form>
     </div>
   )

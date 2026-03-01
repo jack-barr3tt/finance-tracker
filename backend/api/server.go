@@ -20,9 +20,10 @@ import (
 var _ ServerInterface = (*Server)(nil)
 
 type Server struct {
-	DB        *pgxpool.Pool
-	JWTSecret string
-	Spec      *openapi3.T
+	DB           *pgxpool.Pool
+	JWTSecret    string
+	Spec         *openapi3.T
+	EnableSignup bool
 }
 
 func NewServer(ctx context.Context) (*Server, error) {
@@ -50,9 +51,10 @@ func NewServer(ctx context.Context) (*Server, error) {
 	}
 
 	return &Server{
-		DB:        conn,
-		JWTSecret: os.Getenv("JWT_SECRET"),
-		Spec:      spec,
+		DB:           conn,
+		JWTSecret:    os.Getenv("JWT_SECRET"),
+		Spec:         spec,
+		EnableSignup: os.Getenv("ENABLE_SIGNUP") == "true",
 	}, nil
 }
 

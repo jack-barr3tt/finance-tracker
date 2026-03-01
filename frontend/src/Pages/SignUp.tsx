@@ -1,10 +1,12 @@
 import { FormEvent, useCallback, useState } from "react"
 import { useUser } from "../Hooks/useUser"
-import { Link, useNavigate } from "react-router-dom"
+import { Link, Navigate, useNavigate } from "react-router-dom"
 import { usePostSignup } from "../API/queries"
 import { Button, TextInput } from "flowbite-react"
 import { FiArrowRight } from "react-icons/fi"
 import { generateKeySalt } from "../Security/keys"
+
+const signupEnabled = import.meta.env.VITE_ENABLE_SIGNUP === "true"
 
 export default function SignUp() {
   const [email, setEmail] = useState("")
@@ -44,8 +46,12 @@ export default function SignUp() {
         alert("Sign up failed")
       }
     },
-    [email, login, navigate, password, passwordConfirmation, signUp]
+    [email, login, navigate, password, passwordConfirmation, signUp],
   )
+
+  if (!signupEnabled) {
+    return <Navigate to="/login" replace />
+  }
 
   return (
     <div className="flex items-center justify-center pt-32">

@@ -55,6 +55,10 @@ func (s Server) PostLogin(c *fiber.Ctx) error {
 }
 
 func (s Server) PostSignup(c *fiber.Ctx) error {
+	if !s.EnableSignup {
+		return c.SendStatus(fiber.StatusForbidden)
+	}
+
 	body, err := GetBody[SignupRequest](c)
 	if err != nil {
 		return c.SendStatus(fiber.StatusBadRequest)
