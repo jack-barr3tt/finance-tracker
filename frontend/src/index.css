@@ -2,6 +2,8 @@
 
 @plugin 'flowbite-react/plugin/tailwindcss';
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @source '../.flowbite-react/class-list.json';
 
 @layer base {
