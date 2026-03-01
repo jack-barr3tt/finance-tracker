@@ -58,13 +58,13 @@ export const useData = () => {
 export const DataProvider = ({ children }: { children: ReactNode }) => {
   const { userId, decrypt } = useUser()
 
-  const [dataPeriod, setDataPeriod] = useState<TimePeriod>("ytd")
+  const [dataPeriod, setDataPeriod] = useState<TimePeriod>("year")
   const dataGroupBy = useMemo(
     () =>
       (dataPeriod == "all" || dataPeriod === "ytd" || dataPeriod === "year"
         ? "month"
         : "day") as TimePeriod,
-    [dataPeriod]
+    [dataPeriod],
   )
 
   const { data: encAccounts } = useGetUserByIdAccounts({ path: { id: userId } }, undefined, {
@@ -73,9 +73,9 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
   const accounts = useAsyncMemo(
     async () =>
       (await Promise.all(encAccounts?.map((acc) => decryptAccount(acc, decrypt)) ?? [])).sort(
-        (a, b) => a.name.localeCompare(b.name)
+        (a, b) => a.name.localeCompare(b.name),
       ),
-    [encAccounts, decrypt]
+    [encAccounts, decrypt],
   )
 
   const { data: encCategories } = useGetUserByIdCategories({ path: { id: userId } }, undefined, {
@@ -84,9 +84,9 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
   const categories = useAsyncMemo(
     async () =>
       (await Promise.all(encCategories?.map((cat) => decryptCategory(cat, decrypt)) ?? [])).sort(
-        (a, b) => a.name.localeCompare(b.name)
+        (a, b) => a.name.localeCompare(b.name),
       ),
-    [encCategories, decrypt]
+    [encCategories, decrypt],
   )
 
   const { data: encBudgetTransactions } = useGetUserByIdBudgetTransactions(
@@ -94,16 +94,16 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     undefined,
     {
       enabled: !!userId,
-    }
+    },
   )
   const budgetTransactions = useAsyncMemo(
     async () =>
       (
         await Promise.all(
-          encBudgetTransactions?.map((bt) => decryptBudgetTransaction(bt, decrypt)) ?? []
+          encBudgetTransactions?.map((bt) => decryptBudgetTransaction(bt, decrypt)) ?? [],
         )
       ).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()),
-    [encBudgetTransactions, decrypt]
+    [encBudgetTransactions, decrypt],
   )
 
   const { data: encAccountSummaries } = useGetUserByIdSummaryAccounts(
@@ -113,7 +113,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     undefined,
     {
       enabled: !!userId,
-    }
+    },
   )
   const accountSummary = useAsyncMemo(
     async () =>
@@ -127,11 +127,11 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
                   ...acc.account,
                   name: await decrypt(acc.account.name),
                 },
-              }))
+              })),
             ),
           }
         : null,
-    [encAccountSummaries, decrypt]
+    [encAccountSummaries, decrypt],
   )
 
   const { data: encBalanceSummary } = useGetUserByIdSummaryBalance({
@@ -146,7 +146,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         encBalanceSummary.accounts.map(async (account) => ({
           ...account,
           account: await decryptAccount(account.account, decrypt),
-        }))
+        })),
       ),
     }
   }, [encBalanceSummary, decrypt])
@@ -156,7 +156,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     undefined,
     {
       enabled: !!userId,
-    }
+    },
   )
   const categorySummaries = useAsyncMemo(
     async (): Promise<CategorySummary[] | null> =>
@@ -171,22 +171,24 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
                       name: await decrypt(cat.category.name),
                     }
                   : undefined,
-              }))
+              })),
             )
           ).sort((a, b) =>
-            (a.category?.name || "Uncategorised").localeCompare(b.category?.name || "Uncategorised")
+            (a.category?.name || "Uncategorised").localeCompare(
+              b.category?.name || "Uncategorised",
+            ),
           )
         : null,
-    [encCategorySummaries]
+    [encCategorySummaries],
   )
 
   const accountColorMap = useMemo(
     () => getChartColors(accounts ? [...accounts.map((acc) => acc.id), "total"] : []),
-    [accounts]
+    [accounts],
   )
   const categoryColorMap = useMemo(
     () => getChartColors(categories ? [...categories.map((cat) => cat.id), "uncategorised"] : []),
-    [categories]
+    [categories],
   )
 
   const value = useMemo(
@@ -214,7 +216,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
       categorySummaries,
       dataGroupBy,
       dataPeriod,
-    ]
+    ],
   )
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>

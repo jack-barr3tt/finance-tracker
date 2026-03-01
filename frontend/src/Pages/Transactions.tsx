@@ -66,12 +66,12 @@ export default function Transactions() {
         encTransactions?.pages.map(async (page) => ({
           ...page,
           transactions: await Promise.all(
-            page?.transactions.map((t) => decryptTransaction(t, decrypt)) ?? []
+            page?.transactions.map((t) => decryptTransaction(t, decrypt)) ?? [],
           ),
-        })) ?? []
+        })) ?? [],
       ),
     }),
-    [encTransactions, decrypt]
+    [encTransactions, decrypt],
   )
 
   const [showAdd, setShowAdd] = useState(false)
@@ -102,7 +102,7 @@ export default function Transactions() {
         queryKey: UseGetUserByIdSummaryBalanceKeyFn({ path: { id: userId } }),
       })
     },
-    [deleteTransaction, userId, editingTransactionId, queryClient]
+    [deleteTransaction, userId, editingTransactionId, queryClient],
   )
 
   return (
@@ -120,8 +120,8 @@ export default function Transactions() {
       >
         <TabItem title="Week" />
         <TabItem title="Month" />
-        <TabItem title="Year" />
-        <TabItem title="YTD" active />
+        <TabItem title="Year" active />
+        <TabItem title="YTD" />
         <TabItem title="All" />
       </Tabs>
 
@@ -221,7 +221,7 @@ export default function Transactions() {
             {showAdd && <EditTransactionRow cancelCallback={() => setShowAdd(false)} />}
             {transactions?.pages.reduce(
               (acc, page) => acc + (page?.transactions.length || 0),
-              0
+              0,
             ) === 0 && !showAdd ? (
               <TableRow>
                 <TableCell colSpan={6} className="text-center">
@@ -306,8 +306,8 @@ export default function Transactions() {
                         </div>
                       </TableCell>
                     </TableRow>
-                  )
-                )
+                  ),
+                ),
               )
             )}
             {isLoading ||
