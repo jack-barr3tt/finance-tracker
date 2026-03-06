@@ -22,13 +22,13 @@ export default function BalanceGraph() {
 
   const { borders: lineBorders, fills: lineFills } = useMemo(
     () => getBrightColors((balanceSummary?.accounts.length || 0) + 1),
-    [balanceSummary?.accounts.length]
+    [balanceSummary?.accounts.length],
   )
 
   return (
-    <Card className="w-1/2 min-h-full flex flex-col">
-      <div className="flex flex-col gap-4 flex-1 justify-between">
-        <h1 className="text-xl font-medium text-center w-full">Balance over Time</h1>
+    <Card className="flex flex-col w-1/2 min-h-full">
+      <div className="flex flex-col justify-between flex-1 gap-4">
+        <h1 className="w-full text-xl font-medium text-center">Balance over Time</h1>
         <div className="w-full h-96">
           <Line
             data={{
@@ -59,6 +59,12 @@ export default function BalanceGraph() {
               plugins: {
                 legend: {
                   position: "bottom",
+                },
+                tooltip: {
+                  callbacks: {
+                    label: (context) =>
+                      `${context.dataset.label}: £${(context.parsed.y as number).toFixed(2)}`,
+                  },
                 },
               },
               animation: false,
