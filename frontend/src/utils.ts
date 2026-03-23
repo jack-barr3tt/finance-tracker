@@ -1,3 +1,5 @@
+import Color from "color"
+
 export function getBrightColors(count: number): {
   fills: string[]
   borders: string[]
@@ -8,15 +10,17 @@ export function getBrightColors(count: number): {
   const text: string[] = []
   for (let i = 0; i < count; i++) {
     const hue = (360 / count) * i
-    fills.push(`hsl(${hue}, 100%, 65%)`)
-    borders.push(`hsl(${hue}, 100%, 65%)`)
-    text.push(`hsl(${hue}, 100%, 15%)`)
+
+    const baseColor = Color.hsl(hue, 100, 65)
+    fills.push(baseColor.darken(0.35).string())
+    borders.push(baseColor.darken(0.35).string())
+    text.push(baseColor.lighten(0.92).string())
   }
   return { fills, borders, text }
 }
 
 export function getChartColors(
-  ids: string[]
+  ids: string[],
 ): Record<string, { border: string; fill: string; text: string }> {
   const colors = getBrightColors(ids.length)
   const map: Record<string, { border: string; fill: string; text: string }> = {}

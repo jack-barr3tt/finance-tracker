@@ -1,5 +1,5 @@
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js"
-import { Card } from "flowbite-react"
+import { Card, useThemeMode } from "flowbite-react"
 import Color from "color"
 import { useMemo } from "react"
 import { Doughnut } from "react-chartjs-2"
@@ -10,6 +10,8 @@ import { useGetUserByIdSummaryTotals } from "../API/queries"
 ChartJS.register(ArcElement, Tooltip, Legend)
 
 export default function CategoryPie() {
+  const { computedMode } = useThemeMode()
+  const isDark = computedMode === "dark"
   const { userId } = useUser()
   const { categorySummaries, categoryColorMap: colorMap, dataPeriod } = useData()
   const { data: totals } = useGetUserByIdSummaryTotals({
@@ -88,11 +90,11 @@ export default function CategoryPie() {
                     backgroundColor: colorMap
                       ? categorySummaries
                           ?.filter((cat) => cat.total < 0)
-                          .map((cat) =>
-                            Color(colorMap[cat.category?.id || "uncategorised"]?.fill)
-                              .alpha(0.25)
-                              .string()
-                          )
+                          .map((cat) => {
+                            const fill = colorMap[cat.category?.id || "uncategorised"]?.fill
+                            const c = Color(fill)
+                            return isDark ? c.alpha(0.25).string() : c.string()
+                          })
                       : pieFills,
                     borderColor: colorMap
                       ? categorySummaries

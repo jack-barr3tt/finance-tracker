@@ -14,7 +14,7 @@
   }
 
   #root {
-    @apply bg-white dark:bg-neutral-900 text-black dark:text-white;
+    @apply bg-gray-100 dark:bg-neutral-900 text-black dark:text-white;
   }
 }
 
