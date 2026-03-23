@@ -93,6 +93,19 @@ export default function EditTransactionRow(props: EditTransactionRowProps) {
     })()
   }, [decrypt, transaction])
 
+  useEffect(() => {
+    if (!cancelCallback) return
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return
+      e.preventDefault()
+      cancelCallback()
+    }
+
+    document.addEventListener("keydown", onKeyDown, true)
+    return () => document.removeEventListener("keydown", onKeyDown, true)
+  }, [cancelCallback])
+
   const handleAdd = useCallback(async () => {
     if (!date || !selectedAccount || !selectedCategory || !amount) return
 
