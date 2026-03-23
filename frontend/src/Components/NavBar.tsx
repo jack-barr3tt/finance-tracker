@@ -2,7 +2,12 @@ import { Button, DarkThemeToggle } from "flowbite-react"
 import { useUser } from "../Hooks/useUser"
 import { Link, useLocation, useNavigate } from "react-router-dom"
 
-export default function NavBar() {
+type NavBarProps = {
+  onOpenShortcuts: () => void
+}
+
+export default function NavBar(props: NavBarProps) {
+  const { onOpenShortcuts } = props
   const { userId } = useUser()
   const navigate = useNavigate()
   const location = useLocation()
@@ -21,6 +26,9 @@ export default function NavBar() {
 
       <div className="mr-auto" />
 
+      <Button color="light" onClick={onOpenShortcuts}>
+        Shortcuts
+      </Button>
       <Button onClick={() => navigate("/settings")}>Settings</Button>
       <DarkThemeToggle />
     </div>

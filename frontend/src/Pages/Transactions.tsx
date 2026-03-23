@@ -38,6 +38,8 @@ import { decryptTransaction } from "../Security/data"
 import AccountSummaries from "../Components/AccountSummaries"
 import { TimePeriodSchema } from "../API/requests"
 import { useData } from "../Hooks/useData"
+import { useHotkey } from "@tanstack/react-hotkeys"
+import { HOTKEYS_BY_ID } from "../Hotkeys/hotkeys"
 
 export default function Transactions() {
   const { userId, decrypt } = useUser()
@@ -77,6 +79,10 @@ export default function Transactions() {
   const [showAdd, setShowAdd] = useState(false)
   const [showUpload, setShowUpload] = useState(false)
   const [editingTransactionId, setEditingTransactionId] = useState<string | undefined>(undefined)
+
+  useHotkey(HOTKEYS_BY_ID.openTransactionRow.combo, () => {
+    if (!showAdd) setShowAdd(true)
+  })
 
   const handleDelete = useCallback(
     async (transactionId: string) => {
