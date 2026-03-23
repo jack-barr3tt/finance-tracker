@@ -1,7 +1,6 @@
 import {
   TableRow,
   TableCell,
-  Datepicker,
   TextInput,
   Button,
   ThemeProvider,
@@ -23,6 +22,7 @@ import {
 } from "../../API/queries"
 import { useUser } from "../../Hooks/useUser"
 import SearchSelect from "../../Components/SearchSelect"
+import CalendarDatePicker from "../../Components/CalendarDatePicker"
 import { useQueryClient } from "@tanstack/react-query"
 import { useAsyncMemo } from "../../Hooks/useAsyncMemo"
 import { decryptAccount, decryptCategory } from "../../Security/data"
@@ -227,7 +227,7 @@ export default function EditTransactionRow(props: EditTransactionRowProps) {
     <ThemeProvider theme={tableTheme}>
       <TableRow>
         <TableCell>
-          <Datepicker value={date} onChange={setDate} autoFocus />
+          <CalendarDatePicker value={date} onChange={setDate} autoFocus />
         </TableCell>
         <TableCell>
           <SearchSelect
