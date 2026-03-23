@@ -26,6 +26,8 @@ import CalendarDatePicker from "../../Components/CalendarDatePicker"
 import { useQueryClient } from "@tanstack/react-query"
 import { useAsyncMemo } from "../../Hooks/useAsyncMemo"
 import { decryptAccount, decryptCategory } from "../../Security/data"
+import { useHotkey } from "@tanstack/react-hotkeys"
+import { HOTKEYS_BY_ID } from "../../Hotkeys/hotkeys"
 
 type EditTransactionRowProps = {
   transactionId?: string
@@ -233,6 +235,8 @@ export default function EditTransactionRow(props: EditTransactionRowProps) {
     [handleAdd, handleEdit, transactionId],
   )
 
+  useHotkey(HOTKEYS_BY_ID.submitTransactionRow.combo, doneFn)
+
   if (!accounts || !categories) return null
   if (transactionId && !date) return null
 
@@ -283,7 +287,6 @@ export default function EditTransactionRow(props: EditTransactionRowProps) {
             placeholder="Description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            onKeyUp={(e) => e.key === "Enter" && doneFn()}
           />
         </TableCell>
         <TableCell>
@@ -291,7 +294,6 @@ export default function EditTransactionRow(props: EditTransactionRowProps) {
             placeholder="Amount"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            onKeyUp={(e) => e.key === "Enter" && doneFn()}
           />
         </TableCell>
         <TableCell>
