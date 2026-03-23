@@ -30,10 +30,12 @@ import { decryptAccount, decryptCategory } from "../../Security/data"
 type EditTransactionRowProps = {
   transactionId?: string
   cancelCallback?: () => void
+  defaultAccountId?: string
+  defaultCategoryId?: string
 }
 
 export default function EditTransactionRow(props: EditTransactionRowProps) {
-  const { transactionId, cancelCallback } = props
+  const { transactionId, cancelCallback, defaultAccountId, defaultCategoryId } = props
 
   const { userId, decrypt, encrypt } = useUser()
   const queryClient = useQueryClient()
@@ -72,8 +74,12 @@ export default function EditTransactionRow(props: EditTransactionRowProps) {
   const [date, setDate] = useState<Date | null>(null)
   const [description, setDescription] = useState("")
   const [amount, setAmount] = useState("")
-  const [selectedAccount, setSelectedAccount] = useState<string | undefined>(undefined)
-  const [selectedCategory, setSelectedCategory] = useState<string | undefined>(undefined)
+  const [selectedAccount, setSelectedAccount] = useState<string | undefined>(
+    transactionId ? undefined : defaultAccountId,
+  )
+  const [selectedCategory, setSelectedCategory] = useState<string | undefined>(
+    transactionId ? undefined : defaultCategoryId,
+  )
 
   useEffect(() => {
     ;(async () => {

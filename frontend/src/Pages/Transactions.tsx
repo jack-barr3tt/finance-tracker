@@ -218,7 +218,15 @@ export default function Transactions() {
               ) : null
             }
           >
-            {showAdd && <EditTransactionRow cancelCallback={() => setShowAdd(false)} />}
+            {showAdd && (
+              <EditTransactionRow
+                cancelCallback={() => setShowAdd(false)}
+                defaultAccountId={accountFilterId}
+                defaultCategoryId={
+                  categoryFilterId === "uncategorised" ? undefined : categoryFilterId
+                }
+              />
+            )}
             {transactions?.pages.reduce(
               (acc, page) => acc + (page?.transactions.length || 0),
               0,
