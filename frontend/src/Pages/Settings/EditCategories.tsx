@@ -111,7 +111,7 @@ export default function EditCategories() {
     <Modal show={/settings\/category\/(.+)\/edit/.test(location.pathname)} onClose={() => navigate("/settings")}>
       <ModalHeader>Edit Category</ModalHeader>
 
-      <ModalBody className="overflow-visible">
+      <ModalBody>
         <form className="flex flex-col gap-4">
           <TextInput
             id="category-name"
@@ -120,83 +120,89 @@ export default function EditCategories() {
             onChange={(e) => setCategoryName(e.target.value)}
           />
 
-          <Table
-            theme={{
-              root: { wrapper: "overflow-x-auto rounded-md custom-scrollbar" },
-              head: { cell: { base: "bg-gray-200 dark:bg-gray-800" } },
-              body: { cell: { base: "bg-gray-100 dark:bg-gray-900" } },
-            }}
-          >
-            <TableHead>
-              <TableHeadCell>Account</TableHeadCell>
-              <TableHeadCell>Rule</TableHeadCell>
-              <TableHeadCell>New Description</TableHeadCell>
-              <TableHeadCell>
-                <span className="sr-only">Edit</span>
-              </TableHeadCell>
-            </TableHead>
-            <TableBodyWithButton
-              button={
-                !showAdd ? (
-                  <Button
-                    className="p-0 shadow-md size-8"
-                    color="light"
-                    onClick={() => setShowAdd(true)}
-                  >
-                    <FiPlus />
-                  </Button>
-                ) : null
-              }
+          <div className="relative max-h-[min(60vh,28rem)] overflow-y-auto rounded-md custom-scrollbar">
+            <Table
+              theme={{
+                root: { wrapper: "overflow-x-auto rounded-md" },
+                head: {
+                  cell: {
+                    base: "border-b border-gray-300 bg-gray-200 dark:border-gray-600 dark:bg-gray-800 sticky top-0 z-10",
+                  },
+                },
+                body: { cell: { base: "bg-gray-100 dark:bg-gray-900" } },
+              }}
             >
-              {category?.rules.length === 0 && !showAdd ? (
-                <TableRow>
-                  <TableCell colSpan={4} className="text-center">
-                    No auto-categorisation rules
-                  </TableCell>
-                </TableRow>
-              ) : (
-                category?.rules.map((rule) =>
-                  editingRuleId == rule.id ? (
-                    <EditCategoryRuleRow
-                      categoryId={categoryId}
-                      cancelCallback={() => setEditingRuleId(undefined)}
-                      ruleId={rule.id}
-                    />
-                  ) : (
-                    <TableRow key={rule.id}>
-                      <TableCell>{rule.account.name}</TableCell>
-                      <TableCell>{rule.rule}</TableCell>
-                      <TableCell>{rule.description}</TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex flex-row items-center justify-end">
-                          <Button
-                            color="light"
-                            className="p-0 size-8"
-                            onClick={() => setEditingRuleId(rule.id)}
-                          >
-                            <FiEdit />
-                          </Button>
-                          <Button
-                            color="light"
-                            className="p-0 ml-2 size-8"
-                            onClick={() => handleDelete(rule.id)}
-                          >
-                            <FiTrash />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
+              <TableHead>
+                <TableHeadCell>Account</TableHeadCell>
+                <TableHeadCell>Rule</TableHeadCell>
+                <TableHeadCell>New Description</TableHeadCell>
+                <TableHeadCell>
+                  <span className="sr-only">Edit</span>
+                </TableHeadCell>
+              </TableHead>
+              <TableBodyWithButton
+                button={
+                  !showAdd ? (
+                    <Button
+                      className="p-0 shadow-md size-8"
+                      color="light"
+                      onClick={() => setShowAdd(true)}
+                    >
+                      <FiPlus />
+                    </Button>
+                  ) : null
+                }
+              >
+                {category?.rules.length === 0 && !showAdd ? (
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-center">
+                      No auto-categorisation rules
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  category?.rules.map((rule) =>
+                    editingRuleId == rule.id ? (
+                      <EditCategoryRuleRow
+                        categoryId={categoryId}
+                        cancelCallback={() => setEditingRuleId(undefined)}
+                        ruleId={rule.id}
+                      />
+                    ) : (
+                      <TableRow key={rule.id}>
+                        <TableCell>{rule.account.name}</TableCell>
+                        <TableCell>{rule.rule}</TableCell>
+                        <TableCell>{rule.description}</TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex flex-row items-center justify-end">
+                            <Button
+                              color="light"
+                              className="p-0 size-8"
+                              onClick={() => setEditingRuleId(rule.id)}
+                            >
+                              <FiEdit />
+                            </Button>
+                            <Button
+                              color="light"
+                              className="p-0 ml-2 size-8"
+                              onClick={() => handleDelete(rule.id)}
+                            >
+                              <FiTrash />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    )
                   )
-                )
-              )}
-              {showAdd && (
-                <EditCategoryRuleRow
-                  categoryId={categoryId}
-                  cancelCallback={() => setShowAdd(false)}
-                />
-              )}
-            </TableBodyWithButton>
-          </Table>
+                )}
+                {showAdd && (
+                  <EditCategoryRuleRow
+                    categoryId={categoryId}
+                    cancelCallback={() => setShowAdd(false)}
+                  />
+                )}
+              </TableBodyWithButton>
+            </Table>
+          </div>
         </form>
       </ModalBody>
 
