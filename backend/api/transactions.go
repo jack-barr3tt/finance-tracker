@@ -107,7 +107,7 @@ func (s Server) GetUserIdTransactions(c *fiber.Ctx, userId string, params GetUse
 			LEFT JOIN account a ON t.account_id = a.id
 			LEFT JOIN bank b ON a.bank_id = b.id
 			%[1]s
-			ORDER BY t.date DESC
+			ORDER BY t.date DESC, t.id DESC
 			%[2]s`,
 				whereClause,
 				limitClause,
@@ -153,7 +153,7 @@ func (s Server) GetUserIdTransactions(c *fiber.Ctx, userId string, params GetUse
 	}
 
 	var cursor *string
-	if lastCursor != "" {
+	if lastCursor != "" && params.Limit != nil && len(transactions) == *params.Limit {
 		cursor = &lastCursor
 	}
 
