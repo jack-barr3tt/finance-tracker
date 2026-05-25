@@ -270,6 +270,18 @@ paths:
           required: false
           schema:
             $ref: "#/components/schemas/TimePeriod"
+        - name: start_date
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+        - name: end_date
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
         - name: cursor
           in: query
           required: false

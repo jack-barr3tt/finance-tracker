@@ -2,13 +2,11 @@ import {
   Badge,
   Button,
   HR,
-  TabItem,
   Table,
   TableCell,
   TableHead,
   TableHeadCell,
   TableRow,
-  Tabs,
   Tooltip,
 } from "flowbite-react"
 import { useUser } from "../Hooks/useUser"
@@ -31,86 +29,19 @@ import CategoryPie from "../Components/CategoryPie"
 import UploadModal from "../Components/UploadModal"
 import { useGetUserByIdTransactionsInfinite } from "../API/queries/infiniteQueries"
 import { InView } from "react-intersection-observer"
-import { format, parseISO, startOfYear, subDays, subMonths, subYears } from "date-fns"
+import { format, parseISO } from "date-fns"
 import FilterButton from "../Components/FilterButton"
 import { useAsyncMemo } from "../Hooks/useAsyncMemo"
 import { decryptTransaction } from "../Security/data"
 import AccountSummaries from "../Components/AccountSummaries"
-import { TimePeriod } from "../API/requests"
-import { SummaryRange, useData } from "../Hooks/useData"
+import { useData } from "../Hooks/useData"
 import { useHotkey } from "@tanstack/react-hotkeys"
 import { HOTKEYS_BY_ID } from "../Hotkeys/hotkeys"
-import CustomSummaryRangeDropdown from "./Transactions/CustomSummaryRangeDropdown"
-
-type SummaryRangeSelection = TimePeriod | "custom"
-
-const SUMMARY_PRESETS: Array<{
-  value: TimePeriod
-  title: string
-  getRange: (today: Date) => SummaryRange
-}> = [
-  {
-    value: "week",
-    title: "Week",
-    getRange: (today) => ({
-      startDate: subDays(today, 7),
-      endDate: today,
-      interval: "day",
-    }),
-  },
-  {
-    value: "month",
-    title: "Month",
-    getRange: (today) => ({
-      startDate: subMonths(today, 1),
-      endDate: today,
-      interval: "day",
-    }),
-  },
-  {
-    value: "year",
-    title: "Year",
-    getRange: (today) => ({
-      startDate: subYears(today, 1),
-      endDate: today,
-      interval: "month",
-    }),
-  },
-  {
-    value: "ytd",
-    title: "YTD",
-    getRange: (today) => ({
-      startDate: startOfYear(today),
-      endDate: today,
-      interval: "month",
-    }),
-  },
-  {
-    value: "all",
-    title: "All",
-    getRange: () => ({
-      startDate: null,
-      endDate: null,
-      interval: "month",
-    }),
-  },
-]
-
-function getDefaultCustomRange(): SummaryRange {
-  const today = new Date()
-
-  return {
-    startDate: subMonths(today, 1),
-    endDate: today,
-    interval: "day",
-  }
-}
 
 export default function Transactions() {
   const { userId, decrypt } = useUser()
   const {
-    summaryRange,
-    setSummaryRange,
+    summaryDateQuery,
     accounts,
     categories,
     accountColorMap,
@@ -122,8 +53,6 @@ export default function Transactions() {
 
   const [accountFilterId, setAccountFilterId] = useState<string | undefined>(undefined)
   const [categoryFilterId, setCategoryFilterId] = useState<string | undefined>(undefined)
-  const [summaryRangeSelection, setSummaryRangeSelection] =
-    useState<SummaryRangeSelection>("year")
 
   const {
     data: encTransactions,
@@ -133,7 +62,12 @@ export default function Transactions() {
     fetchNextPage,
   } = useGetUserByIdTransactionsInfinite({
     path: { id: userId },
-    query: { limit: 50, account_id: accountFilterId, category_id: categoryFilterId },
+    query: {
+      limit: 50,
+      account_id: accountFilterId,
+      category_id: categoryFilterId,
+      ...summaryDateQuery,
+    },
   })
 
   const transactions = useAsyncMemo(
@@ -157,11 +91,6 @@ export default function Transactions() {
   useHotkey(HOTKEYS_BY_ID.openTransactionRow.combo, () => {
     if (!showAdd) setShowAdd(true)
   })
-
-  const activateCustomRange = useCallback(() => {
-    setSummaryRangeSelection("custom")
-    setSummaryRange(summaryRangeSelection === "custom" ? summaryRange : getDefaultCustomRange())
-  }, [setSummaryRange, summaryRange, summaryRangeSelection])
 
   const handleDelete = useCallback(
     async (transactionId: string) => {
@@ -197,42 +126,6 @@ export default function Transactions() {
       <AccountSummaries />
 
       <HR />
-
-      <div className="relative">
-        <Tabs
-          variant="pills"
-          onActiveTabChange={(tab) => {
-            const preset = SUMMARY_PRESETS[tab]?.value
-            if (preset) {
-              setSummaryRangeSelection(preset)
-              setSummaryRange(SUMMARY_PRESETS[tab].getRange(new Date()))
-              return
-            }
-
-            activateCustomRange()
-          }}
-          className="-my-4"
-        >
-          {SUMMARY_PRESETS.map((preset) => (
-            <TabItem
-              key={preset.value}
-              title={preset.title}
-              active={summaryRangeSelection === preset.value}
-            />
-          ))}
-          <TabItem
-            title={
-              <CustomSummaryRangeDropdown
-                active={summaryRangeSelection === "custom"}
-                value={summaryRange}
-                onActivate={activateCustomRange}
-                onChange={setSummaryRange}
-              />
-            }
-            active={summaryRangeSelection === "custom"}
-          />
-        </Tabs>
-      </div>
 
       <div className="grid grid-cols-1 gap-8 md:grid-cols-2 *:w-full md:gap-4">
         <CategoryPie />

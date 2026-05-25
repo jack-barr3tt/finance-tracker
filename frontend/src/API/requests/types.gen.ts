@@ -389,8 +389,10 @@ export type GetUserByIdTransactionsData = {
         account_id?: string;
         category_id?: string;
         cursor?: string;
+        end_date?: string;
         limit?: number;
         period?: TimePeriod;
+        start_date?: string;
     };
 };
 

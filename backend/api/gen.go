@@ -16,6 +16,7 @@ import (
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/gofiber/fiber/v2"
 	"github.com/oapi-codegen/runtime"
+	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
 const (
@@ -40,11 +41,11 @@ const (
 
 // Defines values for TimePeriod.
 const (
-	TimePeriodAll   TimePeriod = "all"
-	TimePeriodMonth TimePeriod = "month"
-	TimePeriodWeek  TimePeriod = "week"
-	TimePeriodYear  TimePeriod = "year"
-	TimePeriodYtd   TimePeriod = "ytd"
+	All   TimePeriod = "all"
+	Month TimePeriod = "month"
+	Week  TimePeriod = "week"
+	Year  TimePeriod = "year"
+	Ytd   TimePeriod = "ytd"
 )
 
 // Account defines model for Account.
@@ -381,30 +382,32 @@ type User struct {
 
 // GetUserIdSummaryBalanceParams defines parameters for GetUserIdSummaryBalance.
 type GetUserIdSummaryBalanceParams struct {
-	Interval  *SummaryInterval `form:"interval,omitempty" json:"interval,omitempty"`
-	StartDate *string          `form:"start_date,omitempty" json:"start_date,omitempty"`
-	EndDate   *string          `form:"end_date,omitempty" json:"end_date,omitempty"`
+	Interval  *SummaryInterval    `form:"interval,omitempty" json:"interval,omitempty"`
+	StartDate *openapi_types.Date `form:"start_date,omitempty" json:"start_date,omitempty"`
+	EndDate   *openapi_types.Date `form:"end_date,omitempty" json:"end_date,omitempty"`
 }
 
 // GetUserIdSummaryCategoriesParams defines parameters for GetUserIdSummaryCategories.
 type GetUserIdSummaryCategoriesParams struct {
-	StartDate *string `form:"start_date,omitempty" json:"start_date,omitempty"`
-	EndDate   *string `form:"end_date,omitempty" json:"end_date,omitempty"`
+	StartDate *openapi_types.Date `form:"start_date,omitempty" json:"start_date,omitempty"`
+	EndDate   *openapi_types.Date `form:"end_date,omitempty" json:"end_date,omitempty"`
 }
 
 // GetUserIdSummaryTotalsParams defines parameters for GetUserIdSummaryTotals.
 type GetUserIdSummaryTotalsParams struct {
-	StartDate *string `form:"start_date,omitempty" json:"start_date,omitempty"`
-	EndDate   *string `form:"end_date,omitempty" json:"end_date,omitempty"`
+	StartDate *openapi_types.Date `form:"start_date,omitempty" json:"start_date,omitempty"`
+	EndDate   *openapi_types.Date `form:"end_date,omitempty" json:"end_date,omitempty"`
 }
 
 // GetUserIdTransactionsParams defines parameters for GetUserIdTransactions.
 type GetUserIdTransactionsParams struct {
-	AccountId  *string     `form:"account_id,omitempty" json:"account_id,omitempty"`
-	CategoryId *string     `form:"category_id,omitempty" json:"category_id,omitempty"`
-	Period     *TimePeriod `form:"period,omitempty" json:"period,omitempty"`
-	Cursor     *string     `form:"cursor,omitempty" json:"cursor,omitempty"`
-	Limit      *int        `form:"limit,omitempty" json:"limit,omitempty"`
+	AccountId  *string             `form:"account_id,omitempty" json:"account_id,omitempty"`
+	CategoryId *string             `form:"category_id,omitempty" json:"category_id,omitempty"`
+	Period     *TimePeriod         `form:"period,omitempty" json:"period,omitempty"`
+	StartDate  *openapi_types.Date `form:"start_date,omitempty" json:"start_date,omitempty"`
+	EndDate    *openapi_types.Date `form:"end_date,omitempty" json:"end_date,omitempty"`
+	Cursor     *string             `form:"cursor,omitempty" json:"cursor,omitempty"`
+	Limit      *int                `form:"limit,omitempty" json:"limit,omitempty"`
 }
 
 // PostLoginJSONRequestBody defines body for PostLogin for application/json ContentType.
@@ -1232,6 +1235,20 @@ func (siw *ServerInterfaceWrapper) GetUserIdTransactions(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter period: %w", err).Error())
 	}
 
+	// ------------- Optional query parameter "start_date" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "start_date", query, &params.StartDate)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter start_date: %w", err).Error())
+	}
+
+	// ------------- Optional query parameter "end_date" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "end_date", query, &params.EndDate)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter end_date: %w", err).Error())
+	}
+
 	// ------------- Optional query parameter "cursor" -------------
 
 	err = runtime.BindQueryParameter("form", true, false, "cursor", query, &params.Cursor)
@@ -1493,45 +1510,46 @@ func RegisterHandlersWithOptions(router fiber.Router, si ServerInterface, option
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"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",
+	"OPw/AAD//wc/ApAfbAAA",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

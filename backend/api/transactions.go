@@ -45,6 +45,19 @@ func (s Server) GetUserIdTransactions(c *fiber.Ctx, userId string, params GetUse
 	conditions := []string{"a.user_id = $"}
 	args := []interface{}{userId}
 
+	dateRange, err := parseSummaryRange(params.StartDate, params.EndDate)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	}
+	if dateRange.Start != nil {
+		conditions = append(conditions, "t.date >= $")
+		args = append(args, *dateRange.Start)
+	}
+	if dateRange.EndExclusive != nil {
+		conditions = append(conditions, "t.date < $")
+		args = append(args, *dateRange.EndExclusive)
+	}
+
 	if params.AccountId != nil {
 		conditions = append(conditions, "t.account_id = $")
 		args = append(args, *params.AccountId)

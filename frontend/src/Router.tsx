@@ -7,6 +7,7 @@ import RouteProtector from "./Components/RouteProtector"
 import Settings from "./Pages/Settings"
 import Budget from "./Pages/Budget"
 import KeyboardShortcutsModal from "./Components/KeyboardShortcutsModal"
+import SummaryRangeFilter from "./Components/SummaryRangeFilter"
 import { useHotkey } from "@tanstack/react-hotkeys"
 import { HOTKEYS_BY_ID } from "./Hotkeys/hotkeys"
 import { useMemo, useState } from "react"
@@ -24,6 +25,7 @@ function AppRoutes() {
       !location.pathname.includes("signup"),
     [location.pathname, userId],
   )
+  const showSummaryRangeFilter = hasPrivateNav && location.pathname.startsWith("/transactions")
 
   useHotkey(
     HOTKEYS_BY_ID.openShortcutsModal.combo,
@@ -34,6 +36,11 @@ function AppRoutes() {
   return (
     <>
       <NavBar onOpenShortcuts={() => setShowShortcuts(true)} />
+      {showSummaryRangeFilter && (
+        <div className="flex justify-end px-8 pb-4 md:px-16">
+          <SummaryRangeFilter />
+        </div>
+      )}
       <KeyboardShortcutsModal show={showShortcuts} onClose={() => setShowShortcuts(false)} />
       <Routes>
         <Route path="/" element={<Navigate to="login" />} />

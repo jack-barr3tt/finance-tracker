@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
 func (s *Server) GetUserIdSummaryAccounts(c *fiber.Ctx, userId string) error {
@@ -96,29 +97,21 @@ func (s *Server) GetUserIdSummaryAccounts(c *fiber.Ctx, userId string) error {
 	return c.JSON(result)
 }
 
-const summaryDateLayout = "2006-01-02"
-
 type summaryRange struct {
 	Start        *time.Time
 	EndExclusive *time.Time
 }
 
-func parseSummaryRange(startDate *string, endDate *string) (summaryRange, error) {
+func parseSummaryRange(startDate *openapi_types.Date, endDate *openapi_types.Date) (summaryRange, error) {
 	result := summaryRange{}
 
-	if startDate != nil && *startDate != "" {
-		start, err := time.ParseInLocation(summaryDateLayout, *startDate, time.UTC)
-		if err != nil {
-			return result, fmt.Errorf("start_date must use YYYY-MM-DD format")
-		}
+	if startDate != nil {
+		start := startDate.Time
 		result.Start = &start
 	}
 
-	if endDate != nil && *endDate != "" {
-		end, err := time.ParseInLocation(summaryDateLayout, *endDate, time.UTC)
-		if err != nil {
-			return result, fmt.Errorf("end_date must use YYYY-MM-DD format")
-		}
+	if endDate != nil {
+		end := endDate.Time
 		endExclusive := end.AddDate(0, 0, 1)
 		result.EndExclusive = &endExclusive
 	}

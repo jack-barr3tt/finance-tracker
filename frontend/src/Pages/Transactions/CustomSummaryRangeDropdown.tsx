@@ -9,6 +9,7 @@ import {
   useInteractions,
   useRole,
 } from "@floating-ui/react"
+import { Button } from "flowbite-react"
 import { useCallback, useEffect, useState } from "react"
 import { SummaryInterval } from "../../API/requests"
 import CalendarDatePicker from "../../Components/CalendarDatePicker"
@@ -37,8 +38,8 @@ export default function CustomSummaryRangeDropdown(props: CustomSummaryRangeDrop
   const { getReferenceProps, getFloatingProps } = useInteractions([dismiss, role])
 
   const setReference = useCallback(
-    (node: HTMLSpanElement | null) => {
-      refs.setReference(node?.closest("button") ?? node)
+    (node: HTMLButtonElement | null) => {
+      refs.setReference(node)
     },
     [refs],
   )
@@ -56,7 +57,8 @@ export default function CustomSummaryRangeDropdown(props: CustomSummaryRangeDrop
 
   return (
     <>
-      <span
+      <Button
+        color={active ? "blue" : "light"}
         ref={setReference}
         {...getReferenceProps({
           onClick: () => {
@@ -71,7 +73,7 @@ export default function CustomSummaryRangeDropdown(props: CustomSummaryRangeDrop
         })}
       >
         Custom
-      </span>
+      </Button>
 
       {isOpen && (
         <FloatingPortal>
