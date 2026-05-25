@@ -12,11 +12,14 @@ import { useHotkey } from "@tanstack/react-hotkeys"
 import { HOTKEYS_BY_ID } from "./Hotkeys/hotkeys"
 import { useMemo, useState } from "react"
 import { useUser } from "./Hooks/useUser"
+import { Button } from "flowbite-react"
+import { FiChevronRight } from "react-icons/fi"
 
 function AppRoutes() {
   const { userId } = useUser()
   const location = useLocation()
   const [showShortcuts, setShowShortcuts] = useState(false)
+  const [showSidebar, setShowSidebar] = useState(true)
 
   const hasPrivateNav = useMemo(
     () =>
@@ -27,6 +30,23 @@ function AppRoutes() {
   )
   const showSummaryRangeFilter = hasPrivateNav && location.pathname.startsWith("/transactions")
 
+  const routes = (
+    <Routes>
+      <Route path="/" element={<Navigate to="login" />} />
+      <Route path="/transactions/*" element={<RouteProtector />}>
+        <Route index element={<Transactions />} />
+      </Route>
+      <Route path="/budget/*" element={<RouteProtector />}>
+        <Route path="*" element={<Budget />} />
+      </Route>
+      <Route path="/settings/*" element={<RouteProtector />}>
+        <Route path="*" element={<Settings />} />
+      </Route>
+      <Route path="/signup" element={<SignUp />} />
+      <Route path="/login" element={<Login />} />
+    </Routes>
+  )
+
   useHotkey(
     HOTKEYS_BY_ID.openShortcutsModal.combo,
     () => setShowShortcuts((previous) => !previous),
@@ -35,34 +55,44 @@ function AppRoutes() {
 
   return (
     <>
-      <NavBar onOpenShortcuts={() => setShowShortcuts(true)} />
-      {showSummaryRangeFilter && (
-        <div className="flex justify-end px-8 pb-4 md:px-16">
-          <SummaryRangeFilter />
-        </div>
-      )}
       <KeyboardShortcutsModal show={showShortcuts} onClose={() => setShowShortcuts(false)} />
-      <Routes>
-        <Route path="/" element={<Navigate to="login" />} />
-        <Route path="/transactions/*" element={<RouteProtector />}>
-          <Route index element={<Transactions />} />
-        </Route>
-        <Route path="/budget/*" element={<RouteProtector />}>
-          <Route path="*" element={<Budget />} />
-        </Route>
-        <Route path="/settings/*" element={<RouteProtector />}>
-          <Route path="*" element={<Settings />} />
-        </Route>
-        <Route path="/signup" element={<SignUp />} />
-        <Route path="/login" element={<Login />} />
-      </Routes>
+      {hasPrivateNav ? (
+        <div className="flex min-h-0 flex-1 flex-col md:flex-row">
+          <NavBar
+            isOpen={showSidebar}
+            onClose={() => setShowSidebar(false)}
+            onOpenShortcuts={() => setShowShortcuts(true)}
+          />
+          <main className="relative min-h-0 flex-1 overflow-y-auto pt-4 md:pt-8">
+            {!showSidebar && (
+              <Button
+                color="light"
+                className="absolute left-2 top-4 z-10 size-10 p-0 md:top-8"
+                title="Show sidebar"
+                aria-label="Show sidebar"
+                onClick={() => setShowSidebar(true)}
+              >
+                <FiChevronRight />
+              </Button>
+            )}
+            {showSummaryRangeFilter && (
+              <div className="flex justify-end px-8 pb-4 md:px-16">
+                <SummaryRangeFilter />
+              </div>
+            )}
+            {routes}
+          </main>
+        </div>
+      ) : (
+        routes
+      )}
     </>
   )
 }
 
 export default function Router() {
   return (
-    <div className="flex flex-col h-full overflow-y-auto">
+    <div className="flex h-full flex-col overflow-hidden">
       <BrowserRouter>
         <AppRoutes />
       </BrowserRouter>
