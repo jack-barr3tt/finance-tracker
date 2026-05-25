@@ -701,11 +701,18 @@ paths:
         required: true
         schema:
           type: string
-      - name: period
+      - name: start_date
         in: query
         required: false
         schema:
-          $ref: "#/components/schemas/TimePeriod"
+          type: string
+          format: date
+      - name: end_date
+        in: query
+        required: false
+        schema:
+          type: string
+          format: date
     get:
       security:
         - BearerAuth: []
@@ -725,16 +732,23 @@ paths:
         required: true
         schema:
           type: string
-      - name: group_by
+      - name: interval
         in: query
         required: false
         schema:
-          $ref: "#/components/schemas/TimePeriod"
-      - name: period
+          $ref: "#/components/schemas/SummaryInterval"
+      - name: start_date
         in: query
         required: false
         schema:
-          $ref: "#/components/schemas/TimePeriod"
+          type: string
+          format: date
+      - name: end_date
+        in: query
+        required: false
+        schema:
+          type: string
+          format: date
     get:
       security:
         - BearerAuth: []
@@ -752,11 +766,18 @@ paths:
         required: true
         schema:
           type: string
-      - name: period
+      - name: start_date
         in: query
         required: false
         schema:
-          $ref: "#/components/schemas/TimePeriod"
+          type: string
+          format: date
+      - name: end_date
+        in: query
+        required: false
+        schema:
+          type: string
+          format: date
     get:
       security:
         - BearerAuth: []
@@ -1505,12 +1526,13 @@ components:
         - month
         - year
       default: month
-    SummaryGroupBy:
+    SummaryInterval:
       type: string
       enum:
         - day
         - week
         - month
+        - year
       default: day
     TimePeriod:
       type: string

@@ -783,9 +783,9 @@ export const PeriodUnitSchema = {
     default: 'month'
 } as const;
 
-export const SummaryGroupBySchema = {
+export const SummaryIntervalSchema = {
     type: 'string',
-    enum: ['day', 'week', 'month'],
+    enum: ['day', 'week', 'month', 'year'],
     default: 'day'
 } as const;
 

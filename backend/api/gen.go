@@ -30,6 +30,14 @@ const (
 	PeriodUnitYear  PeriodUnit = "year"
 )
 
+// Defines values for SummaryInterval.
+const (
+	SummaryIntervalDay   SummaryInterval = "day"
+	SummaryIntervalMonth SummaryInterval = "month"
+	SummaryIntervalWeek  SummaryInterval = "week"
+	SummaryIntervalYear  SummaryInterval = "year"
+)
+
 // Defines values for TimePeriod.
 const (
 	TimePeriodAll   TimePeriod = "all"
@@ -278,6 +286,9 @@ type SignupResponse struct {
 	Message string `json:"message"`
 }
 
+// SummaryInterval defines model for SummaryInterval.
+type SummaryInterval string
+
 // TimePeriod defines model for TimePeriod.
 type TimePeriod string
 
@@ -370,18 +381,21 @@ type User struct {
 
 // GetUserIdSummaryBalanceParams defines parameters for GetUserIdSummaryBalance.
 type GetUserIdSummaryBalanceParams struct {
-	GroupBy *TimePeriod `form:"group_by,omitempty" json:"group_by,omitempty"`
-	Period  *TimePeriod `form:"period,omitempty" json:"period,omitempty"`
+	Interval  *SummaryInterval `form:"interval,omitempty" json:"interval,omitempty"`
+	StartDate *string          `form:"start_date,omitempty" json:"start_date,omitempty"`
+	EndDate   *string          `form:"end_date,omitempty" json:"end_date,omitempty"`
 }
 
 // GetUserIdSummaryCategoriesParams defines parameters for GetUserIdSummaryCategories.
 type GetUserIdSummaryCategoriesParams struct {
-	Period *TimePeriod `form:"period,omitempty" json:"period,omitempty"`
+	StartDate *string `form:"start_date,omitempty" json:"start_date,omitempty"`
+	EndDate   *string `form:"end_date,omitempty" json:"end_date,omitempty"`
 }
 
 // GetUserIdSummaryTotalsParams defines parameters for GetUserIdSummaryTotals.
 type GetUserIdSummaryTotalsParams struct {
-	Period *TimePeriod `form:"period,omitempty" json:"period,omitempty"`
+	StartDate *string `form:"start_date,omitempty" json:"start_date,omitempty"`
+	EndDate   *string `form:"end_date,omitempty" json:"end_date,omitempty"`
 }
 
 // GetUserIdTransactionsParams defines parameters for GetUserIdTransactions.
@@ -1067,18 +1081,25 @@ func (siw *ServerInterfaceWrapper) GetUserIdSummaryBalance(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for query string: %w", err).Error())
 	}
 
-	// ------------- Optional query parameter "group_by" -------------
+	// ------------- Optional query parameter "interval" -------------
 
-	err = runtime.BindQueryParameter("form", true, false, "group_by", query, &params.GroupBy)
+	err = runtime.BindQueryParameter("form", true, false, "interval", query, &params.Interval)
 	if err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter group_by: %w", err).Error())
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter interval: %w", err).Error())
 	}
 
-	// ------------- Optional query parameter "period" -------------
+	// ------------- Optional query parameter "start_date" -------------
 
-	err = runtime.BindQueryParameter("form", true, false, "period", query, &params.Period)
+	err = runtime.BindQueryParameter("form", true, false, "start_date", query, &params.StartDate)
 	if err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter period: %w", err).Error())
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter start_date: %w", err).Error())
+	}
+
+	// ------------- Optional query parameter "end_date" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "end_date", query, &params.EndDate)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter end_date: %w", err).Error())
 	}
 
 	return siw.Handler.GetUserIdSummaryBalance(c, id, params)
@@ -1108,11 +1129,18 @@ func (siw *ServerInterfaceWrapper) GetUserIdSummaryCategories(c *fiber.Ctx) erro
 		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for query string: %w", err).Error())
 	}
 
-	// ------------- Optional query parameter "period" -------------
+	// ------------- Optional query parameter "start_date" -------------
 
-	err = runtime.BindQueryParameter("form", true, false, "period", query, &params.Period)
+	err = runtime.BindQueryParameter("form", true, false, "start_date", query, &params.StartDate)
 	if err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter period: %w", err).Error())
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter start_date: %w", err).Error())
+	}
+
+	// ------------- Optional query parameter "end_date" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "end_date", query, &params.EndDate)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter end_date: %w", err).Error())
 	}
 
 	return siw.Handler.GetUserIdSummaryCategories(c, id, params)
@@ -1142,11 +1170,18 @@ func (siw *ServerInterfaceWrapper) GetUserIdSummaryTotals(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for query string: %w", err).Error())
 	}
 
-	// ------------- Optional query parameter "period" -------------
+	// ------------- Optional query parameter "start_date" -------------
 
-	err = runtime.BindQueryParameter("form", true, false, "period", query, &params.Period)
+	err = runtime.BindQueryParameter("form", true, false, "start_date", query, &params.StartDate)
 	if err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter period: %w", err).Error())
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter start_date: %w", err).Error())
+	}
+
+	// ------------- Optional query parameter "end_date" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "end_date", query, &params.EndDate)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter end_date: %w", err).Error())
 	}
 
 	return siw.Handler.GetUserIdSummaryTotals(c, id, params)

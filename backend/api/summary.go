@@ -96,6 +96,91 @@ func (s *Server) GetUserIdSummaryAccounts(c *fiber.Ctx, userId string) error {
 	return c.JSON(result)
 }
 
+const summaryDateLayout = "2006-01-02"
+
+type summaryRange struct {
+	Start        *time.Time
+	EndExclusive *time.Time
+}
+
+func parseSummaryRange(startDate *string, endDate *string) (summaryRange, error) {
+	result := summaryRange{}
+
+	if startDate != nil && *startDate != "" {
+		start, err := time.ParseInLocation(summaryDateLayout, *startDate, time.UTC)
+		if err != nil {
+			return result, fmt.Errorf("start_date must use YYYY-MM-DD format")
+		}
+		result.Start = &start
+	}
+
+	if endDate != nil && *endDate != "" {
+		end, err := time.ParseInLocation(summaryDateLayout, *endDate, time.UTC)
+		if err != nil {
+			return result, fmt.Errorf("end_date must use YYYY-MM-DD format")
+		}
+		endExclusive := end.AddDate(0, 0, 1)
+		result.EndExclusive = &endExclusive
+	}
+
+	if result.Start != nil && result.EndExclusive != nil && !result.Start.Before(*result.EndExclusive) {
+		return result, fmt.Errorf("start_date must be on or before end_date")
+	}
+
+	return result, nil
+}
+
+func appendSummaryRangeConditions(conditions []string, args []interface{}, dateRange summaryRange) ([]string, []interface{}) {
+	if dateRange.Start != nil {
+		conditions = append(conditions, fmt.Sprintf("t.date >= $%d", len(args)+1))
+		args = append(args, *dateRange.Start)
+	}
+
+	if dateRange.EndExclusive != nil {
+		conditions = append(conditions, fmt.Sprintf("t.date < $%d", len(args)+1))
+		args = append(args, *dateRange.EndExclusive)
+	}
+
+	return conditions, args
+}
+
+func getSummaryInterval(interval *SummaryInterval) (SummaryInterval, error) {
+	if interval == nil {
+		return SummaryIntervalDay, nil
+	}
+
+	switch *interval {
+	case SummaryIntervalDay, SummaryIntervalWeek, SummaryIntervalMonth, SummaryIntervalYear:
+		return *interval, nil
+	default:
+		return "", fmt.Errorf("interval must be one of day, week, month, year")
+	}
+}
+
+func alignSummaryStart(date time.Time, interval SummaryInterval) time.Time {
+	switch interval {
+	case SummaryIntervalMonth:
+		return time.Date(date.Year(), date.Month(), 1, 0, 0, 0, 0, time.UTC)
+	case SummaryIntervalYear:
+		return time.Date(date.Year(), 1, 1, 0, 0, 0, 0, time.UTC)
+	default:
+		return time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, time.UTC)
+	}
+}
+
+func addSummaryInterval(date time.Time, interval SummaryInterval) time.Time {
+	switch interval {
+	case SummaryIntervalWeek:
+		return date.AddDate(0, 0, 7)
+	case SummaryIntervalMonth:
+		return date.AddDate(0, 1, 0)
+	case SummaryIntervalYear:
+		return date.AddDate(1, 0, 0)
+	default:
+		return date.AddDate(0, 0, 1)
+	}
+}
+
 func (s *Server) GetUserIdSummaryCategories(c *fiber.Ctx, userId string, params GetUserIdSummaryCategoriesParams) error {
 	tokUserId := GetTokenClaim[string](c, "id")
 
@@ -142,22 +227,11 @@ func (s *Server) GetUserIdSummaryCategories(c *fiber.Ctx, userId string, params 
 	conditions := []string{"a.user_id = $1"}
 	args := []interface{}{userId}
 
-	if params.Period != nil {
-		switch *params.Period {
-		case TimePeriodYtd:
-			conditions = append(conditions, "t.date >= $2")
-			args = append(args, time.Date(time.Now().Year(), 1, 1, 0, 0, 0, 0, time.Now().Location()))
-		case TimePeriodYear:
-			conditions = append(conditions, "t.date >= $2")
-			args = append(args, time.Now().AddDate(-1, 0, 0))
-		case TimePeriodMonth:
-			conditions = append(conditions, "t.date >= $2")
-			args = append(args, time.Now().AddDate(0, -1, 0))
-		case TimePeriodWeek:
-			conditions = append(conditions, "t.date >= $2")
-			args = append(args, time.Now().AddDate(0, 0, -7))
-		}
+	dateRange, err := parseSummaryRange(params.StartDate, params.EndDate)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
+	conditions, args = appendSummaryRangeConditions(conditions, args, dateRange)
 
 	whereClause := strings.Join(conditions, " AND ")
 
@@ -233,6 +307,16 @@ func (s *Server) GetUserIdSummaryBalance(c *fiber.Ctx, userId string, params Get
 		return c.SendStatus(fiber.StatusUnauthorized)
 	}
 
+	dateRange, err := parseSummaryRange(params.StartDate, params.EndDate)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	}
+
+	interval, err := getSummaryInterval(params.Interval)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	}
+
 	accounts := map[string]Account{}
 	accountIds := []string{}
 
@@ -264,7 +348,12 @@ func (s *Server) GetUserIdSummaryBalance(c *fiber.Ctx, userId string, params Get
 
 	rows, err = s.DB.Query(
 		c.Context(),
-		`SELECT account_id, amount, date::DATE FROM transaction ORDER BY date ASC`,
+		`SELECT t.account_id, t.amount, t.date::DATE
+		FROM transaction t
+		LEFT JOIN account a ON t.account_id = a.id
+		WHERE a.user_id = $1
+		ORDER BY t.date ASC`,
+		userId,
 	)
 	if err != nil {
 		return DBError(c, err)
@@ -280,12 +369,21 @@ func (s *Server) GetUserIdSummaryBalance(c *fiber.Ctx, userId string, params Get
 	}
 
 	now := time.Now().UTC()
+	rangeEnd := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
+	if dateRange.EndExclusive != nil {
+		rangeEnd = dateRange.EndExclusive.AddDate(0, 0, -1)
+	}
 
 	if len(transactions) == 0 {
+		pointDate := rangeEnd
+		if dateRange.Start != nil {
+			pointDate = alignSummaryStart(*dateRange.Start, interval)
+		}
+
 		result := BalanceSummary{
 			Total: []BalanceDatapoint{
 				{
-					Date:    now,
+					Date:    pointDate,
 					Balance: 0,
 				},
 			},
@@ -297,7 +395,7 @@ func (s *Server) GetUserIdSummaryBalance(c *fiber.Ctx, userId string, params Get
 				Account: accounts[accountId],
 				Balance: []BalanceDatapoint{
 					{
-						Date:    now,
+						Date:    pointDate,
 						Balance: 0,
 					},
 				},
@@ -307,146 +405,55 @@ func (s *Server) GetUserIdSummaryBalance(c *fiber.Ctx, userId string, params Get
 	}
 
 	startDate := transactions[0].Date.AddDate(0, 0, -1)
-
-	yearStep := 0
-	monthStep := 0
-	dayStep := 1
-	if params.GroupBy != nil {
-		switch *params.GroupBy {
-		case TimePeriodWeek:
-			dayStep = 7
-		case TimePeriodMonth:
-			monthStep = 1
-			dayStep = 0
-
-			startDate = time.Date(startDate.Year(), startDate.Month(), 1, 0, 0, 0, 0, startDate.Location())
-		case TimePeriodYear, TimePeriodYtd:
-			yearStep = 1
-			dayStep = 0
-
-			startDate = time.Date(startDate.Year(), 1, 1, 0, 0, 0, 0, startDate.Location())
-		}
+	if dateRange.Start != nil {
+		startDate = *dateRange.Start
+	}
+	startDate = alignSummaryStart(startDate, interval)
+	if startDate.After(rangeEnd) {
+		startDate = rangeEnd
 	}
 
-	skipTo := startDate
-
-	if params.Period != nil {
-		switch *params.Period {
-		case TimePeriodYtd:
-			skipTo = time.Date(now.Year(), 1, 1, 0, 0, 0, 0, time.UTC)
-		case TimePeriodYear:
-			skipTo = now.AddDate(-1, 0, 0)
-		case TimePeriodMonth:
-			skipTo = now.AddDate(0, -1, 0)
-		case TimePeriodWeek:
-			skipTo = now.AddDate(0, 0, -7)
-		}
-
-		if *params.Period == TimePeriodMonth || *params.Period == TimePeriodYear {
-			skipTo = time.Date(skipTo.Year(), skipTo.Month(), 1, 0, 0, 0, 0, time.UTC)
-		}
-	}
-
-	grandTotals := []BalanceDatapoint{
-		{
-			Date:    skipTo,
-			Balance: 0,
-		},
-	}
 	totals := map[string][]BalanceDatapoint{}
 	for _, accountId := range accountIds {
-		totals[accountId] = []BalanceDatapoint{
-			{
-				Date:    skipTo,
-				Balance: 0,
-			},
-		}
+		totals[accountId] = []BalanceDatapoint{}
 	}
 
-	if params.GroupBy == nil || *params.GroupBy != TimePeriodMonth {
-		skipTo = skipTo.AddDate(0, 0, 1)
-	}
-
-	tIdx := 0
-
-	// initialize account totals using the skipTo date
 	dayTotals := map[string]float32{}
 	for _, accountId := range accountIds {
 		dayTotals[accountId] = 0
 	}
-	for tIdx < len(transactions) && transactions[tIdx].Date.Before(skipTo) {
-		t := transactions[tIdx]
-		if _, ok := dayTotals[t.AccountId]; ok {
-			dayTotals[t.AccountId] += t.Amount
-		}
-		grandTotals[0].Balance += t.Amount
-		tIdx++
-	}
-	for accountId, amount := range dayTotals {
-		totals[accountId][0].Balance += amount
-	}
+	grandTotal := float32(0)
+	tIdx := 0
 
-	// now collect the actual data points based on the grouping
-	for currentDate := skipTo.AddDate(yearStep, monthStep, dayStep); currentDate.Before(now); currentDate = currentDate.AddDate(yearStep, monthStep, dayStep) {
-		dayTotals := map[string]float32{}
-		for _, accountId := range accountIds {
-			dayTotals[accountId] = 0
-		}
-		dayTotal := float32(0)
-
-		for tIdx < len(transactions) && transactions[tIdx].Date.Before(currentDate) {
+	grandTotals := []BalanceDatapoint{}
+	appendPoint := func(pointDate time.Time) {
+		for tIdx < len(transactions) && !transactions[tIdx].Date.After(pointDate) {
 			t := transactions[tIdx]
 			if _, ok := dayTotals[t.AccountId]; ok {
 				dayTotals[t.AccountId] += t.Amount
 			}
-			dayTotal += t.Amount
-
+			grandTotal += t.Amount
 			tIdx++
 		}
 
 		for accountId, amount := range dayTotals {
 			totals[accountId] = append(totals[accountId], BalanceDatapoint{
-				Date:    currentDate,
-				Balance: amount + totals[accountId][len(totals[accountId])-1].Balance,
+				Date:    pointDate,
+				Balance: amount,
 			})
 		}
 
 		grandTotals = append(grandTotals, BalanceDatapoint{
-			Date:    currentDate,
-			Balance: dayTotal + grandTotals[len(grandTotals)-1].Balance,
+			Date:    pointDate,
+			Balance: grandTotal,
 		})
 	}
 
-	// When grouping by month, add a trailing datapoint for today if today is not
-	// the 1st. This captures the partial month's transactions between the last
-	// 1st-of-month datapoint and now.
-	if params.GroupBy != nil && *params.GroupBy == TimePeriodMonth && now.Day() != 1 {
-		dayTotals := map[string]float32{}
-		for _, accountId := range accountIds {
-			dayTotals[accountId] = 0
-		}
-		dayTotal := float32(0)
-
-		for tIdx < len(transactions) {
-			t := transactions[tIdx]
-			if _, ok := dayTotals[t.AccountId]; ok {
-				dayTotals[t.AccountId] += t.Amount
-			}
-			dayTotal += t.Amount
-			tIdx++
-		}
-
-		for accountId, amount := range dayTotals {
-			totals[accountId] = append(totals[accountId], BalanceDatapoint{
-				Date:    now,
-				Balance: amount + totals[accountId][len(totals[accountId])-1].Balance,
-			})
-		}
-
-		grandTotals = append(grandTotals, BalanceDatapoint{
-			Date:    now,
-			Balance: dayTotal + grandTotals[len(grandTotals)-1].Balance,
-		})
+	for currentDate := startDate; !currentDate.After(rangeEnd); currentDate = addSummaryInterval(currentDate, interval) {
+		appendPoint(currentDate)
+	}
+	if len(grandTotals) == 0 || !grandTotals[len(grandTotals)-1].Date.Equal(rangeEnd) {
+		appendPoint(rangeEnd)
 	}
 
 	result := BalanceSummary{
@@ -473,22 +480,11 @@ func (s *Server) GetUserIdSummaryTotals(c *fiber.Ctx, userId string, params GetU
 	conditions := []string{"a.user_id = $1"}
 	args := []interface{}{userId}
 
-	if params.Period != nil {
-		switch *params.Period {
-		case TimePeriodYtd:
-			conditions = append(conditions, "t.date >= $2")
-			args = append(args, time.Date(time.Now().Year(), 1, 1, 0, 0, 0, 0, time.Now().Location()))
-		case TimePeriodYear:
-			conditions = append(conditions, "t.date >= $2")
-			args = append(args, time.Now().AddDate(-1, 0, 0))
-		case TimePeriodMonth:
-			conditions = append(conditions, "t.date >= $2")
-			args = append(args, time.Now().AddDate(0, -1, 0))
-		case TimePeriodWeek:
-			conditions = append(conditions, "t.date >= $2")
-			args = append(args, time.Now().AddDate(0, 0, -7))
-		}
+	dateRange, err := parseSummaryRange(params.StartDate, params.EndDate)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
+	conditions, args = appendSummaryRangeConditions(conditions, args, dateRange)
 
 	whereClause := strings.Join(conditions, " AND ")
 

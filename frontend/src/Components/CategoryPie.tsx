@@ -13,11 +13,17 @@ export default function CategoryPie() {
   const { computedMode } = useThemeMode()
   const isDark = computedMode === "dark"
   const { userId } = useUser()
-  const { categorySummaries, categoryColorMap: colorMap, dataPeriod } = useData()
-  const { data: totals } = useGetUserByIdSummaryTotals({
-    path: { id: userId },
-    query: { period: dataPeriod },
-  })
+  const { categorySummaries, categoryColorMap: colorMap, summaryDateQuery } = useData()
+  const { data: totals } = useGetUserByIdSummaryTotals(
+    {
+      path: { id: userId },
+      query: summaryDateQuery,
+    },
+    undefined,
+    {
+      enabled: !!userId,
+    },
+  )
 
   const { borders: pieBorders, fills: pieFills } = useMemo(
     () => getBrightColors(categorySummaries?.filter((cat) => cat.total < 0).length || 0),

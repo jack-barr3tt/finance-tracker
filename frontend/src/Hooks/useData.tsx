@@ -7,8 +7,9 @@ import {
   BudgetTransaction,
   Category,
   CategorySummary,
-  TimePeriod,
+  SummaryInterval,
 } from "../API/requests"
+import { format, subYears } from "date-fns"
 import {
   useGetUserByIdAccounts,
   useGetUserByIdBudgetTransactions,
@@ -31,10 +32,26 @@ type ColorMap = Record<
   }
 >
 
+export type SummaryRange = {
+  startDate: Date | null
+  endDate: Date | null
+  interval: SummaryInterval
+}
+
+type SummaryDateQuery = {
+  start_date?: string
+  end_date?: string
+}
+
+type SummaryBalanceQuery = SummaryDateQuery & {
+  interval: SummaryInterval
+}
+
 type DataValue = {
-  dataPeriod: TimePeriod
-  dataGroupBy: TimePeriod
-  setDataPeriod: (period: TimePeriod) => void
+  summaryRange: SummaryRange
+  summaryDateQuery: SummaryDateQuery
+  summaryBalanceQuery: SummaryBalanceQuery
+  setSummaryRange: (range: SummaryRange) => void
   categories: Category[] | null
   accounts: Account[] | null
   budgetTransactions: BudgetTransaction[] | null
@@ -55,16 +72,41 @@ export const useData = () => {
   return context
 }
 
+function formatSummaryDate(date: Date | null) {
+  if (!date) return undefined
+
+  return format(date, "yyyy-MM-dd")
+}
+
+function getInitialSummaryRange(): SummaryRange {
+  const today = new Date()
+
+  return {
+    startDate: subYears(today, 1),
+    endDate: today,
+    interval: "month",
+  }
+}
+
 export const DataProvider = ({ children }: { children: ReactNode }) => {
   const { userId, decrypt } = useUser()
 
-  const [dataPeriod, setDataPeriod] = useState<TimePeriod>("year")
-  const dataGroupBy = useMemo(
-    () =>
-      (dataPeriod == "all" || dataPeriod === "ytd" || dataPeriod === "year"
-        ? "month"
-        : "day") as TimePeriod,
-    [dataPeriod],
+  const [summaryRange, setSummaryRange] = useState<SummaryRange>(() => getInitialSummaryRange())
+
+  const summaryDateQuery = useMemo(
+    () => ({
+      start_date: formatSummaryDate(summaryRange.startDate),
+      end_date: formatSummaryDate(summaryRange.endDate),
+    }),
+    [summaryRange.endDate, summaryRange.startDate],
+  )
+
+  const summaryBalanceQuery = useMemo(
+    () => ({
+      ...summaryDateQuery,
+      interval: summaryRange.interval,
+    }),
+    [summaryRange.interval, summaryDateQuery],
   )
 
   const { data: encAccounts } = useGetUserByIdAccounts({ path: { id: userId } }, undefined, {
@@ -134,10 +176,16 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     [encAccountSummaries, decrypt],
   )
 
-  const { data: encBalanceSummary } = useGetUserByIdSummaryBalance({
-    path: { id: userId },
-    query: { group_by: dataGroupBy, period: dataPeriod },
-  })
+  const { data: encBalanceSummary } = useGetUserByIdSummaryBalance(
+    {
+      path: { id: userId },
+      query: summaryBalanceQuery,
+    },
+    undefined,
+    {
+      enabled: !!userId,
+    },
+  )
   const balanceSummary = useAsyncMemo(async () => {
     if (!encBalanceSummary) return null
     return {
@@ -152,7 +200,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
   }, [encBalanceSummary, decrypt])
 
   const { data: encCategorySummaries } = useGetUserByIdSummaryCategories(
-    { path: { id: userId }, query: { period: dataPeriod } },
+    { path: { id: userId }, query: summaryDateQuery },
     undefined,
     {
       enabled: !!userId,
@@ -179,7 +227,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             ),
           )
         : null,
-    [encCategorySummaries],
+    [encCategorySummaries, decrypt],
   )
 
   const accountColorMap = useMemo(
@@ -193,9 +241,10 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
 
   const value = useMemo(
     () => ({
-      dataPeriod,
-      dataGroupBy,
-      setDataPeriod,
+      summaryRange,
+      summaryDateQuery,
+      summaryBalanceQuery,
+      setSummaryRange,
       categories,
       accounts,
       budgetTransactions,
@@ -214,8 +263,9 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
       categories,
       categoryColorMap,
       categorySummaries,
-      dataGroupBy,
-      dataPeriod,
+      summaryBalanceQuery,
+      summaryDateQuery,
+      summaryRange,
     ],
   )
 

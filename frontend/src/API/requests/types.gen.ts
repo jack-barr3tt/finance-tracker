@@ -281,7 +281,7 @@ export type TotalsSummary = {
 
 export type PeriodUnit = 'day' | 'week' | 'month' | 'year';
 
-export type SummaryGroupBy = 'day' | 'week' | 'month';
+export type SummaryInterval = 'day' | 'week' | 'month' | 'year';
 
 export type TimePeriod = 'week' | 'month' | 'year' | 'ytd' | 'all';
 
@@ -572,7 +572,8 @@ export type GetUserByIdSummaryCategoriesData = {
         id: string;
     };
     query?: {
-        period?: TimePeriod;
+        end_date?: string;
+        start_date?: string;
     };
 };
 
@@ -585,8 +586,9 @@ export type GetUserByIdSummaryBalanceData = {
         id: string;
     };
     query?: {
-        group_by?: TimePeriod;
-        period?: TimePeriod;
+        end_date?: string;
+        interval?: SummaryInterval;
+        start_date?: string;
     };
 };
 
@@ -599,7 +601,8 @@ export type GetUserByIdSummaryTotalsData = {
         id: string;
     };
     query?: {
-        period?: TimePeriod;
+        end_date?: string;
+        start_date?: string;
     };
 };
 
