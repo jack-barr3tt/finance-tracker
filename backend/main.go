@@ -3,12 +3,15 @@ package main
 import (
 	"context"
 	"log"
+	"os"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/jack-barr3tt/finance-tracker/api"
 )
+
+const defaultListenAddr = "0.0.0.0:8080"
 
 func main() {
 	context := context.Background()
@@ -30,5 +33,11 @@ func main() {
 	api.RegisterHandlers(app, server)
 
 	// And we serve HTTP until the world ends.
-	log.Fatal(app.Listen("0.0.0.0:8080"))
+	listenAddr := os.Getenv("API_LISTEN_ADDR")
+	if listenAddr == "" {
+		listenAddr = defaultListenAddr
+	}
+
+	log.Printf("Listening on %s", listenAddr)
+	log.Fatal(app.Listen(listenAddr))
 }
