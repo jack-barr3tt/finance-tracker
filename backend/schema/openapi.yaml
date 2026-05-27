@@ -933,6 +933,145 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/NotFound"
+  /user/{id}/category-budgets:
+    post:
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CategoryBudgetCreateRequest"
+      responses:
+        "200":
+          description: Category budget response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CategoryBudgetCreateResponse"
+        "409":
+          description: Category budget already exists for category
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Conflict"
+    get:
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Category budget response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CategoryBudget"
+  /user/{id}/category-budgets/{category_budget_id}:
+    get:
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: category_budget_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Category budget response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CategoryBudget"
+        "404":
+          description: Category budget not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFound"
+    patch:
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: category_budget_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CategoryBudgetEditRequest"
+      responses:
+        "200":
+          description: Category budget response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CategoryBudgetEditResponse"
+        "404":
+          description: Category budget not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFound"
+        "409":
+          description: Category budget already exists for category
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Conflict"
+    delete:
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: category_budget_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Category budget response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CategoryBudgetDeleteResponse"
+        "404":
+          description: Category budget not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFound"
 components:
   securitySchemes:
     BearerAuth:
@@ -1127,6 +1266,37 @@ components:
         repeat_every:
           type: number
           example: 1.0
+    CategoryBudgetCreateRequest:
+      type: object
+      properties:
+        category_id:
+          type: string
+        amount:
+          type: number
+          example: 200.00
+        repeat_until:
+          $ref: "#/components/schemas/PeriodUnit"
+        repeat_every:
+          type: number
+          example: 1.0
+      required:
+        - category_id
+        - amount
+        - repeat_until
+        - repeat_every
+    CategoryBudgetEditRequest:
+      type: object
+      properties:
+        category_id:
+          type: string
+        amount:
+          type: number
+          example: 200.00
+        repeat_until:
+          $ref: "#/components/schemas/PeriodUnit"
+        repeat_every:
+          type: number
+          example: 1.0
     # Responses
     LoginResponse:
       type: object
@@ -1289,6 +1459,30 @@ components:
       required:
         - id
         - message
+    CategoryBudgetCreateResponse:
+      type: object
+      properties:
+        id:
+          type: string
+      required:
+        - id
+    CategoryBudgetEditResponse:
+      type: object
+      properties:
+        id:
+          type: string
+      required:
+        - id
+    CategoryBudgetDeleteResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        message:
+          type: string
+      required:
+        - id
+        - message
     # Errors
     NotAuthorized:
       type: object
@@ -1302,6 +1496,13 @@ components:
         message:
           type: string
           const: "Not found"
+    Conflict:
+      type: object
+      properties:
+        message:
+          type: string
+      required:
+        - message
     # Schemas
     User:
       type: object
@@ -1441,6 +1642,32 @@ components:
           format: date-time
       required:
         - id
+        - amount
+        - repeat_until
+        - repeat_every
+        - created_at
+    CategoryBudget:
+      type: object
+      properties:
+        id:
+          type: string
+        category:
+          $ref: "#/components/schemas/Category"
+        amount:
+          type: number
+        repeat_until:
+          $ref: "#/components/schemas/PeriodUnit"
+        repeat_every:
+          type: number
+        created_at:
+          type: string
+          format: date-time
+        deleted_at:
+          type: string
+          format: date-time
+      required:
+        - id
+        - category
         - amount
         - repeat_until
         - repeat_every

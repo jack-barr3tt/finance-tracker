@@ -20,14 +20,35 @@ This project is a personal finance tracker with a Go/Fiber backend and a Vite Re
 - Format Go code with `gofmt` and prefer straightforward handler logic over broad abstractions.
 - Return clear API errors through the existing response patterns instead of leaking internal errors.
 
+## Database
+
+- Schema changes go in [`database/schema.sql`](database/schema.sql). There is no migrations folder — the user applies DDL to their Postgres instance manually.
+- **After editing the database schema, stop and ask the user to apply the changes before continuing** with backend handlers, frontend work, or verification. Do not assume the table or index already exists in the running database.
+
 ## Generated Code
 
 - Backend OpenAPI generation lives behind `backend/tools/tools.go`.
 - Frontend API generation uses the `codegen` script in `frontend/package.json`.
 - Generated files should be reviewed for expected contract changes, but source fixes should usually happen in the schema or generator inputs.
 
+### Regenerating API code
+
+After changing `backend/schema/openapi.yaml`, regenerate both sides:
+
+```bash
+# Backend (from repo root)
+zsh -lic 'cd backend/tools && go generate'
+
+# Frontend
+zsh -lic 'cd frontend && yarn codegen'
+```
+
+**Why `zsh -lic`?** This project uses GVM for Go. Cursor's default agent shell does not load `~/.zshrc`, so plain `go generate` / `go run` can fail silently (exit code 1, no output) because the expected Go toolchain is not on `PATH`. A login interactive zsh loads GVM and the commands succeed. If codegen fails with no output, try the commands above in your own terminal first.
+
+Do **not** edit `backend/api/gen.go` or files under `frontend/src/API/` by hand — always change the OpenAPI schema and regenerate.
+
 ## Validation
 
 - For frontend changes, run `yarn lint` and, for broader TypeScript/UI changes, `yarn build` from `frontend`.
-- For backend changes, run `go test ./...` from `backend`.
+- For backend changes, run `go test ./api/...` from `backend`.
 - After changing OpenAPI schema, regenerate both backend and frontend API code and include the generated diffs.

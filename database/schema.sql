@@ -66,6 +66,17 @@ CREATE TABLE IF NOT EXISTS "budget_transaction" (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   deleted_at TIMESTAMP
 );
+CREATE TABLE IF NOT EXISTS "category_budget" (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  category_id UUID NOT NULL REFERENCES "category"(id) ON DELETE CASCADE,
+  amount DECIMAL(10, 2) NOT NULL CHECK (amount > 0),
+  repeat_every DECIMAL(4, 1) NOT NULL,
+  repeat_until period_unit NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  deleted_at TIMESTAMP
+);
+CREATE UNIQUE INDEX IF NOT EXISTS category_budget_active_category_idx ON category_budget (category_id)
+WHERE deleted_at IS NULL;
 CREATE OR REPLACE FUNCTION update_txn_hash() RETURNS TRIGGER AS $$ BEGIN NEW.txn_hash := encode(
     digest(
       NEW.account_id::text || NEW.amount::text || NEW.description || NEW.date::text,

@@ -2,7 +2,7 @@
 
 import { type Options } from "@hey-api/client-fetch";
 import { UseQueryResult } from "@tanstack/react-query";
-import { deleteUserByIdAccountsByAccountId, deleteUserByIdBudgetTransactionsByBudgetTransactionId, deleteUserByIdCategoriesByCategoryId, deleteUserByIdCategoriesByCategoryIdRulesByRuleId, deleteUserByIdTransactionsByTransactionId, getBanks, getUserById, getUserByIdAccounts, getUserByIdAccountsByAccountId, getUserByIdBudgetTransactions, getUserByIdBudgetTransactionsByBudgetTransactionId, getUserByIdCategories, getUserByIdCategoriesByCategoryId, getUserByIdSummaryAccounts, getUserByIdSummaryBalance, getUserByIdSummaryCategories, getUserByIdSummaryTotals, getUserByIdTransactions, getUserByIdTransactionsByTransactionId, patchUserByIdAccountsByAccountId, patchUserByIdBudgetTransactionsByBudgetTransactionId, patchUserByIdCategoriesByCategoryId, patchUserByIdCategoriesByCategoryIdRulesByRuleId, patchUserByIdTransactionsByTransactionId, postLogin, postSignup, postUserByIdAccounts, postUserByIdBudgetTransactions, postUserByIdCategories, postUserByIdCategoriesByCategoryIdRules, postUserByIdTransactions, postUserByIdTransactionsBulk, postUserByIdTransactionsBulkDelete, postUserByIdTransactionsBulkFinalise } from "../requests/services.gen";
+import { deleteUserByIdAccountsByAccountId, deleteUserByIdBudgetTransactionsByBudgetTransactionId, deleteUserByIdCategoriesByCategoryId, deleteUserByIdCategoriesByCategoryIdRulesByRuleId, deleteUserByIdCategoryBudgetsByCategoryBudgetId, deleteUserByIdTransactionsByTransactionId, getBanks, getUserById, getUserByIdAccounts, getUserByIdAccountsByAccountId, getUserByIdBudgetTransactions, getUserByIdBudgetTransactionsByBudgetTransactionId, getUserByIdCategories, getUserByIdCategoriesByCategoryId, getUserByIdCategoryBudgets, getUserByIdCategoryBudgetsByCategoryBudgetId, getUserByIdSummaryAccounts, getUserByIdSummaryBalance, getUserByIdSummaryCategories, getUserByIdSummaryTotals, getUserByIdTransactions, getUserByIdTransactionsByTransactionId, patchUserByIdAccountsByAccountId, patchUserByIdBudgetTransactionsByBudgetTransactionId, patchUserByIdCategoriesByCategoryId, patchUserByIdCategoriesByCategoryIdRulesByRuleId, patchUserByIdCategoryBudgetsByCategoryBudgetId, patchUserByIdTransactionsByTransactionId, postLogin, postSignup, postUserByIdAccounts, postUserByIdBudgetTransactions, postUserByIdCategories, postUserByIdCategoriesByCategoryIdRules, postUserByIdCategoryBudgets, postUserByIdTransactions, postUserByIdTransactionsBulk, postUserByIdTransactionsBulkDelete, postUserByIdTransactionsBulkFinalise } from "../requests/services.gen";
 export type GetBanksDefaultResponse = Awaited<ReturnType<typeof getBanks>>["data"];
 export type GetBanksQueryResult<TData = GetBanksDefaultResponse, TError = unknown> = UseQueryResult<TData, TError>;
 export const useGetBanksKey = "GetBanks";
@@ -59,6 +59,14 @@ export type GetUserByIdBudgetTransactionsByBudgetTransactionIdDefaultResponse = 
 export type GetUserByIdBudgetTransactionsByBudgetTransactionIdQueryResult<TData = GetUserByIdBudgetTransactionsByBudgetTransactionIdDefaultResponse, TError = unknown> = UseQueryResult<TData, TError>;
 export const useGetUserByIdBudgetTransactionsByBudgetTransactionIdKey = "GetUserByIdBudgetTransactionsByBudgetTransactionId";
 export const UseGetUserByIdBudgetTransactionsByBudgetTransactionIdKeyFn = (clientOptions: Options<unknown, true>, queryKey?: Array<unknown>) => [useGetUserByIdBudgetTransactionsByBudgetTransactionIdKey, ...(queryKey ?? [clientOptions])];
+export type GetUserByIdCategoryBudgetsDefaultResponse = Awaited<ReturnType<typeof getUserByIdCategoryBudgets>>["data"];
+export type GetUserByIdCategoryBudgetsQueryResult<TData = GetUserByIdCategoryBudgetsDefaultResponse, TError = unknown> = UseQueryResult<TData, TError>;
+export const useGetUserByIdCategoryBudgetsKey = "GetUserByIdCategoryBudgets";
+export const UseGetUserByIdCategoryBudgetsKeyFn = (clientOptions: Options<unknown, true>, queryKey?: Array<unknown>) => [useGetUserByIdCategoryBudgetsKey, ...(queryKey ?? [clientOptions])];
+export type GetUserByIdCategoryBudgetsByCategoryBudgetIdDefaultResponse = Awaited<ReturnType<typeof getUserByIdCategoryBudgetsByCategoryBudgetId>>["data"];
+export type GetUserByIdCategoryBudgetsByCategoryBudgetIdQueryResult<TData = GetUserByIdCategoryBudgetsByCategoryBudgetIdDefaultResponse, TError = unknown> = UseQueryResult<TData, TError>;
+export const useGetUserByIdCategoryBudgetsByCategoryBudgetIdKey = "GetUserByIdCategoryBudgetsByCategoryBudgetId";
+export const UseGetUserByIdCategoryBudgetsByCategoryBudgetIdKeyFn = (clientOptions: Options<unknown, true>, queryKey?: Array<unknown>) => [useGetUserByIdCategoryBudgetsByCategoryBudgetIdKey, ...(queryKey ?? [clientOptions])];
 export type PostLoginMutationResult = Awaited<ReturnType<typeof postLogin>>;
 export const usePostLoginKey = "PostLogin";
 export const UsePostLoginKeyFn = (mutationKey?: Array<unknown>) => [usePostLoginKey, ...(mutationKey ?? [])];
@@ -89,6 +97,9 @@ export const UsePostUserByIdCategoriesByCategoryIdRulesKeyFn = (mutationKey?: Ar
 export type PostUserByIdBudgetTransactionsMutationResult = Awaited<ReturnType<typeof postUserByIdBudgetTransactions>>;
 export const usePostUserByIdBudgetTransactionsKey = "PostUserByIdBudgetTransactions";
 export const UsePostUserByIdBudgetTransactionsKeyFn = (mutationKey?: Array<unknown>) => [usePostUserByIdBudgetTransactionsKey, ...(mutationKey ?? [])];
+export type PostUserByIdCategoryBudgetsMutationResult = Awaited<ReturnType<typeof postUserByIdCategoryBudgets>>;
+export const usePostUserByIdCategoryBudgetsKey = "PostUserByIdCategoryBudgets";
+export const UsePostUserByIdCategoryBudgetsKeyFn = (mutationKey?: Array<unknown>) => [usePostUserByIdCategoryBudgetsKey, ...(mutationKey ?? [])];
 export type PatchUserByIdAccountsByAccountIdMutationResult = Awaited<ReturnType<typeof patchUserByIdAccountsByAccountId>>;
 export const usePatchUserByIdAccountsByAccountIdKey = "PatchUserByIdAccountsByAccountId";
 export const UsePatchUserByIdAccountsByAccountIdKeyFn = (mutationKey?: Array<unknown>) => [usePatchUserByIdAccountsByAccountIdKey, ...(mutationKey ?? [])];
@@ -104,6 +115,9 @@ export const UsePatchUserByIdCategoriesByCategoryIdRulesByRuleIdKeyFn = (mutatio
 export type PatchUserByIdBudgetTransactionsByBudgetTransactionIdMutationResult = Awaited<ReturnType<typeof patchUserByIdBudgetTransactionsByBudgetTransactionId>>;
 export const usePatchUserByIdBudgetTransactionsByBudgetTransactionIdKey = "PatchUserByIdBudgetTransactionsByBudgetTransactionId";
 export const UsePatchUserByIdBudgetTransactionsByBudgetTransactionIdKeyFn = (mutationKey?: Array<unknown>) => [usePatchUserByIdBudgetTransactionsByBudgetTransactionIdKey, ...(mutationKey ?? [])];
+export type PatchUserByIdCategoryBudgetsByCategoryBudgetIdMutationResult = Awaited<ReturnType<typeof patchUserByIdCategoryBudgetsByCategoryBudgetId>>;
+export const usePatchUserByIdCategoryBudgetsByCategoryBudgetIdKey = "PatchUserByIdCategoryBudgetsByCategoryBudgetId";
+export const UsePatchUserByIdCategoryBudgetsByCategoryBudgetIdKeyFn = (mutationKey?: Array<unknown>) => [usePatchUserByIdCategoryBudgetsByCategoryBudgetIdKey, ...(mutationKey ?? [])];
 export type DeleteUserByIdAccountsByAccountIdMutationResult = Awaited<ReturnType<typeof deleteUserByIdAccountsByAccountId>>;
 export const useDeleteUserByIdAccountsByAccountIdKey = "DeleteUserByIdAccountsByAccountId";
 export const UseDeleteUserByIdAccountsByAccountIdKeyFn = (mutationKey?: Array<unknown>) => [useDeleteUserByIdAccountsByAccountIdKey, ...(mutationKey ?? [])];
@@ -119,3 +133,6 @@ export const UseDeleteUserByIdCategoriesByCategoryIdRulesByRuleIdKeyFn = (mutati
 export type DeleteUserByIdBudgetTransactionsByBudgetTransactionIdMutationResult = Awaited<ReturnType<typeof deleteUserByIdBudgetTransactionsByBudgetTransactionId>>;
 export const useDeleteUserByIdBudgetTransactionsByBudgetTransactionIdKey = "DeleteUserByIdBudgetTransactionsByBudgetTransactionId";
 export const UseDeleteUserByIdBudgetTransactionsByBudgetTransactionIdKeyFn = (mutationKey?: Array<unknown>) => [useDeleteUserByIdBudgetTransactionsByBudgetTransactionIdKey, ...(mutationKey ?? [])];
+export type DeleteUserByIdCategoryBudgetsByCategoryBudgetIdMutationResult = Awaited<ReturnType<typeof deleteUserByIdCategoryBudgetsByCategoryBudgetId>>;
+export const useDeleteUserByIdCategoryBudgetsByCategoryBudgetIdKey = "DeleteUserByIdCategoryBudgetsByCategoryBudgetId";
+export const UseDeleteUserByIdCategoryBudgetsByCategoryBudgetIdKeyFn = (mutationKey?: Array<unknown>) => [useDeleteUserByIdCategoryBudgetsByCategoryBudgetIdKey, ...(mutationKey ?? [])];

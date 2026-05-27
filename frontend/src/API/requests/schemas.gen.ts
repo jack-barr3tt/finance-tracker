@@ -256,6 +256,47 @@ export const BudgetTransactionEditRequestSchema = {
     }
 } as const;
 
+export const CategoryBudgetCreateRequestSchema = {
+    type: 'object',
+    properties: {
+        category_id: {
+            type: 'string'
+        },
+        amount: {
+            type: 'number',
+            example: 200
+        },
+        repeat_until: {
+            '$ref': '#/components/schemas/PeriodUnit'
+        },
+        repeat_every: {
+            type: 'number',
+            example: 1
+        }
+    },
+    required: ['category_id', 'amount', 'repeat_until', 'repeat_every']
+} as const;
+
+export const CategoryBudgetEditRequestSchema = {
+    type: 'object',
+    properties: {
+        category_id: {
+            type: 'string'
+        },
+        amount: {
+            type: 'number',
+            example: 200
+        },
+        repeat_until: {
+            '$ref': '#/components/schemas/PeriodUnit'
+        },
+        repeat_every: {
+            type: 'number',
+            example: 1
+        }
+    }
+} as const;
+
 export const LoginResponseSchema = {
     type: 'object',
     properties: {
@@ -476,6 +517,39 @@ export const BudgetTransactionDeleteResponseSchema = {
     required: ['id', 'message']
 } as const;
 
+export const CategoryBudgetCreateResponseSchema = {
+    type: 'object',
+    properties: {
+        id: {
+            type: 'string'
+        }
+    },
+    required: ['id']
+} as const;
+
+export const CategoryBudgetEditResponseSchema = {
+    type: 'object',
+    properties: {
+        id: {
+            type: 'string'
+        }
+    },
+    required: ['id']
+} as const;
+
+export const CategoryBudgetDeleteResponseSchema = {
+    type: 'object',
+    properties: {
+        id: {
+            type: 'string'
+        },
+        message: {
+            type: 'string'
+        }
+    },
+    required: ['id', 'message']
+} as const;
+
 export const NotAuthorizedSchema = {
     type: 'object',
     properties: {
@@ -494,6 +568,16 @@ export const NotFoundSchema = {
             const: 'Not found'
         }
     }
+} as const;
+
+export const ConflictSchema = {
+    type: 'object',
+    properties: {
+        message: {
+            type: 'string'
+        }
+    },
+    required: ['message']
 } as const;
 
 export const UserSchema = {
@@ -665,6 +749,36 @@ export const BudgetTransactionSchema = {
         }
     },
     required: ['id', 'amount', 'repeat_until', 'repeat_every', 'created_at']
+} as const;
+
+export const CategoryBudgetSchema = {
+    type: 'object',
+    properties: {
+        id: {
+            type: 'string'
+        },
+        category: {
+            '$ref': '#/components/schemas/Category'
+        },
+        amount: {
+            type: 'number'
+        },
+        repeat_until: {
+            '$ref': '#/components/schemas/PeriodUnit'
+        },
+        repeat_every: {
+            type: 'number'
+        },
+        created_at: {
+            type: 'string',
+            format: 'date-time'
+        },
+        deleted_at: {
+            type: 'string',
+            format: 'date-time'
+        }
+    },
+    required: ['id', 'category', 'amount', 'repeat_until', 'repeat_every', 'created_at']
 } as const;
 
 export const AllAccountSummarySchema = {

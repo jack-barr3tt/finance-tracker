@@ -6,6 +6,7 @@ import {
   BalanceSummary,
   BudgetTransaction,
   Category,
+  CategoryBudget,
   CategorySummary,
   SummaryInterval,
 } from "../API/requests"
@@ -13,12 +14,13 @@ import { format, subYears } from "date-fns"
 import {
   useGetUserByIdAccounts,
   useGetUserByIdBudgetTransactions,
+  useGetUserByIdCategoryBudgets,
   useGetUserByIdCategories,
   useGetUserByIdSummaryAccounts,
   useGetUserByIdSummaryBalance,
   useGetUserByIdSummaryCategories,
 } from "../API/queries"
-import { decryptAccount, decryptBudgetTransaction, decryptCategory } from "../Security/data"
+import { decryptAccount, decryptBudgetTransaction, decryptCategory, decryptCategoryBudget } from "../Security/data"
 import { useAsyncMemo } from "./useAsyncMemo"
 import { useUser } from "./useUser"
 import { getChartColors } from "../utils"
@@ -55,6 +57,7 @@ type DataValue = {
   categories: Category[] | null
   accounts: Account[] | null
   budgetTransactions: BudgetTransaction[] | null
+  categoryBudgets: CategoryBudget[] | null
   accountSummary: AllAccountSummary | null
   balanceSummary: BalanceSummary | null
   categorySummaries: CategorySummary[] | null
@@ -146,6 +149,23 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         )
       ).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()),
     [encBudgetTransactions, decrypt],
+  )
+
+  const { data: encCategoryBudgets } = useGetUserByIdCategoryBudgets(
+    { path: { id: userId } },
+    undefined,
+    {
+      enabled: !!userId,
+    },
+  )
+  const categoryBudgets = useAsyncMemo(
+    async () =>
+      (
+        await Promise.all(
+          encCategoryBudgets?.map((cb) => decryptCategoryBudget(cb, decrypt)) ?? [],
+        )
+      ).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()),
+    [encCategoryBudgets, decrypt],
   )
 
   const { data: encAccountSummaries } = useGetUserByIdSummaryAccounts(
@@ -248,6 +268,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
       categories,
       accounts,
       budgetTransactions,
+      categoryBudgets,
       accountSummary,
       balanceSummary,
       categorySummaries,
@@ -261,6 +282,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
       balanceSummary,
       budgetTransactions,
       categories,
+      categoryBudgets,
       categoryColorMap,
       categorySummaries,
       summaryBalanceQuery,

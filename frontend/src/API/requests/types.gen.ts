@@ -91,6 +91,20 @@ export type BudgetTransactionEditRequest = {
     repeat_every?: number;
 };
 
+export type CategoryBudgetCreateRequest = {
+    category_id: string;
+    amount: number;
+    repeat_until: PeriodUnit;
+    repeat_every: number;
+};
+
+export type CategoryBudgetEditRequest = {
+    category_id?: string;
+    amount?: number;
+    repeat_until?: PeriodUnit;
+    repeat_every?: number;
+};
+
 export type LoginResponse = {
     id: string;
     token: string;
@@ -176,12 +190,29 @@ export type BudgetTransactionDeleteResponse = {
     message: string;
 };
 
+export type CategoryBudgetCreateResponse = {
+    id: string;
+};
+
+export type CategoryBudgetEditResponse = {
+    id: string;
+};
+
+export type CategoryBudgetDeleteResponse = {
+    id: string;
+    message: string;
+};
+
 export type NotAuthorized = {
     message?: "Not authorized";
 };
 
 export type NotFound = {
     message?: "Not found";
+};
+
+export type Conflict = {
+    message: string;
 };
 
 export type User = {
@@ -236,6 +267,16 @@ export type BudgetTransaction = {
     category?: Category;
     amount: number;
     description?: string;
+    repeat_until: PeriodUnit;
+    repeat_every: number;
+    created_at: string;
+    deleted_at?: string;
+};
+
+export type CategoryBudget = {
+    id: string;
+    category: Category;
+    amount: number;
     repeat_until: PeriodUnit;
     repeat_every: number;
     created_at: string;
@@ -666,3 +707,58 @@ export type DeleteUserByIdBudgetTransactionsByBudgetTransactionIdData = {
 export type DeleteUserByIdBudgetTransactionsByBudgetTransactionIdResponse = (BudgetTransactionDeleteResponse);
 
 export type DeleteUserByIdBudgetTransactionsByBudgetTransactionIdError = (NotFound);
+
+export type PostUserByIdCategoryBudgetsData = {
+    body?: CategoryBudgetCreateRequest;
+    path: {
+        id: string;
+    };
+};
+
+export type PostUserByIdCategoryBudgetsResponse = (CategoryBudgetCreateResponse);
+
+export type PostUserByIdCategoryBudgetsError = (Conflict);
+
+export type GetUserByIdCategoryBudgetsData = {
+    path: {
+        id: string;
+    };
+};
+
+export type GetUserByIdCategoryBudgetsResponse = (Array<CategoryBudget>);
+
+export type GetUserByIdCategoryBudgetsError = unknown;
+
+export type GetUserByIdCategoryBudgetsByCategoryBudgetIdData = {
+    path: {
+        category_budget_id: string;
+        id: string;
+    };
+};
+
+export type GetUserByIdCategoryBudgetsByCategoryBudgetIdResponse = (CategoryBudget);
+
+export type GetUserByIdCategoryBudgetsByCategoryBudgetIdError = (NotFound);
+
+export type PatchUserByIdCategoryBudgetsByCategoryBudgetIdData = {
+    body?: CategoryBudgetEditRequest;
+    path: {
+        category_budget_id: string;
+        id: string;
+    };
+};
+
+export type PatchUserByIdCategoryBudgetsByCategoryBudgetIdResponse = (CategoryBudgetEditResponse);
+
+export type PatchUserByIdCategoryBudgetsByCategoryBudgetIdError = (NotFound | Conflict);
+
+export type DeleteUserByIdCategoryBudgetsByCategoryBudgetIdData = {
+    path: {
+        category_budget_id: string;
+        id: string;
+    };
+};
+
+export type DeleteUserByIdCategoryBudgetsByCategoryBudgetIdResponse = (CategoryBudgetDeleteResponse);
+
+export type DeleteUserByIdCategoryBudgetsByCategoryBudgetIdError = (NotFound);

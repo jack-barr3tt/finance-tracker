@@ -2,26 +2,36 @@ import { HR } from "flowbite-react"
 import { useUser } from "../Hooks/useUser"
 import {
   useDeleteUserByIdBudgetTransactionsByBudgetTransactionId,
+  useDeleteUserByIdCategoryBudgetsByCategoryBudgetId,
   UseGetUserByIdBudgetTransactionsKeyFn,
   UseGetUserByIdBudgetTransactionsByBudgetTransactionIdKeyFn,
+  UseGetUserByIdCategoryBudgetsKeyFn,
+  UseGetUserByIdCategoryBudgetsByCategoryBudgetIdKeyFn,
 } from "../API/queries"
 import { useCallback, useMemo, useState } from "react"
 import { useQueryClient } from "@tanstack/react-query"
 import { useData } from "../Hooks/useData"
 import BudgetTable from "../Components/BudgetTable"
+import CategoryBudgetTable from "../Components/CategoryBudgetTable"
 import BudgetPie from "../Components/BudgetPie"
 
 export default function Budget() {
   const { userId } = useUser()
-  const { budgetTransactions, categoryColorMap } = useData()
+  const { budgetTransactions, categoryBudgets, categoryColorMap } = useData()
   const queryClient = useQueryClient()
 
   const { mutateAsync: deleteBudgetTransaction } =
     useDeleteUserByIdBudgetTransactionsByBudgetTransactionId()
+  const { mutateAsync: deleteCategoryBudget } =
+    useDeleteUserByIdCategoryBudgetsByCategoryBudgetId()
 
   const [showAddIncome, setShowAddIncome] = useState(false)
   const [showAddOutgoings, setShowAddOutgoings] = useState(false)
+  const [showAddCategoryBudget, setShowAddCategoryBudget] = useState(false)
   const [editingBudgetTransactionId, setEditingBudgetTransactionId] = useState<string | undefined>(
+    undefined
+  )
+  const [editingCategoryBudgetId, setEditingCategoryBudgetId] = useState<string | undefined>(
     undefined
   )
 
@@ -54,6 +64,25 @@ export default function Budget() {
     [deleteBudgetTransaction, userId, editingBudgetTransactionId, queryClient]
   )
 
+  const handleDeleteCategoryBudget = useCallback(
+    async (categoryBudgetId: string) => {
+      await deleteCategoryBudget({
+        path: { id: userId, category_budget_id: categoryBudgetId },
+      })
+      if (editingCategoryBudgetId === categoryBudgetId)
+        setEditingCategoryBudgetId(undefined)
+      queryClient.invalidateQueries({
+        queryKey: UseGetUserByIdCategoryBudgetsKeyFn({ path: { id: userId } }),
+      })
+      queryClient.invalidateQueries({
+        queryKey: UseGetUserByIdCategoryBudgetsByCategoryBudgetIdKeyFn({
+          path: { id: userId, category_budget_id: categoryBudgetId },
+        }),
+      })
+    },
+    [deleteCategoryBudget, userId, editingCategoryBudgetId, queryClient]
+  )
+
   return (
     <div className="flex flex-col gap-2 px-8 pb-8 md:gap-4 md:pb-16 md:px-16">
       <h1 className="text-3xl font-bold">Budget</h1>
@@ -64,6 +93,7 @@ export default function Budget() {
         <div className="2xl:w-1/2">
           <BudgetPie
             budgetTransactions={budgetTransactions || []}
+            categoryBudgets={categoryBudgets || []}
             categoryColorMap={categoryColorMap}
           />
         </div>
@@ -97,6 +127,25 @@ export default function Budget() {
               onEditChange={setEditingBudgetTransactionId}
               onDelete={handleDelete}
               isOutgoings={true}
+            />
+          </div>
+
+          <div>
+            <div className="flex flex-row items-center justify-between mb-2 md:mb-4">
+              <h2 className="text-2xl font-medium">Category budgets</h2>
+            </div>
+            <p className="mb-2 text-sm text-gray-500 dark:text-gray-400 md:mb-4">
+              Set spending limits for variable costs in a category. These are shown in addition to
+              specific budget lines above.
+            </p>
+            <CategoryBudgetTable
+              categoryBudgets={categoryBudgets || []}
+              categoryColorMap={categoryColorMap}
+              showAdd={showAddCategoryBudget}
+              editingCategoryBudgetId={editingCategoryBudgetId}
+              onShowAddChange={setShowAddCategoryBudget}
+              onEditChange={setEditingCategoryBudgetId}
+              onDelete={handleDeleteCategoryBudget}
             />
           </div>
         </div>

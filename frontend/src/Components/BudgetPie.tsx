@@ -3,21 +3,23 @@ import { Card } from "flowbite-react"
 import Color from "color"
 import { useMemo } from "react"
 import { Doughnut } from "react-chartjs-2"
-import { BudgetTransaction } from "../API/requests"
+import { BudgetTransaction, CategoryBudget } from "../API/requests"
 import { toMonthlyAmount } from "../utils"
 
 ChartJS.register(ArcElement, Tooltip, Legend)
 
 type BudgetPieProps = {
   budgetTransactions: BudgetTransaction[]
+  categoryBudgets: CategoryBudget[]
   categoryColorMap: Record<string, { fill: string; text: string; border: string }>
 }
 
 export default function BudgetPie(props: BudgetPieProps) {
-  const { budgetTransactions, categoryColorMap } = props
+  const { budgetTransactions, categoryBudgets, categoryColorMap } = props
 
   const chartData = useMemo(() => {
     const activeBudgetTransactions = budgetTransactions.filter((bt) => !bt.deleted_at)
+    const activeCategoryBudgets = categoryBudgets.filter((cb) => !cb.deleted_at)
 
     const monthlyIncome = activeBudgetTransactions
       .filter((bt) => bt.amount > 0)
@@ -28,23 +30,37 @@ export default function BudgetPie(props: BudgetPieProps) {
       { name: string; value: number; fill: string; border: string }
     > = {}
 
+    const addToCategoryTotal = (
+      categoryId: string,
+      categoryName: string,
+      monthlyAmount: number
+    ) => {
+      if (!categoryTotals[categoryId]) {
+        categoryTotals[categoryId] = {
+          name: categoryName,
+          value: 0,
+          fill: categoryColorMap[categoryId]?.fill || "#6B7280",
+          border: categoryColorMap[categoryId]?.border || "#4B5563",
+        }
+      }
+      categoryTotals[categoryId].value += monthlyAmount
+    }
+
     activeBudgetTransactions
       .filter((bt) => bt.amount < 0)
       .forEach((bt) => {
         const categoryId = bt.category?.id || "uncategorised"
         const categoryName = bt.category?.name || "Uncategorised"
-        const monthlyAmount = toMonthlyAmount(bt.amount, bt.repeat_every, bt.repeat_until)
-
-        if (!categoryTotals[categoryId]) {
-          categoryTotals[categoryId] = {
-            name: categoryName,
-            value: 0,
-            fill: categoryColorMap[categoryId]?.fill || "#6B7280",
-            border: categoryColorMap[categoryId]?.border || "#4B5563",
-          }
-        }
-        categoryTotals[categoryId].value += monthlyAmount
+        const monthlyAmount = Math.abs(
+          toMonthlyAmount(bt.amount, bt.repeat_every, bt.repeat_until)
+        )
+        addToCategoryTotal(categoryId, categoryName, monthlyAmount)
       })
+
+    activeCategoryBudgets.forEach((cb) => {
+      const monthlyAmount = toMonthlyAmount(cb.amount, cb.repeat_every, cb.repeat_until)
+      addToCategoryTotal(cb.category.id, cb.category.name, monthlyAmount)
+    })
 
     const categories = Object.values(categoryTotals)
     const totalOutgoings = categories.reduce((sum, item) => sum + item.value, 0)
@@ -71,7 +87,7 @@ export default function BudgetPie(props: BudgetPieProps) {
       totalOutgoings,
       remaining,
     }
-  }, [budgetTransactions, categoryColorMap])
+  }, [budgetTransactions, categoryBudgets, categoryColorMap])
 
   return (
     <Card className="w-full">

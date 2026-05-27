@@ -44,7 +44,7 @@ func (s Server) GetUserIdBudgetTransactions(c *fiber.Ctx, userId string) error {
 			c.id, c.name, c.created_at
 		FROM budget_transaction bt
 		INNER JOIN category c ON bt.category_id = c.id
-		WHERE c.user_id = $1
+		WHERE c.user_id = $1 AND bt.deleted_at IS NULL
 		ORDER BY bt.created_at DESC`,
 		userId,
 	)

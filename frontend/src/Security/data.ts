@@ -1,4 +1,4 @@
-import { Account, BudgetTransaction, Category, CategoryRule, Transaction } from "../API/requests"
+import { Account, BudgetTransaction, Category, CategoryBudget, CategoryRule, Transaction } from "../API/requests"
 import { DecryptFunction } from "../Hooks/useUser"
 
 export async function decryptCategoryRule<T extends CategoryRule | undefined>(
@@ -81,5 +81,17 @@ export async function decryptBudgetTransaction<T extends BudgetTransaction | und
     ...budgetTransaction,
     description,
     category,
+  }
+}
+
+export async function decryptCategoryBudget<T extends CategoryBudget | undefined>(
+  categoryBudget: T,
+  decrypt: DecryptFunction
+): Promise<T> {
+  if (!categoryBudget) return undefined as T
+
+  return {
+    ...categoryBudget,
+    category: await decryptCategory(categoryBudget.category, decrypt),
   }
 }
