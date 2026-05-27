@@ -6,6 +6,11 @@ import { decryptMasterKey } from "../Security/keys"
 
 export type DecryptFunction = <T extends string | null | undefined>(data: T) => Promise<T>
 
+const autoLoginEmail = import.meta.env.VITE_AUTO_LOGIN_EMAIL
+const autoLoginPassword = import.meta.env.VITE_AUTO_LOGIN_PASSWORD
+const autoLoginEnabled =
+  import.meta.env.DEV && Boolean(autoLoginEmail && autoLoginPassword)
+
 interface UserValue {
   userId: string
   login: (email: string, password: string) => Promise<boolean>
@@ -25,38 +30,49 @@ export function useUser() {
 export function UserProvider(props: { children: ReactNode }) {
   const [userId, setUserId] = useState<string>("")
   const [key, setKey] = useState<CryptoKey | null>(null)
+  const [autoLoggingIn, setAutoLoggingIn] = useState(autoLoginEnabled)
 
   const { mutateAsync: loginReq } = usePostLogin()
   const { isError } = useGetUserById({ path: { id: userId } }, undefined, {
     enabled: !!userId,
   })
 
-  const login = async (email: string, password: string) => {
-    try {
-      const { data } = await loginReq({
-        body: {
-          email,
-          password,
-        },
-      })
+  const logout = useCallback(() => {
+    setUserId("")
+    setKey(null)
+    Cookies.remove("access_token")
+    Cookies.remove("user_id")
+  }, [])
 
-      if (!data) {
+  const login = useCallback(
+    async (email: string, password: string) => {
+      try {
+        const { data } = await loginReq({
+          body: {
+            email,
+            password,
+          },
+        })
+
+        if (!data) {
+          return false
+        }
+
+        setUserId(data.id || "")
+
+        Cookies.set("access_token", data.token || "", {})
+        Cookies.set("user_id", String(data.id || ""), {})
+
+        setKey(await decryptMasterKey(data.salt, data.master_key, password))
+
+        return true
+      } catch (error) {
+        console.error(error)
         return false
       }
-
-      setUserId(data.id || "")
-
-      Cookies.set("access_token", data.token || "", {})
-      Cookies.set("user_id", String(data.id || ""), {})
-
-      setKey(await decryptMasterKey(data.salt, data.master_key, password))
-
-      return true
-    } catch (error) {
-      console.error(error)
-      return false
-    }
-  }
+    },
+    [loginReq]
+  )
 
   const decrypt = useCallback(
     <T extends string | undefined | null>(data: T): Promise<T> => {
@@ -91,11 +107,9 @@ export function UserProvider(props: { children: ReactNode }) {
 
   useEffect(() => {
     if (isError) {
-      setUserId("")
-      Cookies.remove("access_token")
-      Cookies.remove("user_id")
+      logout()
     }
-  }, [isError])
+  }, [isError, logout])
 
   useEffect(() => {
     const storedUserId = Cookies.get("user_id")
@@ -103,13 +117,19 @@ export function UserProvider(props: { children: ReactNode }) {
     if (storedUserId && storedAccessToken) {
       setUserId(storedUserId)
     }
-  }, [])
 
-  const logout = () => {
-    setUserId("")
-    Cookies.remove("access_token")
-    Cookies.remove("user_id")
-  }
+    if (!autoLoginEnabled) return
+
+    void login(autoLoginEmail, autoLoginPassword).then((success) => {
+      if (!success) {
+        logout()
+        console.warn("Auto login failed")
+      }
+      setAutoLoggingIn(false)
+    })
+  }, [login, logout])
+
+  if (autoLoggingIn) return null
 
   const value: UserValue = {
     userId,

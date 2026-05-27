@@ -33,7 +33,7 @@ function AppRoutes() {
 
   const routes = (
     <Routes>
-      <Route path="/" element={<Navigate to="login" />} />
+      <Route path="/" element={<Navigate to="/transactions" replace />} />
       <Route path="/transactions/*" element={<RouteProtector />}>
         <Route index element={<Transactions />} />
       </Route>

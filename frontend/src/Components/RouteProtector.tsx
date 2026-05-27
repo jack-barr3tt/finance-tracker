@@ -1,14 +1,10 @@
-import { useEffect } from "react"
-import { Outlet, useNavigate } from "react-router-dom"
+import { Navigate, Outlet } from "react-router-dom"
 import { useUser } from "../Hooks/useUser"
 
 export default function RouteProtector() {
   const { userId } = useUser()
-  const navigate = useNavigate()
 
-  useEffect(() => {
-    if (!userId) navigate("/login")
-  }, [userId, navigate])
+  if (!userId) return <Navigate to="/login" replace />
 
   return <Outlet />
 }

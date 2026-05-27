@@ -11,6 +11,7 @@ This project is a personal finance tracker with a Go/Fiber backend and a Vite Re
 - Keep component state local when it only drives presentation; lift state only when another component or API boundary needs it.
 - Avoid editing generated files in `frontend/src/API` directly. Change `backend/schema/openapi.yaml` and rerun frontend codegen instead.
 - Use `yarn` in `frontend` to match the existing lockfile.
+- When changing UI behavior or layout, verify the result in the browser using the Cursor browser tool (`cursor-ide-browser` MCP). Navigate to the running dev server (typically `http://localhost:5173`), take snapshots or screenshots, and interact with the page to confirm the change works and looks right. Prefer this over guessing from code alone, especially for redirects, modals, filters, and other visual or interaction-heavy changes.
 
 ## Backend
 
