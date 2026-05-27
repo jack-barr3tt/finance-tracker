@@ -56,15 +56,40 @@ export default function NavBar(props: NavBarProps) {
               Transactions
             </SidebarItem>
             <SidebarItem
-              href="/budget"
+              href="/budget/planning"
               icon={FiDollarSign}
               active={location.pathname.startsWith("/budget")}
               onClick={(event) => {
                 event.preventDefault()
-                handleNavigate("/budget")
+                handleNavigate("/budget/planning")
               }}
             >
               Budget
+            </SidebarItem>
+            <SidebarItem
+              href="/budget/planning"
+              className="pl-10"
+              active={
+                location.pathname === "/budget" ||
+                location.pathname.startsWith("/budget/planning")
+              }
+              onClick={(event) => {
+                event.preventDefault()
+                handleNavigate("/budget/planning")
+              }}
+            >
+              Planning
+            </SidebarItem>
+            <SidebarItem
+              href="/budget/actual"
+              className="pl-10"
+              active={location.pathname.startsWith("/budget/actual")}
+              onClick={(event) => {
+                event.preventDefault()
+                handleNavigate("/budget/actual")
+              }}
+            >
+              Actual
             </SidebarItem>
             <SidebarItem
               href="/settings"

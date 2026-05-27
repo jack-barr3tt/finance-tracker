@@ -1,5 +1,5 @@
 import { HR } from "flowbite-react"
-import { useUser } from "../Hooks/useUser"
+import { useUser } from "../../Hooks/useUser"
 import {
   useDeleteUserByIdBudgetTransactionsByBudgetTransactionId,
   useDeleteUserByIdCategoryBudgetsByCategoryBudgetId,
@@ -7,15 +7,15 @@ import {
   UseGetUserByIdBudgetTransactionsByBudgetTransactionIdKeyFn,
   UseGetUserByIdCategoryBudgetsKeyFn,
   UseGetUserByIdCategoryBudgetsByCategoryBudgetIdKeyFn,
-} from "../API/queries"
+} from "../../API/queries"
 import { useCallback, useMemo, useState } from "react"
 import { useQueryClient } from "@tanstack/react-query"
-import { useData } from "../Hooks/useData"
-import BudgetTable from "../Components/BudgetTable"
-import CategoryBudgetTable from "../Components/CategoryBudgetTable"
-import BudgetPie from "../Components/BudgetPie"
+import { useData } from "../../Hooks/useData"
+import BudgetTable from "../../Components/BudgetTable"
+import CategoryBudgetTable from "../../Components/CategoryBudgetTable"
+import BudgetPie from "../../Components/BudgetPie"
 
-export default function Budget() {
+export default function BudgetPlanning() {
   const { userId } = useUser()
   const { budgetTransactions, categoryBudgets, categoryColorMap } = useData()
   const queryClient = useQueryClient()
@@ -29,10 +29,10 @@ export default function Budget() {
   const [showAddOutgoings, setShowAddOutgoings] = useState(false)
   const [showAddCategoryBudget, setShowAddCategoryBudget] = useState(false)
   const [editingBudgetTransactionId, setEditingBudgetTransactionId] = useState<string | undefined>(
-    undefined
+    undefined,
   )
   const [editingCategoryBudgetId, setEditingCategoryBudgetId] = useState<string | undefined>(
-    undefined
+    undefined,
   )
 
   const { income, outgoings } = useMemo(() => {
@@ -61,7 +61,7 @@ export default function Budget() {
         }),
       })
     },
-    [deleteBudgetTransaction, userId, editingBudgetTransactionId, queryClient]
+    [deleteBudgetTransaction, userId, editingBudgetTransactionId, queryClient],
   )
 
   const handleDeleteCategoryBudget = useCallback(
@@ -69,8 +69,7 @@ export default function Budget() {
       await deleteCategoryBudget({
         path: { id: userId, category_budget_id: categoryBudgetId },
       })
-      if (editingCategoryBudgetId === categoryBudgetId)
-        setEditingCategoryBudgetId(undefined)
+      if (editingCategoryBudgetId === categoryBudgetId) setEditingCategoryBudgetId(undefined)
       queryClient.invalidateQueries({
         queryKey: UseGetUserByIdCategoryBudgetsKeyFn({ path: { id: userId } }),
       })
@@ -80,12 +79,12 @@ export default function Budget() {
         }),
       })
     },
-    [deleteCategoryBudget, userId, editingCategoryBudgetId, queryClient]
+    [deleteCategoryBudget, userId, editingCategoryBudgetId, queryClient],
   )
 
   return (
-    <div className="flex flex-col gap-2 px-8 pb-8 md:gap-4 md:pb-16 md:px-16">
-      <h1 className="text-3xl font-bold">Budget</h1>
+    <div className="flex flex-col gap-2 px-8 pb-8 md:gap-4 md:px-16 md:pb-16">
+      <h1 className="text-3xl font-bold">Budget planning</h1>
 
       <HR />
 
@@ -100,7 +99,7 @@ export default function Budget() {
 
         <div className="flex flex-col gap-8 2xl:w-1/2">
           <div>
-            <div className="flex flex-row items-center justify-between mb-2 md:mb-4">
+            <div className="mb-2 flex flex-row items-center justify-between md:mb-4">
               <h2 className="text-2xl font-medium">Income</h2>
             </div>
             <BudgetTable
@@ -115,7 +114,7 @@ export default function Budget() {
           </div>
 
           <div>
-            <div className="flex flex-row items-center justify-between mb-2 md:mb-4">
+            <div className="mb-2 flex flex-row items-center justify-between md:mb-4">
               <h2 className="text-2xl font-medium">Outgoings</h2>
             </div>
             <BudgetTable
@@ -131,7 +130,7 @@ export default function Budget() {
           </div>
 
           <div>
-            <div className="flex flex-row items-center justify-between mb-2 md:mb-4">
+            <div className="mb-2 flex flex-row items-center justify-between md:mb-4">
               <h2 className="text-2xl font-medium">Category budgets</h2>
             </div>
             <p className="mb-2 text-sm text-gray-500 dark:text-gray-400 md:mb-4">

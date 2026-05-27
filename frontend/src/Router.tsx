@@ -5,7 +5,8 @@ import Login from "./Pages/Login"
 import NavBar from "./Components/NavBar"
 import RouteProtector from "./Components/RouteProtector"
 import Settings from "./Pages/Settings"
-import Budget from "./Pages/Budget"
+import BudgetPlanning from "./Pages/Budget/Planning"
+import BudgetActual from "./Pages/Budget/Actual"
 import KeyboardShortcutsModal from "./Components/KeyboardShortcutsModal"
 import SummaryRangeFilter from "./Components/SummaryRangeFilter"
 import { useHotkey } from "@tanstack/react-hotkeys"
@@ -37,8 +38,10 @@ function AppRoutes() {
       <Route path="/transactions/*" element={<RouteProtector />}>
         <Route index element={<Transactions />} />
       </Route>
-      <Route path="/budget/*" element={<RouteProtector />}>
-        <Route path="*" element={<Budget />} />
+      <Route path="/budget" element={<RouteProtector />}>
+        <Route index element={<Navigate to="planning" replace />} />
+        <Route path="planning" element={<BudgetPlanning />} />
+        <Route path="actual" element={<BudgetActual />} />
       </Route>
       <Route path="/settings/*" element={<RouteProtector />}>
         <Route path="*" element={<Settings />} />
