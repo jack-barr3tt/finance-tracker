@@ -13,13 +13,14 @@ import { HOTKEYS_BY_ID } from "./Hotkeys/hotkeys"
 import { useMemo, useState } from "react"
 import { useUser } from "./Hooks/useUser"
 import { Button } from "flowbite-react"
-import { FiChevronRight } from "react-icons/fi"
+import { FiChevronRight, FiMenu } from "react-icons/fi"
 
 function AppRoutes() {
   const { userId } = useUser()
   const location = useLocation()
   const [showShortcuts, setShowShortcuts] = useState(false)
-  const [showSidebar, setShowSidebar] = useState(true)
+  const [showDesktopSidebar, setShowDesktopSidebar] = useState(true)
+  const [showMobileSidebar, setShowMobileSidebar] = useState(false)
 
   const hasPrivateNav = useMemo(
     () =>
@@ -59,20 +60,33 @@ function AppRoutes() {
       {hasPrivateNav ? (
         <div className="flex min-h-0 flex-1 flex-col md:flex-row">
           <NavBar
-            isOpen={showSidebar}
-            onClose={() => setShowSidebar(false)}
+            isDesktopOpen={showDesktopSidebar}
+            isMobileOpen={showMobileSidebar}
+            onCloseDesktop={() => setShowDesktopSidebar(false)}
+            onCloseMobile={() => setShowMobileSidebar(false)}
             onOpenShortcuts={() => setShowShortcuts(true)}
           />
           <main className="relative min-h-0 flex-1 overflow-y-auto pt-4 md:pt-8">
-            {!showSidebar && (
+            {!showDesktopSidebar && (
               <Button
                 color="light"
-                className="absolute left-2 top-4 z-10 size-10 p-0 md:top-8"
+                className="absolute left-2 top-4 z-10 hidden size-10 p-0 md:top-8 md:flex"
                 title="Show sidebar"
                 aria-label="Show sidebar"
-                onClick={() => setShowSidebar(true)}
+                onClick={() => setShowDesktopSidebar(true)}
               >
                 <FiChevronRight />
+              </Button>
+            )}
+            {!showMobileSidebar && (
+              <Button
+                color="light"
+                className="absolute left-2 top-4 z-10 size-10 p-0 md:hidden"
+                title="Open navigation menu"
+                aria-label="Open navigation menu"
+                onClick={() => setShowMobileSidebar(true)}
+              >
+                <FiMenu />
               </Button>
             )}
             {showSummaryRangeFilter && (

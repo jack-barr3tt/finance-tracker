@@ -18,13 +18,15 @@ import {
 } from "react-icons/fi"
 
 type NavBarProps = {
-  isOpen: boolean
-  onClose: () => void
+  isDesktopOpen: boolean
+  isMobileOpen: boolean
+  onCloseDesktop: () => void
+  onCloseMobile: () => void
   onOpenShortcuts: () => void
 }
 
 export default function NavBar(props: NavBarProps) {
-  const { isOpen, onClose, onOpenShortcuts } = props
+  const { isDesktopOpen, isMobileOpen, onCloseDesktop, onCloseMobile, onOpenShortcuts } = props
   const { userId } = useUser()
   const location = useLocation()
   const navigate = useNavigate()
@@ -32,7 +34,12 @@ export default function NavBar(props: NavBarProps) {
   if (!userId) return null
   if (location.pathname.includes("login") || location.pathname.includes("signup")) return null
 
-  const sidebar = (
+  const handleNavigate = (path: string) => {
+    navigate(path)
+    onCloseMobile()
+  }
+
+  const renderSidebar = (onClose: () => void) => (
     <Sidebar aria-label="Main navigation" className="h-full w-full md:w-64">
       <div className="flex h-full flex-col justify-between">
         <SidebarItems>
@@ -43,7 +50,7 @@ export default function NavBar(props: NavBarProps) {
               active={location.pathname.startsWith("/transactions")}
               onClick={(event) => {
                 event.preventDefault()
-                navigate("/transactions")
+                handleNavigate("/transactions")
               }}
             >
               Transactions
@@ -54,7 +61,7 @@ export default function NavBar(props: NavBarProps) {
               active={location.pathname.startsWith("/budget")}
               onClick={(event) => {
                 event.preventDefault()
-                navigate("/budget")
+                handleNavigate("/budget")
               }}
             >
               Budget
@@ -65,7 +72,7 @@ export default function NavBar(props: NavBarProps) {
               active={location.pathname.startsWith("/settings")}
               onClick={(event) => {
                 event.preventDefault()
-                navigate("/settings")
+                handleNavigate("/settings")
               }}
             >
               Settings
@@ -99,15 +106,16 @@ export default function NavBar(props: NavBarProps) {
 
   return (
     <>
-      {isOpen && <div className="hidden h-full w-64 shrink-0 md:block">{sidebar}</div>}
+      {isDesktopOpen && (
+        <div className="hidden h-full w-64 shrink-0 md:block">{renderSidebar(onCloseDesktop)}</div>
+      )}
       <Drawer
-        open={isOpen}
-        onClose={onClose}
+        open={isMobileOpen}
+        onClose={onCloseMobile}
         position="left"
-        backdrop={false}
         className="p-0 md:hidden"
       >
-        {sidebar}
+        {renderSidebar(onCloseMobile)}
       </Drawer>
     </>
   )
