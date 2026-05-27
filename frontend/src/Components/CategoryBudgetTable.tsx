@@ -11,6 +11,7 @@ import { FiEdit, FiPlus, FiTrash } from "react-icons/fi"
 import EditCategoryBudgetRow from "../Pages/Budget/EditCategoryBudgetRow"
 import TableBodyWithButton from "./TableBodyWithButton"
 import { CategoryBudget } from "../API/requests"
+import { formatSegmentDateRange, isSegmentActiveToday } from "../budget/plannedAmount"
 import { formatRepeat, toMonthlyAmount } from "../utils"
 
 type CategoryBudgetTableProps = {
@@ -35,7 +36,7 @@ export default function CategoryBudgetTable(props: CategoryBudgetTableProps) {
   } = props
 
   const activeCategoryBudgets = categoryBudgets
-    .filter((cb) => !cb.deleted_at)
+    .filter((cb) => !cb.deleted_at && isSegmentActiveToday(cb))
     .sort((a, b) => {
       const categoryComparison = a.category.name.localeCompare(b.category.name)
       if (categoryComparison !== 0) {
@@ -70,6 +71,7 @@ export default function CategoryBudgetTable(props: CategoryBudgetTableProps) {
             <TableHeadCell>Category</TableHeadCell>
             <TableHeadCell>Limit</TableHeadCell>
             <TableHeadCell>Frequency</TableHeadCell>
+            <TableHeadCell>Period</TableHeadCell>
             <TableHeadCell>
               <span className="sr-only">Edit</span>
             </TableHeadCell>
@@ -97,7 +99,7 @@ export default function CategoryBudgetTable(props: CategoryBudgetTableProps) {
           {!activeCategoryBudgets || activeCategoryBudgets.length === 0
             ? !showAdd && (
                 <TableRow>
-                  <TableCell colSpan={4} className="text-center">
+                  <TableCell colSpan={5} className="text-center">
                     No category budgets found
                   </TableCell>
                 </TableRow>
@@ -134,6 +136,9 @@ export default function CategoryBudgetTable(props: CategoryBudgetTableProps) {
                     </TableCell>
                     <TableCell>
                       {formatRepeat(categoryBudget.repeat_every, categoryBudget.repeat_until)}
+                    </TableCell>
+                    <TableCell>
+                      {formatSegmentDateRange(categoryBudget.starts_on, categoryBudget.ends_on)}
                     </TableCell>
                     <TableCell className="p-0 px-[18px] py-[10px]">
                       <div className="flex flex-row items-center justify-end invisible gap-2 group-hover/budgetrow:visible">

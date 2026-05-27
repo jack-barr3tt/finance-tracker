@@ -81,14 +81,18 @@ export type BudgetTransactionCreateRequest = {
     description?: string;
     repeat_until: PeriodUnit;
     repeat_every: number;
+    starts_on: string;
+    ends_on?: string;
 };
 
 export type BudgetTransactionEditRequest = {
     category_id?: string;
-    amount?: number;
+    amount: number;
     description?: string;
-    repeat_until?: PeriodUnit;
-    repeat_every?: number;
+    repeat_until: PeriodUnit;
+    repeat_every: number;
+    ends_on?: string;
+    effective_from: string;
 };
 
 export type CategoryBudgetCreateRequest = {
@@ -96,13 +100,17 @@ export type CategoryBudgetCreateRequest = {
     amount: number;
     repeat_until: PeriodUnit;
     repeat_every: number;
+    starts_on: string;
+    ends_on?: string;
 };
 
 export type CategoryBudgetEditRequest = {
     category_id?: string;
-    amount?: number;
-    repeat_until?: PeriodUnit;
-    repeat_every?: number;
+    amount: number;
+    repeat_until: PeriodUnit;
+    repeat_every: number;
+    ends_on?: string;
+    effective_from: string;
 };
 
 export type LoginResponse = {
@@ -269,6 +277,8 @@ export type BudgetTransaction = {
     description?: string;
     repeat_until: PeriodUnit;
     repeat_every: number;
+    starts_on: string;
+    ends_on?: string;
     created_at: string;
     deleted_at?: string;
 };
@@ -279,6 +289,8 @@ export type CategoryBudget = {
     amount: number;
     repeat_until: PeriodUnit;
     repeat_every: number;
+    starts_on: string;
+    ends_on?: string;
     created_at: string;
     deleted_at?: string;
 };

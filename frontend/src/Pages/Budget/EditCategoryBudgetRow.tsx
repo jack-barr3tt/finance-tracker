@@ -5,7 +5,6 @@ import {
   useGetUserByIdCategories,
   useGetUserByIdCategoryBudgetsByCategoryBudgetId,
   UseGetUserByIdCategoryBudgetsKeyFn,
-  UseGetUserByIdCategoryBudgetsByCategoryBudgetIdKeyFn,
   usePatchUserByIdCategoryBudgetsByCategoryBudgetId,
   usePostUserByIdCategoryBudgets,
 } from "../../API/queries"
@@ -15,6 +14,7 @@ import { useQueryClient } from "@tanstack/react-query"
 import { useAsyncMemo } from "../../Hooks/useAsyncMemo"
 import { decryptCategory, decryptCategoryBudget } from "../../Security/data"
 import { CategoryBudget, PeriodUnit } from "../../API/requests"
+import { isSegmentActiveToday, todayDateInputValue } from "../../budget/plannedAmount"
 
 type EditCategoryBudgetRowProps = {
   categoryBudgetId?: string
@@ -54,6 +54,9 @@ export default function EditCategoryBudgetRow(props: EditCategoryBudgetRowProps)
   const [selectedCategory, setSelectedCategory] = useState<string | undefined>(undefined)
   const [repeatUntil, setRepeatUntil] = useState<PeriodUnit>("month")
   const [repeatEvery, setRepeatEvery] = useState("")
+  const [startsOn, setStartsOn] = useState(todayDateInputValue())
+  const [endsOn, setEndsOn] = useState("")
+  const [effectiveFrom, setEffectiveFrom] = useState(todayDateInputValue())
 
   useEffect(() => {
     ;(async () => {
@@ -63,6 +66,9 @@ export default function EditCategoryBudgetRow(props: EditCategoryBudgetRowProps)
         setSelectedCategory(decrypted.category.id)
         setRepeatUntil(decrypted.repeat_until)
         setRepeatEvery(decrypted.repeat_every.toString())
+        setStartsOn(decrypted.starts_on)
+        setEndsOn(decrypted.ends_on ?? "")
+        setEffectiveFrom(todayDateInputValue())
       }
     })()
   }, [decrypt, categoryBudget])
@@ -70,14 +76,25 @@ export default function EditCategoryBudgetRow(props: EditCategoryBudgetRowProps)
   const takenCategoryIds = useMemo(() => {
     const ids = new Set(
       existingCategoryBudgets
-        .filter((cb) => !cb.deleted_at && cb.id !== categoryBudgetId)
+        .filter((cb) => !cb.deleted_at && cb.id !== categoryBudgetId && isSegmentActiveToday(cb))
         .map((cb) => cb.category.id)
     )
     return ids
   }, [categoryBudgetId, existingCategoryBudgets])
 
+  const resetForm = useCallback(() => {
+    setAmount("")
+    setSelectedCategory(undefined)
+    setRepeatUntil("month")
+    setRepeatEvery("")
+    setStartsOn(todayDateInputValue())
+    setEndsOn("")
+    setEffectiveFrom(todayDateInputValue())
+    setCategorySearch("")
+  }, [])
+
   const handleAdd = useCallback(async () => {
-    if (!selectedCategory || !amount || !repeatEvery) return
+    if (!selectedCategory || !amount || !repeatEvery || !startsOn) return
 
     await addCategoryBudget({
       body: {
@@ -85,32 +102,32 @@ export default function EditCategoryBudgetRow(props: EditCategoryBudgetRowProps)
         amount: parseFloat(amount),
         repeat_until: repeatUntil,
         repeat_every: parseFloat(repeatEvery),
+        starts_on: startsOn,
+        ends_on: endsOn || undefined,
       },
       path: { id: userId },
     })
     queryClient.invalidateQueries({
       queryKey: UseGetUserByIdCategoryBudgetsKeyFn({ path: { id: userId } }),
     })
-    setAmount("")
-    setSelectedCategory(undefined)
-    setRepeatUntil("month")
-    setRepeatEvery("")
-    setCategorySearch("")
-
+    resetForm()
     cancelCallback?.()
   }, [
     addCategoryBudget,
     amount,
     cancelCallback,
+    endsOn,
     queryClient,
     repeatEvery,
     repeatUntil,
+    resetForm,
     selectedCategory,
+    startsOn,
     userId,
   ])
 
   const handleEdit = useCallback(async () => {
-    if (!categoryBudgetId || !amount || !repeatEvery) return
+    if (!categoryBudgetId || !amount || !repeatEvery || !effectiveFrom) return
 
     await editCategoryBudget({
       body: {
@@ -118,32 +135,27 @@ export default function EditCategoryBudgetRow(props: EditCategoryBudgetRowProps)
         amount: parseFloat(amount),
         repeat_until: repeatUntil,
         repeat_every: parseFloat(repeatEvery),
+        effective_from: effectiveFrom,
+        ends_on: endsOn || undefined,
       },
       path: { id: userId, category_budget_id: categoryBudgetId },
     })
     queryClient.invalidateQueries({
       queryKey: UseGetUserByIdCategoryBudgetsKeyFn({ path: { id: userId } }),
     })
-    queryClient.invalidateQueries({
-      queryKey: UseGetUserByIdCategoryBudgetsByCategoryBudgetIdKeyFn({
-        path: { id: userId, category_budget_id: categoryBudgetId },
-      }),
-    })
-    setAmount("")
-    setSelectedCategory(undefined)
-    setRepeatUntil("month")
-    setRepeatEvery("")
-    setCategorySearch("")
-
+    resetForm()
     cancelCallback?.()
   }, [
     amount,
     cancelCallback,
     categoryBudgetId,
     editCategoryBudget,
+    effectiveFrom,
+    endsOn,
     queryClient,
     repeatEvery,
     repeatUntil,
+    resetForm,
     selectedCategory,
     userId,
   ])
@@ -230,6 +242,41 @@ export default function EditCategoryBudgetRow(props: EditCategoryBudgetRowProps)
               onSearchChange={() => {}}
               showSearch={false}
             />
+          </div>
+        </TableCell>
+        <TableCell>
+          <div className="flex flex-col gap-1">
+            {categoryBudgetId ? (
+              <>
+                <TextInput
+                  type="date"
+                  title="Effective from"
+                  value={effectiveFrom}
+                  onChange={(e) => setEffectiveFrom(e.target.value)}
+                />
+                <TextInput
+                  type="date"
+                  title="Ends on (optional)"
+                  value={endsOn}
+                  onChange={(e) => setEndsOn(e.target.value)}
+                />
+              </>
+            ) : (
+              <>
+                <TextInput
+                  type="date"
+                  title="Starts on"
+                  value={startsOn}
+                  onChange={(e) => setStartsOn(e.target.value)}
+                />
+                <TextInput
+                  type="date"
+                  title="Ends on (optional)"
+                  value={endsOn}
+                  onChange={(e) => setEndsOn(e.target.value)}
+                />
+              </>
+            )}
           </div>
         </TableCell>
         <TableCell>

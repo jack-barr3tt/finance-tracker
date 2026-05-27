@@ -63,6 +63,8 @@ CREATE TABLE IF NOT EXISTS "budget_transaction" (
   description TEXT,
   repeat_until period_unit NOT NULL,
   repeat_every DECIMAL(4, 1) NOT NULL,
+  starts_on DATE NOT NULL,
+  ends_on DATE,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   deleted_at TIMESTAMP
 );
@@ -72,11 +74,22 @@ CREATE TABLE IF NOT EXISTS "category_budget" (
   amount DECIMAL(10, 2) NOT NULL CHECK (amount > 0),
   repeat_every DECIMAL(4, 1) NOT NULL,
   repeat_until period_unit NOT NULL,
+  starts_on DATE NOT NULL,
+  ends_on DATE,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   deleted_at TIMESTAMP
 );
-CREATE UNIQUE INDEX IF NOT EXISTS category_budget_active_category_idx ON category_budget (category_id)
-WHERE deleted_at IS NULL;
+CREATE EXTENSION IF NOT EXISTS btree_gist;
+ALTER TABLE category_budget
+ADD CONSTRAINT category_budget_no_overlap EXCLUDE USING gist (
+  category_id WITH =,
+  daterange(
+    starts_on,
+    COALESCE(ends_on, 'infinity'::date),
+    '[]'
+  ) WITH &&
+)
+WHERE (deleted_at IS NULL);
 CREATE OR REPLACE FUNCTION update_txn_hash() RETURNS TRIGGER AS $$ BEGIN NEW.txn_hash := encode(
     digest(
       NEW.account_id::text || NEW.amount::text || NEW.description || NEW.date::text,

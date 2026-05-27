@@ -5,7 +5,6 @@ import {
   useGetUserByIdCategories,
   useGetUserByIdBudgetTransactionsByBudgetTransactionId,
   UseGetUserByIdBudgetTransactionsKeyFn,
-  UseGetUserByIdBudgetTransactionsByBudgetTransactionIdKeyFn,
   usePatchUserByIdBudgetTransactionsByBudgetTransactionId,
   usePostUserByIdBudgetTransactions,
 } from "../../API/queries"
@@ -15,6 +14,7 @@ import { useQueryClient } from "@tanstack/react-query"
 import { useAsyncMemo } from "../../Hooks/useAsyncMemo"
 import { decryptCategory } from "../../Security/data"
 import { PeriodUnit } from "../../API/requests"
+import { todayDateInputValue } from "../../budget/plannedAmount"
 
 type EditBudgetTransactionRowProps = {
   budgetTransactionId?: string
@@ -56,6 +56,9 @@ export default function EditBudgetTransactionRow(props: EditBudgetTransactionRow
   const [selectedCategory, setSelectedCategory] = useState<string | undefined>(undefined)
   const [repeatUntil, setRepeatUntil] = useState<PeriodUnit>("month")
   const [repeatEvery, setRepeatEvery] = useState("")
+  const [startsOn, setStartsOn] = useState(todayDateInputValue())
+  const [endsOn, setEndsOn] = useState("")
+  const [effectiveFrom, setEffectiveFrom] = useState(todayDateInputValue())
 
   useEffect(() => {
     ;(async () => {
@@ -65,12 +68,27 @@ export default function EditBudgetTransactionRow(props: EditBudgetTransactionRow
         setSelectedCategory(budgetTransaction.category?.id)
         setRepeatUntil(budgetTransaction.repeat_until)
         setRepeatEvery(budgetTransaction.repeat_every.toString())
+        setStartsOn(budgetTransaction.starts_on)
+        setEndsOn(budgetTransaction.ends_on ?? "")
+        setEffectiveFrom(todayDateInputValue())
       }
     })()
   }, [decrypt, budgetTransaction])
 
+  const resetForm = useCallback(() => {
+    setDescription("")
+    setAmount("")
+    setSelectedCategory(undefined)
+    setRepeatUntil("month")
+    setRepeatEvery("")
+    setStartsOn(todayDateInputValue())
+    setEndsOn("")
+    setEffectiveFrom(todayDateInputValue())
+    setCategorySearch("")
+  }, [])
+
   const handleAdd = useCallback(async () => {
-    if (!selectedCategory || !amount || !repeatEvery) return
+    if (!selectedCategory || !amount || !repeatEvery || !startsOn) return
 
     const amountValue = parseFloat(amount)
     const finalAmount = isOutgoings ? -Math.abs(amountValue) : amountValue
@@ -82,19 +100,15 @@ export default function EditBudgetTransactionRow(props: EditBudgetTransactionRow
         amount: finalAmount,
         repeat_until: repeatUntil,
         repeat_every: parseFloat(repeatEvery),
+        starts_on: startsOn,
+        ends_on: endsOn || undefined,
       },
       path: { id: userId },
     })
     queryClient.invalidateQueries({
       queryKey: UseGetUserByIdBudgetTransactionsKeyFn({ path: { id: userId } }),
     })
-    setDescription("")
-    setAmount("")
-    setSelectedCategory(undefined)
-    setRepeatUntil("month")
-    setRepeatEvery("")
-    setCategorySearch("")
-
+    resetForm()
     cancelCallback?.()
   }, [
     addBudgetTransaction,
@@ -102,16 +116,19 @@ export default function EditBudgetTransactionRow(props: EditBudgetTransactionRow
     cancelCallback,
     description,
     encrypt,
+    endsOn,
     isOutgoings,
     queryClient,
     repeatEvery,
     repeatUntil,
+    resetForm,
     selectedCategory,
+    startsOn,
     userId,
   ])
 
   const handleEdit = useCallback(async () => {
-    if (!budgetTransactionId || !amount || !repeatEvery) return
+    if (!budgetTransactionId || !amount || !repeatEvery || !effectiveFrom) return
 
     const amountValue = parseFloat(amount)
     const finalAmount = isOutgoings ? -Math.abs(amountValue) : amountValue
@@ -123,24 +140,15 @@ export default function EditBudgetTransactionRow(props: EditBudgetTransactionRow
         amount: finalAmount,
         repeat_until: repeatUntil,
         repeat_every: parseFloat(repeatEvery),
+        effective_from: effectiveFrom,
+        ends_on: endsOn || undefined,
       },
       path: { id: userId, budget_transaction_id: budgetTransactionId },
     })
     queryClient.invalidateQueries({
       queryKey: UseGetUserByIdBudgetTransactionsKeyFn({ path: { id: userId } }),
     })
-    queryClient.invalidateQueries({
-      queryKey: UseGetUserByIdBudgetTransactionsByBudgetTransactionIdKeyFn({
-        path: { id: userId, budget_transaction_id: budgetTransactionId },
-      }),
-    })
-    setDescription("")
-    setAmount("")
-    setSelectedCategory(undefined)
-    setRepeatUntil("month")
-    setRepeatEvery("")
-    setCategorySearch("")
-
+    resetForm()
     cancelCallback?.()
   }, [
     amount,
@@ -148,11 +156,14 @@ export default function EditBudgetTransactionRow(props: EditBudgetTransactionRow
     cancelCallback,
     description,
     editBudgetTransaction,
+    effectiveFrom,
     encrypt,
+    endsOn,
     isOutgoings,
     queryClient,
     repeatEvery,
     repeatUntil,
+    resetForm,
     selectedCategory,
     userId,
   ])
@@ -246,6 +257,41 @@ export default function EditBudgetTransactionRow(props: EditBudgetTransactionRow
               onSearchChange={() => {}}
               showSearch={false}
             />
+          </div>
+        </TableCell>
+        <TableCell>
+          <div className="flex flex-col gap-1">
+            {budgetTransactionId ? (
+              <>
+                <TextInput
+                  type="date"
+                  title="Effective from"
+                  value={effectiveFrom}
+                  onChange={(e) => setEffectiveFrom(e.target.value)}
+                />
+                <TextInput
+                  type="date"
+                  title="Ends on (optional)"
+                  value={endsOn}
+                  onChange={(e) => setEndsOn(e.target.value)}
+                />
+              </>
+            ) : (
+              <>
+                <TextInput
+                  type="date"
+                  title="Starts on"
+                  value={startsOn}
+                  onChange={(e) => setStartsOn(e.target.value)}
+                />
+                <TextInput
+                  type="date"
+                  title="Ends on (optional)"
+                  value={endsOn}
+                  onChange={(e) => setEndsOn(e.target.value)}
+                />
+              </>
+            )}
           </div>
         </TableCell>
         <TableCell>

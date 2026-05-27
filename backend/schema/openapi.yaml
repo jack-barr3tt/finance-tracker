@@ -1247,10 +1247,17 @@ components:
         repeat_every:
           type: number
           example: 1.0
+        starts_on:
+          type: string
+          format: date
+        ends_on:
+          type: string
+          format: date
       required:
         - amount
         - repeat_until
         - repeat_every
+        - starts_on
     BudgetTransactionEditRequest:
       type: object
       properties:
@@ -1266,6 +1273,17 @@ components:
         repeat_every:
           type: number
           example: 1.0
+        ends_on:
+          type: string
+          format: date
+        effective_from:
+          type: string
+          format: date
+      required:
+        - amount
+        - repeat_until
+        - repeat_every
+        - effective_from
     CategoryBudgetCreateRequest:
       type: object
       properties:
@@ -1279,11 +1297,18 @@ components:
         repeat_every:
           type: number
           example: 1.0
+        starts_on:
+          type: string
+          format: date
+        ends_on:
+          type: string
+          format: date
       required:
         - category_id
         - amount
         - repeat_until
         - repeat_every
+        - starts_on
     CategoryBudgetEditRequest:
       type: object
       properties:
@@ -1297,6 +1322,17 @@ components:
         repeat_every:
           type: number
           example: 1.0
+        ends_on:
+          type: string
+          format: date
+        effective_from:
+          type: string
+          format: date
+      required:
+        - amount
+        - repeat_until
+        - repeat_every
+        - effective_from
     # Responses
     LoginResponse:
       type: object
@@ -1634,6 +1670,12 @@ components:
           $ref: "#/components/schemas/PeriodUnit"
         repeat_every:
           type: number
+        starts_on:
+          type: string
+          format: date
+        ends_on:
+          type: string
+          format: date
         created_at:
           type: string
           format: date-time
@@ -1645,6 +1687,7 @@ components:
         - amount
         - repeat_until
         - repeat_every
+        - starts_on
         - created_at
     CategoryBudget:
       type: object
@@ -1659,6 +1702,12 @@ components:
           $ref: "#/components/schemas/PeriodUnit"
         repeat_every:
           type: number
+        starts_on:
+          type: string
+          format: date
+        ends_on:
+          type: string
+          format: date
         created_at:
           type: string
           format: date-time
@@ -1671,6 +1720,7 @@ components:
         - amount
         - repeat_until
         - repeat_every
+        - starts_on
         - created_at
     AllAccountSummary:
       type: object

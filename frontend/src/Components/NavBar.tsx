@@ -1,11 +1,11 @@
 import {
   Button,
-  DarkThemeToggle,
   Drawer,
   Sidebar,
   SidebarItem,
   SidebarItemGroup,
   SidebarItems,
+  useThemeMode,
 } from "flowbite-react"
 import { useUser } from "../Hooks/useUser"
 import { useLocation, useNavigate } from "react-router-dom"
@@ -14,7 +14,9 @@ import {
   FiCommand,
   FiCreditCard,
   FiDollarSign,
+  FiMoon,
   FiSettings,
+  FiSun,
 } from "react-icons/fi"
 
 type NavBarProps = {
@@ -30,9 +32,14 @@ export default function NavBar(props: NavBarProps) {
   const { userId } = useUser()
   const location = useLocation()
   const navigate = useNavigate()
+  const { computedMode, toggleMode } = useThemeMode()
 
   if (!userId) return null
   if (location.pathname.includes("login") || location.pathname.includes("signup")) return null
+
+  const isBudgetPlanning =
+    location.pathname === "/budget/planning" || location.pathname === "/budget"
+  const isBudgetActual = location.pathname.startsWith("/budget/actual")
 
   const handleNavigate = (path: string) => {
     navigate(path)
@@ -58,7 +65,7 @@ export default function NavBar(props: NavBarProps) {
             <SidebarItem
               href="/budget/planning"
               icon={FiDollarSign}
-              active={location.pathname.startsWith("/budget")}
+              active={false}
               onClick={(event) => {
                 event.preventDefault()
                 handleNavigate("/budget/planning")
@@ -69,10 +76,7 @@ export default function NavBar(props: NavBarProps) {
             <SidebarItem
               href="/budget/planning"
               className="pl-10"
-              active={
-                location.pathname === "/budget" ||
-                location.pathname.startsWith("/budget/planning")
-              }
+              active={isBudgetPlanning}
               onClick={(event) => {
                 event.preventDefault()
                 handleNavigate("/budget/planning")
@@ -83,7 +87,7 @@ export default function NavBar(props: NavBarProps) {
             <SidebarItem
               href="/budget/actual"
               className="pl-10"
-              active={location.pathname.startsWith("/budget/actual")}
+              active={isBudgetActual}
               onClick={(event) => {
                 event.preventDefault()
                 handleNavigate("/budget/actual")
@@ -114,7 +118,15 @@ export default function NavBar(props: NavBarProps) {
           >
             <FiCommand />
           </Button>
-          <DarkThemeToggle />
+          <Button
+            color="light"
+            className="size-10 p-0"
+            title="Toggle dark mode"
+            aria-label="Toggle dark mode"
+            onClick={toggleMode}
+          >
+            {computedMode === "dark" ? <FiSun /> : <FiMoon />}
+          </Button>
           <Button
             color="light"
             className="size-10 p-0"

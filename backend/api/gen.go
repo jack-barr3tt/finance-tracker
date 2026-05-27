@@ -130,23 +130,27 @@ type Bank struct {
 
 // BudgetTransaction defines model for BudgetTransaction.
 type BudgetTransaction struct {
-	Amount      float32    `json:"amount"`
-	Category    *Category  `json:"category,omitempty"`
-	CreatedAt   time.Time  `json:"created_at"`
-	DeletedAt   *time.Time `json:"deleted_at,omitempty"`
-	Description *string    `json:"description,omitempty"`
-	Id          string     `json:"id"`
-	RepeatEvery float32    `json:"repeat_every"`
-	RepeatUntil PeriodUnit `json:"repeat_until"`
+	Amount      float32             `json:"amount"`
+	Category    *Category           `json:"category,omitempty"`
+	CreatedAt   time.Time           `json:"created_at"`
+	DeletedAt   *time.Time          `json:"deleted_at,omitempty"`
+	Description *string             `json:"description,omitempty"`
+	EndsOn      *openapi_types.Date `json:"ends_on,omitempty"`
+	Id          string              `json:"id"`
+	RepeatEvery float32             `json:"repeat_every"`
+	RepeatUntil PeriodUnit          `json:"repeat_until"`
+	StartsOn    openapi_types.Date  `json:"starts_on"`
 }
 
 // BudgetTransactionCreateRequest defines model for BudgetTransactionCreateRequest.
 type BudgetTransactionCreateRequest struct {
-	Amount      float32    `json:"amount"`
-	CategoryId  *string    `json:"category_id,omitempty"`
-	Description *string    `json:"description,omitempty"`
-	RepeatEvery float32    `json:"repeat_every"`
-	RepeatUntil PeriodUnit `json:"repeat_until"`
+	Amount      float32             `json:"amount"`
+	CategoryId  *string             `json:"category_id,omitempty"`
+	Description *string             `json:"description,omitempty"`
+	EndsOn      *openapi_types.Date `json:"ends_on,omitempty"`
+	RepeatEvery float32             `json:"repeat_every"`
+	RepeatUntil PeriodUnit          `json:"repeat_until"`
+	StartsOn    openapi_types.Date  `json:"starts_on"`
 }
 
 // BudgetTransactionCreateResponse defines model for BudgetTransactionCreateResponse.
@@ -162,11 +166,13 @@ type BudgetTransactionDeleteResponse struct {
 
 // BudgetTransactionEditRequest defines model for BudgetTransactionEditRequest.
 type BudgetTransactionEditRequest struct {
-	Amount      *float32    `json:"amount,omitempty"`
-	CategoryId  *string     `json:"category_id,omitempty"`
-	Description *string     `json:"description,omitempty"`
-	RepeatEvery *float32    `json:"repeat_every,omitempty"`
-	RepeatUntil *PeriodUnit `json:"repeat_until,omitempty"`
+	Amount        float32             `json:"amount"`
+	CategoryId    *string             `json:"category_id,omitempty"`
+	Description   *string             `json:"description,omitempty"`
+	EffectiveFrom openapi_types.Date  `json:"effective_from"`
+	EndsOn        *openapi_types.Date `json:"ends_on,omitempty"`
+	RepeatEvery   float32             `json:"repeat_every"`
+	RepeatUntil   PeriodUnit          `json:"repeat_until"`
 }
 
 // BudgetTransactionEditResponse defines model for BudgetTransactionEditResponse.
@@ -196,21 +202,25 @@ type CategoryAddRuleResponse struct {
 
 // CategoryBudget defines model for CategoryBudget.
 type CategoryBudget struct {
-	Amount      float32    `json:"amount"`
-	Category    Category   `json:"category"`
-	CreatedAt   time.Time  `json:"created_at"`
-	DeletedAt   *time.Time `json:"deleted_at,omitempty"`
-	Id          string     `json:"id"`
-	RepeatEvery float32    `json:"repeat_every"`
-	RepeatUntil PeriodUnit `json:"repeat_until"`
+	Amount      float32             `json:"amount"`
+	Category    Category            `json:"category"`
+	CreatedAt   time.Time           `json:"created_at"`
+	DeletedAt   *time.Time          `json:"deleted_at,omitempty"`
+	EndsOn      *openapi_types.Date `json:"ends_on,omitempty"`
+	Id          string              `json:"id"`
+	RepeatEvery float32             `json:"repeat_every"`
+	RepeatUntil PeriodUnit          `json:"repeat_until"`
+	StartsOn    openapi_types.Date  `json:"starts_on"`
 }
 
 // CategoryBudgetCreateRequest defines model for CategoryBudgetCreateRequest.
 type CategoryBudgetCreateRequest struct {
-	Amount      float32    `json:"amount"`
-	CategoryId  string     `json:"category_id"`
-	RepeatEvery float32    `json:"repeat_every"`
-	RepeatUntil PeriodUnit `json:"repeat_until"`
+	Amount      float32             `json:"amount"`
+	CategoryId  string              `json:"category_id"`
+	EndsOn      *openapi_types.Date `json:"ends_on,omitempty"`
+	RepeatEvery float32             `json:"repeat_every"`
+	RepeatUntil PeriodUnit          `json:"repeat_until"`
+	StartsOn    openapi_types.Date  `json:"starts_on"`
 }
 
 // CategoryBudgetCreateResponse defines model for CategoryBudgetCreateResponse.
@@ -226,10 +236,12 @@ type CategoryBudgetDeleteResponse struct {
 
 // CategoryBudgetEditRequest defines model for CategoryBudgetEditRequest.
 type CategoryBudgetEditRequest struct {
-	Amount      *float32    `json:"amount,omitempty"`
-	CategoryId  *string     `json:"category_id,omitempty"`
-	RepeatEvery *float32    `json:"repeat_every,omitempty"`
-	RepeatUntil *PeriodUnit `json:"repeat_until,omitempty"`
+	Amount        float32             `json:"amount"`
+	CategoryId    *string             `json:"category_id,omitempty"`
+	EffectiveFrom openapi_types.Date  `json:"effective_from"`
+	EndsOn        *openapi_types.Date `json:"ends_on,omitempty"`
+	RepeatEvery   float32             `json:"repeat_every"`
+	RepeatUntil   PeriodUnit          `json:"repeat_until"`
 }
 
 // CategoryBudgetEditResponse defines model for CategoryBudgetEditResponse.
@@ -1703,49 +1715,50 @@ func RegisterHandlersWithOptions(router fiber.Router, si ServerInterface, option
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/+xdX3PbuBH/Khq2j0zkXK8P9VNjX9Nx5+YmkzjTh4xHA5MriycSYAAwF1ej794BQIqk",
-	"CJIATVCUzi+xLeHf7v6wu1hgNzsvIElKMGDOvOudx4INJEj++j4ISIa5+DWlJAXKI5BfPCK8FT//SmHt",
-	"XXt/WZZDLPP+yxvRZu97QUwYhCskh1kTmojfvBBxeMOjBDzf488peNce4zTCT6JLFIq2jY8xSkD7BUkB",
-	"W02x9z0K37KIQuhdfxXz5aP7irTqkA+H3uTxdwi4mDBnzC0FxOETfMuAtXBp1UML/EBJGovvbjcQbCP8",
-	"tCi47o9PaIXGlSTaikyWEsygSaeWxCaLO2b4BWKwnsH3EmAMPYHR7GXrjnX8K4z4IHEOAPl0COim1p1U",
-	"P2dJguhzc2hU6pUuDVKwYS8QGyMcVCWNs+QRaGNF6MC6oot2gXFsuEbFCg4JM1xtMWDJd0QpUn8TjmJj",
-	"EphX9NBRcKOo+wVxlJJIr6PbWOZLvAxUIbJrN3fztY3H2vqAFVi0cthm2JKHjRGPaFfD+yUB/dS3mtAX",
-	"7QE35JntnZvc9h+Rk0arKEkJ5SvA6DGGqvZ4JCQGhKWiZN+N2q2jHxCuUkrCLFBIabaxdRPYRkzb8nWH",
-	"S1DppyXA11GvZV0WPgG/pwgzFPCIYA0fkwIVjU0bIA5PRG2oLrnfFu1EH2m67QxTKI2xbR8W0CgtaDL1",
-	"6CikgPgKvoMiq0Fz3iDDPIr76P4INCLhFxxxvTRz1h4NerSIGsuMZNjjBJYCPRj6d1dXfrt421yMPhYf",
-	"87KcznfGVyOWWnHRgTfSmOvk3mZjRZ1+58UhyJQfDrBwW9Gh9UGHaEpbA0SzGMy9nmKtn7IYem131V5V",
-	"SCnm7OLF+zAUU7TjT7kFg1Ellq+VV/+KHCJAYe5iDPAcDOyBP2PZ2rqs7A3tT4PU5CkMaXVN/nCzqmeY",
-	"8110coNaX46tNZ03TIyIdSjinm1ndpySrUxmcUjIbFDaic+R+OkcFnKCebkN5ZIc0v0pX9dLozlDT8yt",
-	"bGmedw/hHNmpi6jWUN0QlycFGgDm9T1TqkLDKGgRa6uMpqWA4HUcBRr8Ge/bri37K3mKcCvEIUFRrBVT",
-	"ihj7g1ADuKkxKj06lmGruRDjQFdbeNaHw1DMtV9wsgVsCDLVtjZXPrKOjt8If5/xDaHR/1Tgr1VkAcGC",
-	"46LHApVdjK43fiP8A8mw+QRr2dpo7Ipxvt55IaxRJrjoJQTzjed7gLNEhckFI/4A2Arm5F8+A6IVvpQc",
-	"/xw94Sztx1l5V5QxoP/M/3wbkER3JuiRfwdGW8HRB15TIBQEtyF6lM2ba7U7zIF+VzqnFJgS0DBx3UcJ",
-	"KCDUx5QdykF1w/neM5fKOY71Qwu1x1r1cYQDkuj1Kgb9qZVk/ImI0XtVbj54pYsaVcfb7iC2tTWcw6nb",
-	"4k5soPnujEqX5ro6tl9cuPUclSvyuMnibY/TvkFso1f95TDmgarWYHhf0Eou42hSA+IKR76FuADhAOq7",
-	"fY1iBr7mCqmFEbp1GizsQ4RRHDFrvg+czrH6tLjj6Hb1xwtgj7hF9XefR/EXzU405JSDE8icbjCM7y7O",
-	"Exn99LqVL2ufIMgoI9SJ8u5//9CnqL8woONcrbQfrYwta+GcdlpO4epCkNGIP38WHFErvgFEgYqjinxJ",
-	"I//6UKz7P/+9F66tbC2sify2pGHDeertxcARXhO51ohLn12YBxzA4p6iYAt08f7jned734EyCUTv3dur",
-	"t1fFIy+URt619zf5kXCw+UaubPmI8Fb+lt9eCEYjIZG70Lv2/g38RjYQ/FAQko1/urrKDz0c1IZDaRpH",
-	"gey5/J2pjaAwYfHARL3wPMLM8Qbzfo0YX5D1Qi1973s/X/1stZquRRwOe5qJy7NdVc7e9de6hL8+7B9E",
-	"g2UsjtkSv4RpmPuRMC5P4p5CGzB+Q8Ln0UipBRv2ewXqFwjRYK5cy+iEJhos6KGFkNq7SaT2BVcO/CdC",
-	"i4QDk4fUbjyog6wjQNTDAo4RcXQk1zBItFhkqUtQVKJDvchQQsoY0OUuCvddOlHYpbtQ6lGKEuBAmdQC",
-	"YrdL3Vpcnl8r01HaEk4z8CvrP7Y7Dw4lIq2pjg0M6JEQptkhcmJsqVQPAlpW3312S+p9+QR2dhKzeQxs",
-	"Yh3zpuchUL9DFU4kuvHVrDabw7G21adWGMFj4K5b7srD2F5FR8QhsilLdbisSzP/6UaH+tpBaifyeShk",
-	"fbbKzPZ0MbfdtjbTx68wqCn3SxB8iniw0Sh08fFZC9+ZnagGvKaxErWQ0wWgrm6gHuU7pjfH0atujdR4",
-	"Mny+vmIzK8TAa1SdFhWmXYoDOaFkx1cRPdkhjtVFX1aFLY5evpGXO/XhqvKhjf/ZBEPjkyntkZaY2fgl",
-	"fYku81UjmmWM6b6+ouglKLpk3PR7v5eJnQks34Rucnf+2MXCt2598yvy/M61WyHelm3P1WuuPvfqc5aL",
-	"tpfiIk8gvvEVhD6fxLFmaEkvMcPI4A243FXeqxj7uqVUi7VMaVjqGWjzcEVaMnfmtsMPk4/ps76ioV3j",
-	"X4b8+33PM8aAO/sxoV+pTaa7CPSZWa7loWCBuUdSIvWT7Pxnh+tRdYWJEHtcQaETtFkMCxSGEI7v+ygE",
-	"LXfix0t9IYkn8c85KEH9aDkbZmdSG5mzvXjJa1ScROOJlU5ia//MiHNswKdXifYYhzA6G4hr1fHzGxUu",
-	"NI8I5UUlzj8slJf3sQkOKV7Z2EDjSI1ztrrbrbraOxPtWG0VGysJig37j/HWVdQaMFgDiimg8HkBPyLG",
-	"2WJN6CIoz68v280VFyu/DrD3rApE1v88iZ070DA7t0hb3cgagBMfA/M1OIhFvWLGwvBcIkqMvejLQIpr",
-	"o3qCSJamZtj5IfUyrDpTNT4ssmLqJcXZuaUzNYvudzwnzbkzPCJVsLdSNd2Iu3nVdM/lc4V6fXzdwwDV",
-	"YggXHGrYb5mq2lmMUtTV8U0zDI/q8bSOzDiifJUXPinHrmWO68o16UcDHNqP9aBHk80ji5zc2mX9dAfg",
-	"1v+HokPLzRpu8wWFLFVnDghV4smlgqkXkdJI/E5WelogHC6KWk8LRUWBgVfRd4reLlnB9WP2FkJr2TPW",
-	"vetxaOvuqaqPZmobKiXV5gyDNl6poiwD2BRHScRrHQ9Fq/5eFsIRpvZJJoO7dNC0BWg02uP+8pJOzjTd",
-	"5FSJJlYpJvdj5JbUkkoes3hr8iqh/mo73p6nZJv1/KaTbq3MnPYFc7wdJ3moIeBlGc22lbOK2J6vtOsF",
-	"DmcmbSWWMQW9zssmDhF1UXLxfIV9XDRyZuIuhDOSwHcDEwGrcj9R6s1M87Ws8v1O7brdO8rwe4WHUX3H",
-	"SwJE/2XUBYDCqfWZ8P7JIjfvXBG53+//HwAA//+YM9A2S30AAA==",
+	"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",
+	"/ZNFbt6pInK32/0/AAD//x8HxkErgAAA",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

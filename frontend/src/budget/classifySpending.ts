@@ -1,5 +1,5 @@
 import { BudgetTransaction, Category, CategoryBudget, Transaction } from "../API/requests"
-import { toMonthlyAmount } from "../utils"
+import { isSegmentActiveInMonth, plannedForMonth } from "./plannedAmount"
 import { addDays, format, parseISO } from "date-fns"
 
 function normalizeDescription(description: string | undefined): string {
@@ -91,13 +91,19 @@ export function classifyBudgetSpending(
   transactions: Transaction[],
   budgetTransactions: BudgetTransaction[],
   categoryBudgets: CategoryBudget[],
+  month: Date,
 ): ClassifiedSpending {
   const spending = excludeInterAccountTransfers(transactions).filter((t) => t.amount < 0)
 
   const activeOutgoingBudgetLines = budgetTransactions.filter(
-    (bt) => bt.amount < 0 && !bt.deleted_at,
+    (bt) =>
+      bt.amount < 0 &&
+      !bt.deleted_at &&
+      isSegmentActiveInMonth(bt, month),
   )
-  const activeCategoryBudgets = categoryBudgets.filter((cb) => !cb.deleted_at)
+  const activeCategoryBudgets = categoryBudgets.filter(
+    (cb) => !cb.deleted_at && isSegmentActiveInMonth(cb, month),
+  )
 
   const budgetLineByDescription = new Map<string, BudgetTransaction[]>()
   for (const line of activeOutgoingBudgetLines) {
@@ -142,7 +148,8 @@ export function classifyBudgetSpending(
     .map(([description, lines]) => {
       const planned = lines.reduce(
         (sum, line) =>
-          sum + toMonthlyAmount(line.amount, line.repeat_every, line.repeat_until),
+          sum +
+          plannedForMonth(line.amount, line.repeat_every, line.repeat_until, line.starts_on, month, line.ends_on),
         0,
       )
       const matchedTransactions = budgetLineTransactions.get(description) ?? []
@@ -161,10 +168,13 @@ export function classifyBudgetSpending(
 
   const categories: CategoryBudgetGroup[] = activeCategoryBudgets
     .map((categoryBudget) => {
-      const planned = toMonthlyAmount(
+      const planned = plannedForMonth(
         categoryBudget.amount,
         categoryBudget.repeat_every,
         categoryBudget.repeat_until,
+        categoryBudget.starts_on,
+        month,
+        categoryBudget.ends_on,
       )
       const matchedTransactions = categoryTransactions.get(categoryBudget.category.id) ?? []
       const actual = matchedTransactions.reduce((sum, t) => sum + Math.abs(t.amount), 0)

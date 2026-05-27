@@ -4,6 +4,7 @@ import Color from "color"
 import { useMemo } from "react"
 import { Doughnut } from "react-chartjs-2"
 import { BudgetTransaction, CategoryBudget } from "../API/requests"
+import { isSegmentActiveToday } from "../budget/plannedAmount"
 import { toMonthlyAmount } from "../utils"
 
 ChartJS.register(ArcElement, Tooltip, Legend)
@@ -18,8 +19,12 @@ export default function BudgetPie(props: BudgetPieProps) {
   const { budgetTransactions, categoryBudgets, categoryColorMap } = props
 
   const chartData = useMemo(() => {
-    const activeBudgetTransactions = budgetTransactions.filter((bt) => !bt.deleted_at)
-    const activeCategoryBudgets = categoryBudgets.filter((cb) => !cb.deleted_at)
+    const activeBudgetTransactions = budgetTransactions.filter(
+      (bt) => !bt.deleted_at && isSegmentActiveToday(bt),
+    )
+    const activeCategoryBudgets = categoryBudgets.filter(
+      (cb) => !cb.deleted_at && isSegmentActiveToday(cb),
+    )
 
     const monthlyIncome = activeBudgetTransactions
       .filter((bt) => bt.amount > 0)

@@ -228,9 +228,17 @@ export const BudgetTransactionCreateRequestSchema = {
         repeat_every: {
             type: 'number',
             example: 1
+        },
+        starts_on: {
+            type: 'string',
+            format: 'date'
+        },
+        ends_on: {
+            type: 'string',
+            format: 'date'
         }
     },
-    required: ['amount', 'repeat_until', 'repeat_every']
+    required: ['amount', 'repeat_until', 'repeat_every', 'starts_on']
 } as const;
 
 export const BudgetTransactionEditRequestSchema = {
@@ -252,8 +260,17 @@ export const BudgetTransactionEditRequestSchema = {
         repeat_every: {
             type: 'number',
             example: 1
+        },
+        ends_on: {
+            type: 'string',
+            format: 'date'
+        },
+        effective_from: {
+            type: 'string',
+            format: 'date'
         }
-    }
+    },
+    required: ['amount', 'repeat_until', 'repeat_every', 'effective_from']
 } as const;
 
 export const CategoryBudgetCreateRequestSchema = {
@@ -272,9 +289,17 @@ export const CategoryBudgetCreateRequestSchema = {
         repeat_every: {
             type: 'number',
             example: 1
+        },
+        starts_on: {
+            type: 'string',
+            format: 'date'
+        },
+        ends_on: {
+            type: 'string',
+            format: 'date'
         }
     },
-    required: ['category_id', 'amount', 'repeat_until', 'repeat_every']
+    required: ['category_id', 'amount', 'repeat_until', 'repeat_every', 'starts_on']
 } as const;
 
 export const CategoryBudgetEditRequestSchema = {
@@ -293,8 +318,17 @@ export const CategoryBudgetEditRequestSchema = {
         repeat_every: {
             type: 'number',
             example: 1
+        },
+        ends_on: {
+            type: 'string',
+            format: 'date'
+        },
+        effective_from: {
+            type: 'string',
+            format: 'date'
         }
-    }
+    },
+    required: ['amount', 'repeat_until', 'repeat_every', 'effective_from']
 } as const;
 
 export const LoginResponseSchema = {
@@ -739,6 +773,14 @@ export const BudgetTransactionSchema = {
         repeat_every: {
             type: 'number'
         },
+        starts_on: {
+            type: 'string',
+            format: 'date'
+        },
+        ends_on: {
+            type: 'string',
+            format: 'date'
+        },
         created_at: {
             type: 'string',
             format: 'date-time'
@@ -748,7 +790,7 @@ export const BudgetTransactionSchema = {
             format: 'date-time'
         }
     },
-    required: ['id', 'amount', 'repeat_until', 'repeat_every', 'created_at']
+    required: ['id', 'amount', 'repeat_until', 'repeat_every', 'starts_on', 'created_at']
 } as const;
 
 export const CategoryBudgetSchema = {
@@ -769,6 +811,14 @@ export const CategoryBudgetSchema = {
         repeat_every: {
             type: 'number'
         },
+        starts_on: {
+            type: 'string',
+            format: 'date'
+        },
+        ends_on: {
+            type: 'string',
+            format: 'date'
+        },
         created_at: {
             type: 'string',
             format: 'date-time'
@@ -778,7 +828,7 @@ export const CategoryBudgetSchema = {
             format: 'date-time'
         }
     },
-    required: ['id', 'category', 'amount', 'repeat_until', 'repeat_every', 'created_at']
+    required: ['id', 'category', 'amount', 'repeat_until', 'repeat_every', 'starts_on', 'created_at']
 } as const;
 
 export const AllAccountSummarySchema = {

@@ -106,8 +106,8 @@ export default function BudgetActual() {
 
   const classified = useMemo(() => {
     if (!transactions || !budgetTransactions || !categoryBudgets) return null
-    return classifyBudgetSpending(transactions, budgetTransactions, categoryBudgets)
-  }, [transactions, budgetTransactions, categoryBudgets])
+    return classifyBudgetSpending(transactions, budgetTransactions, categoryBudgets, month)
+  }, [transactions, budgetTransactions, categoryBudgets, month])
 
   const summary = useMemo(() => {
     if (!classified) return null
