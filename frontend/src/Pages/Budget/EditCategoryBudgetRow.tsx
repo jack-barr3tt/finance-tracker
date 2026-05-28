@@ -68,7 +68,7 @@ export default function EditCategoryBudgetRow(props: EditCategoryBudgetRowProps)
         setRepeatEvery(decrypted.repeat_every.toString())
         setStartsOn(decrypted.starts_on)
         setEndsOn(decrypted.ends_on ?? "")
-        setEffectiveFrom(todayDateInputValue())
+        setEffectiveFrom(decrypted.starts_on)
       }
     })()
   }, [decrypt, categoryBudget])

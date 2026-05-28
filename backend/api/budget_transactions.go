@@ -156,6 +156,36 @@ func (s *Server) PatchUserIdBudgetTransactionsBudgetTransactionId(c *fiber.Ctx, 
 		description = body.Description
 	}
 
+	if effectiveFromOnOrBeforeSegmentStart(oldStartsOnDate, body.EffectiveFrom) {
+		tag, err := s.DB.Exec(c.Context(), `
+			UPDATE budget_transaction bt
+			SET category_id = $1, amount = $2, description = $3, repeat_until = $4, repeat_every = $5,
+				starts_on = $6, ends_on = $7
+			FROM category c
+			WHERE bt.id = $8 AND bt.category_id = c.id AND c.user_id = $9 AND bt.deleted_at IS NULL
+		`,
+			categoryId,
+			body.Amount,
+			description,
+			body.RepeatUntil,
+			body.RepeatEvery,
+			timeFromOpenAPIDate(body.EffectiveFrom),
+			nullableDateParam(body.EndsOn),
+			budgetTransactionId,
+			id,
+		)
+		if err != nil {
+			return DBError(c, err)
+		}
+		if tag.RowsAffected() == 0 {
+			return c.SendStatus(fiber.StatusNotFound)
+		}
+
+		return c.JSON(BudgetTransactionEditResponse{
+			Id: budgetTransactionId,
+		})
+	}
+
 	tx, err := s.DB.Begin(c.Context())
 	if err != nil {
 		return DBError(c, err)

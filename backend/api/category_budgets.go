@@ -179,6 +179,62 @@ func (s *Server) PatchUserIdCategoryBudgetsCategoryBudgetId(c *fiber.Ctx, id str
 		categoryId = *body.CategoryId
 	}
 
+	if effectiveFromOnOrBeforeSegmentStart(oldStartsOnDate, body.EffectiveFrom) {
+		tx, err := s.DB.Begin(c.Context())
+		if err != nil {
+			return DBError(c, err)
+		}
+		defer tx.Rollback(c.Context())
+
+		if err := adjustPriorCategoryBudgetForBackdate(
+			c.Context(),
+			tx,
+			categoryId,
+			categoryBudgetId,
+			id,
+			oldStartsOnDate,
+			body.EffectiveFrom,
+		); err != nil {
+			return DBError(c, err)
+		}
+
+		tag, err := tx.Exec(c.Context(), `
+			UPDATE category_budget cb
+			SET category_id = $1, amount = $2, repeat_until = $3, repeat_every = $4,
+				starts_on = $5, ends_on = $6
+			FROM category c
+			WHERE cb.id = $7 AND cb.category_id = c.id AND c.user_id = $8 AND cb.deleted_at IS NULL
+		`,
+			categoryId,
+			body.Amount,
+			body.RepeatUntil,
+			body.RepeatEvery,
+			timeFromOpenAPIDate(body.EffectiveFrom),
+			nullableDateParam(body.EndsOn),
+			categoryBudgetId,
+			id,
+		)
+		if err != nil {
+			if isUniqueViolation(err) {
+				return c.Status(fiber.StatusConflict).JSON(Conflict{
+					Message: "A category budget already exists for this category in the selected date range",
+				})
+			}
+			return DBError(c, err)
+		}
+		if tag.RowsAffected() == 0 {
+			return c.SendStatus(fiber.StatusNotFound)
+		}
+
+		if err := tx.Commit(c.Context()); err != nil {
+			return DBError(c, err)
+		}
+
+		return c.JSON(CategoryBudgetEditResponse{
+			Id: categoryBudgetId,
+		})
+	}
+
 	tx, err := s.DB.Begin(c.Context())
 	if err != nil {
 		return DBError(c, err)

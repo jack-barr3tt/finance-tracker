@@ -70,7 +70,7 @@ export default function EditBudgetTransactionRow(props: EditBudgetTransactionRow
         setRepeatEvery(budgetTransaction.repeat_every.toString())
         setStartsOn(budgetTransaction.starts_on)
         setEndsOn(budgetTransaction.ends_on ?? "")
-        setEffectiveFrom(todayDateInputValue())
+        setEffectiveFrom(budgetTransaction.starts_on)
       }
     })()
   }, [decrypt, budgetTransaction])
