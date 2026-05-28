@@ -94,9 +94,5 @@ export function formatSegmentDateRange(startsOn: string, endsOn?: string): strin
 }
 
 export function todayDateInputValue(): string {
-  return formatDateInputValue(new Date())
-}
-
-export function formatDateInputValue(date: Date): string {
-  return format(date, "yyyy-MM-dd")
+  return format(new Date(), "yyyy-MM-dd")
 }

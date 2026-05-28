@@ -140,7 +140,7 @@ export const TransactionCreateRequestSchema = {
         },
         date: {
             type: 'string',
-            format: 'date-time'
+            format: 'date'
         }
     },
     required: ['account_id', 'amount', 'description', 'date']
@@ -164,7 +164,7 @@ export const TransactionEditRequestSchema = {
         },
         date: {
             type: 'string',
-            format: 'date-time'
+            format: 'date'
         }
     }
 } as const;
@@ -742,7 +742,7 @@ export const TransactionSchema = {
         },
         date: {
             type: 'string',
-            format: 'date-time'
+            format: 'date'
         },
         created_at: {
             type: 'string',

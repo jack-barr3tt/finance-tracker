@@ -1182,7 +1182,7 @@ components:
           type: string
         date:
           type: string
-          format: date-time
+          format: date
       required:
         - account_id
         - amount
@@ -1202,7 +1202,7 @@ components:
           type: string
         date:
           type: string
-          format: date-time
+          format: date
     TransactionBulkCreateRequest:
       type: object
       properties:
@@ -1644,7 +1644,7 @@ components:
           type: string
         date:
           type: string
-          format: date-time
+          format: date
         created_at:
           type: string
           format: date-time

@@ -25,7 +25,7 @@ func (s Server) PostUserIdTransactions(c *fiber.Ctx, userId string) error {
 
 	var id string
 
-	err = s.DB.QueryRow(c.Context(), "INSERT INTO transaction (account_id, category_id, amount, description, date) VALUES ($1, $2, $3, $4, $5) RETURNING id", body.AccountId, body.CategoryId, body.Amount, body.Description, body.Date).Scan(&id)
+	err = s.DB.QueryRow(c.Context(), "INSERT INTO transaction (account_id, category_id, amount, description, date) VALUES ($1, $2, $3, $4, $5) RETURNING id", body.AccountId, body.CategoryId, body.Amount, body.Description, timeFromOpenAPIDate(body.Date)).Scan(&id)
 	if err != nil {
 		return DBError(c, err)
 	}
@@ -127,9 +127,10 @@ func (s Server) GetUserIdTransactions(c *fiber.Ctx, userId string, params GetUse
 		var c_id *string
 		var c_name *string
 		var c_created_at *time.Time
+		var scannedDate time.Time
 		var cursor string
 		err = rows.Scan(
-			&transaction.Id, &transaction.Amount, &transaction.Description, &transaction.Date,
+			&transaction.Id, &transaction.Amount, &transaction.Description, &scannedDate,
 			&c_id, &c_name, &c_created_at,
 			&transaction.Account.Id, &transaction.Account.Name, &transaction.Account.OpenedAt, &transaction.Account.ClosedAt,
 			&transaction.Account.Bank.Id, &transaction.Account.Bank.Name, &transaction.Account.Bank.ShortName, &transaction.Account.Bank.CsvImportEnabled, &transaction.Account.Bank.ApiImportEnabled,
@@ -138,6 +139,8 @@ func (s Server) GetUserIdTransactions(c *fiber.Ctx, userId string, params GetUse
 		if err != nil {
 			return DBError(c, err)
 		}
+
+		transaction.Date = openAPIDateFromTime(scannedDate)
 
 		if c_id != nil {
 			transaction.Category = &Category{
@@ -187,8 +190,9 @@ func (s *Server) GetUserIdTransactionsTransactionId(c *fiber.Ctx, id string, tra
 	var c_id *string
 	var c_name *string
 	var c_created_at *time.Time
+	var scannedDate time.Time
 	err := row.Scan(
-		&transaction.Id, &transaction.Amount, &transaction.Description, &transaction.Date,
+		&transaction.Id, &transaction.Amount, &transaction.Description, &scannedDate,
 		&c_id, &c_name, &c_created_at,
 		&transaction.Account.Id, &transaction.Account.Name, &transaction.Account.OpenedAt, &transaction.Account.ClosedAt,
 		&transaction.Account.Bank.Id, &transaction.Account.Bank.Name, &transaction.Account.Bank.ShortName, &transaction.Account.Bank.CsvImportEnabled, &transaction.Account.Bank.ApiImportEnabled,
@@ -196,6 +200,8 @@ func (s *Server) GetUserIdTransactionsTransactionId(c *fiber.Ctx, id string, tra
 	if err != nil {
 		return DBError(c, err)
 	}
+
+	transaction.Date = openAPIDateFromTime(scannedDate)
 
 	if c_id != nil {
 		transaction.Category = &Category{
@@ -224,7 +230,7 @@ func (s *Server) PatchUserIdTransactionsTransactionId(c *fiber.Ctx, id string, t
 		UPDATE transaction 
 		SET account_id = $1, category_id = $2, amount = $3, description = $4, date = $5
 		WHERE id = $6
-	`, body.AccountId, body.CategoryId, body.Amount, body.Description, body.Date, transactionId)
+	`, body.AccountId, body.CategoryId, body.Amount, body.Description, nullableDateParam(body.Date), transactionId)
 	if err != nil {
 		return DBError(c, err)
 	}
@@ -317,7 +323,7 @@ func (s *Server) PostUserIdTransactionsBulk(c *fiber.Ctx, id string) error {
 		_, err = tx.Exec(
 			c.Context(),
 			"INSERT INTO transaction (account_id, category_id, amount, description, date, file_id) VALUES ($1, $2, $3, $4, $5, $6)",
-			transaction.AccountId, transaction.CategoryId, transaction.Amount, transaction.Description, transaction.Date, *fileId,
+			transaction.AccountId, transaction.CategoryId, transaction.Amount, transaction.Description, timeFromOpenAPIDate(transaction.Date), *fileId,
 		)
 		if err != nil {
 			return DBError(c, err)

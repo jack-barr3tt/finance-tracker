@@ -51,7 +51,7 @@ CREATE TABLE IF NOT EXISTS "transaction" (
   category_id UUID REFERENCES "category"(id) ON DELETE SET NULL,
   amount DECIMAL(10, 2) NOT NULL,
   description TEXT,
-  date TIMESTAMP NOT NULL,
+  date DATE NOT NULL,
   file_id UUID REFERENCES "file"(id) ON DELETE CASCADE,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   txn_hash TEXT UNIQUE NOT NULL

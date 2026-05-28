@@ -362,13 +362,13 @@ type TotalsSummary struct {
 
 // Transaction defines model for Transaction.
 type Transaction struct {
-	Account     Account   `json:"account"`
-	Amount      float32   `json:"amount"`
-	Category    *Category `json:"category,omitempty"`
-	CreatedAt   time.Time `json:"created_at"`
-	Date        time.Time `json:"date"`
-	Description string    `json:"description"`
-	Id          string    `json:"id"`
+	Account     Account            `json:"account"`
+	Amount      float32            `json:"amount"`
+	Category    *Category          `json:"category,omitempty"`
+	CreatedAt   time.Time          `json:"created_at"`
+	Date        openapi_types.Date `json:"date"`
+	Description string             `json:"description"`
+	Id          string             `json:"id"`
 }
 
 // TransactionBulkCreateRequest defines model for TransactionBulkCreateRequest.
@@ -395,11 +395,11 @@ type TransactionBulkResponse struct {
 
 // TransactionCreateRequest defines model for TransactionCreateRequest.
 type TransactionCreateRequest struct {
-	AccountId   string    `json:"account_id"`
-	Amount      float32   `json:"amount"`
-	CategoryId  *string   `json:"category_id,omitempty"`
-	Date        time.Time `json:"date"`
-	Description string    `json:"description"`
+	AccountId   string             `json:"account_id"`
+	Amount      float32            `json:"amount"`
+	CategoryId  *string            `json:"category_id,omitempty"`
+	Date        openapi_types.Date `json:"date"`
+	Description string             `json:"description"`
 }
 
 // TransactionCreateResponse defines model for TransactionCreateResponse.
@@ -415,11 +415,11 @@ type TransactionDeleteResponse struct {
 
 // TransactionEditRequest defines model for TransactionEditRequest.
 type TransactionEditRequest struct {
-	AccountId   *string    `json:"account_id,omitempty"`
-	Amount      *float32   `json:"amount,omitempty"`
-	CategoryId  *string    `json:"category_id,omitempty"`
-	Date        *time.Time `json:"date,omitempty"`
-	Description *string    `json:"description,omitempty"`
+	AccountId   *string             `json:"account_id,omitempty"`
+	Amount      *float32            `json:"amount,omitempty"`
+	CategoryId  *string             `json:"category_id,omitempty"`
+	Date        *openapi_types.Date `json:"date,omitempty"`
+	Description *string             `json:"description,omitempty"`
 }
 
 // TransactionEditResponse defines model for TransactionEditResponse.
@@ -1733,32 +1733,32 @@ var swaggerSpec = []string{
 	"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",
-	"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",
-	"/ZNFbt6pInK32/0/AAD//x8HxkErgAAA",
+	"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",
+	"M+H9k0Vu3qkicrfb/T8AAP//3WC0uxyAAAA=",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

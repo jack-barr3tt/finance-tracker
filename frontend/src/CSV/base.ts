@@ -1,3 +1,4 @@
+import { format } from "date-fns"
 import Papa from "papaparse"
 import {
   getUserByIdCategories,
@@ -97,7 +98,7 @@ export function parseCSV<T>(
                                   data.account_id || accountId
                                 )
                                 return {
-                                  date: data.date.toISOString(),
+                                  date: format(data.date, "yyyy-MM-dd"),
                                   amount: data.amount,
                                   account_id: data.account_id || accountId,
                                   description: await encrypt(description),

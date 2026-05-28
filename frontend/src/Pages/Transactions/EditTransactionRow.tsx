@@ -6,6 +6,7 @@ import {
   ThemeProvider,
   createTheme,
 } from "flowbite-react"
+import { format, parseISO } from "date-fns"
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { FiSave, FiX } from "react-icons/fi"
 import {
@@ -86,7 +87,7 @@ export default function EditTransactionRow(props: EditTransactionRowProps) {
   useEffect(() => {
     ;(async () => {
       if (transaction) {
-        setDate(new Date(transaction.date))
+        setDate(parseISO(transaction.date))
         setDescription(await decrypt(transaction.description || ""))
         setAmount(transaction.amount.toString())
         setSelectedAccount(transaction.account.id)
@@ -117,7 +118,7 @@ export default function EditTransactionRow(props: EditTransactionRowProps) {
         category_id: selectedCategory,
         description: await encrypt(description),
         amount: parseFloat(amount),
-        date: date.toISOString(),
+        date: format(date, "yyyy-MM-dd"),
       },
       path: { id: userId },
     })
@@ -165,7 +166,7 @@ export default function EditTransactionRow(props: EditTransactionRowProps) {
         category_id: selectedCategory,
         description: await encrypt(description),
         amount: parseFloat(amount),
-        date: date.toISOString(),
+        date: format(date, "yyyy-MM-dd"),
       },
       path: { id: userId, transaction_id: transactionId },
     })

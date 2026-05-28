@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query"
-import { addDays, endOfMonth, format, isSameMonth, parseISO, startOfMonth, subDays } from "date-fns"
+import { endOfMonth, format, startOfMonth } from "date-fns"
 import { getUserByIdTransactions, Transaction, TransactionsResponse } from "../API/requests"
 import { decryptTransaction } from "../Security/data"
 import { useUser } from "./useUser"
@@ -28,10 +28,8 @@ async function fetchAllMonthTransactions(
   userId: string,
   month: Date,
 ): Promise<Transaction[]> {
-  // Widen by one calendar day each side: the API compares UTC timestamps, but imports
-  // store local midnights as ISO UTC (e.g. 1 Mar BST → previous UTC day).
-  const startDate = format(subDays(startOfMonth(month), 1), "yyyy-MM-dd")
-  const endDate = format(addDays(endOfMonth(month), 1), "yyyy-MM-dd")
+  const startDate = format(startOfMonth(month), "yyyy-MM-dd")
+  const endDate = format(endOfMonth(month), "yyyy-MM-dd")
 
   const allTransactions: Transaction[] = []
   let cursor: string | undefined = "0"
@@ -56,10 +54,7 @@ export function useBudgetMonthTransactions(month: Date) {
     queryKey: [BUDGET_MONTH_TRANSACTIONS_KEY, userId, monthKey],
     queryFn: async () => {
       const encTransactions = await fetchAllMonthTransactions(userId, month)
-      const decrypted = await Promise.all(
-        encTransactions.map((t) => decryptTransaction(t, decrypt)),
-      )
-      return decrypted.filter((t) => isSameMonth(parseISO(t.date), month))
+      return Promise.all(encTransactions.map((t) => decryptTransaction(t, decrypt)))
     },
     enabled: !!userId,
   })
