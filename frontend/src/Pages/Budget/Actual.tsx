@@ -1,5 +1,6 @@
 import {
   Badge,
+  Button,
   HR,
   Spinner,
   Table,
@@ -11,12 +12,13 @@ import {
   Tooltip,
 } from "flowbite-react"
 import { format, parseISO, startOfMonth } from "date-fns"
-import { useMemo, useState } from "react"
+import { useCallback, useMemo, useState } from "react"
+import { FiChevronDown, FiChevronRight } from "react-icons/fi"
 import BudgetMonthPicker from "../../Components/BudgetMonthPicker"
 import { useData } from "../../Hooks/useData"
 import { useBudgetMonthTransactions } from "../../Hooks/useBudgetMonthTransactions"
 import { classifyBudgetSpending } from "../../budget/classifySpending"
-import { Category } from "../../API/requests"
+import { Category, Transaction } from "../../API/requests"
 
 function formatGbp(amount: number) {
   return amount.toLocaleString("en-GB", { style: "currency", currency: "GBP" })
@@ -28,22 +30,17 @@ function VarianceCell({ planned, actual }: { planned: number; actual: number }) 
     return <span className="text-gray-400">—</span>
   }
 
-  const isOver = delta > 0
-  const colorClass = isOver
-    ? "text-red-600 dark:text-red-400"
-    : delta < 0
-      ? "text-green-600 dark:text-green-400"
-      : "text-gray-500 dark:text-gray-400"
+  const colorClass =
+    delta > 0
+      ? "text-red-600 dark:text-red-400"
+      : delta < 0
+        ? "text-green-600 dark:text-green-400"
+        : "text-gray-500 dark:text-gray-400"
 
   return (
     <span className={colorClass}>
       {delta > 0 ? "+" : ""}
       {formatGbp(delta)}
-      {planned > 0 && (
-        <span className="ml-1 text-sm text-gray-500 dark:text-gray-400">
-          ({isOver ? "over" : delta < 0 ? "under" : "on track"})
-        </span>
-      )}
     </span>
   )
 }
@@ -99,10 +96,82 @@ const tableTheme = {
   },
 }
 
+function ExpandChevron({
+  expanded,
+  onToggle,
+  transactionCount,
+}: {
+  expanded: boolean
+  onToggle: () => void
+  transactionCount: number
+}) {
+  if (transactionCount === 0) {
+    return <span className="inline-block w-8 shrink-0" />
+  }
+
+  return (
+    <Button
+      className="size-8 shrink-0 p-0"
+      color="light"
+      aria-expanded={expanded}
+      aria-label={expanded ? "Hide transactions" : "Show transactions"}
+      onClick={onToggle}
+    >
+      {expanded ? <FiChevronDown /> : <FiChevronRight />}
+    </Button>
+  )
+}
+
+function budgetLineTransactionRows(transactions: Transaction[]) {
+  return transactions.map((transaction) => (
+    <TableRow key={transaction.id} className="text-sm text-gray-600 dark:text-gray-400">
+      <TableCell className="pl-8">
+        <span className="text-gray-400">
+          {format(parseISO(transaction.date), "d MMM")} —{" "}
+        </span>
+        <DescriptionCell description={transaction.description} />
+      </TableCell>
+      <TableCell />
+      <TableCell />
+      <TableCell>{formatGbp(Math.abs(transaction.amount))}</TableCell>
+      <TableCell />
+    </TableRow>
+  ))
+}
+
+function categoryTransactionRows(transactions: Transaction[]) {
+  return transactions.map((transaction) => (
+    <TableRow key={transaction.id} className="text-sm text-gray-600 dark:text-gray-400">
+      <TableCell className="pl-8">
+        <span className="text-gray-400">
+          {format(parseISO(transaction.date), "d MMM")} —{" "}
+        </span>
+        <DescriptionCell description={transaction.description} />
+      </TableCell>
+      <TableCell />
+      <TableCell>{formatGbp(Math.abs(transaction.amount))}</TableCell>
+      <TableCell />
+    </TableRow>
+  ))
+}
+
 export default function BudgetActual() {
   const { budgetTransactions, categoryBudgets, categoryColorMap } = useData()
   const [month, setMonth] = useState(() => startOfMonth(new Date()))
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(() => new Set())
   const { transactions, isLoading } = useBudgetMonthTransactions(month)
+
+  const toggleExpanded = useCallback((key: string) => {
+    setExpandedGroups((prev) => {
+      const next = new Set(prev)
+      if (next.has(key)) {
+        next.delete(key)
+      } else {
+        next.add(key)
+      }
+      return next
+    })
+  }, [])
 
   const classified = useMemo(() => {
     if (!transactions || !budgetTransactions || !categoryBudgets) return null
@@ -123,7 +192,9 @@ export default function BudgetActual() {
       0,
     )
 
-    return { planned, actual, unplanned }
+    const totalActual = actual + unplanned
+
+    return { planned, actual, unplanned, totalActual }
   }, [classified])
 
   return (
@@ -143,9 +214,11 @@ export default function BudgetActual() {
 
       {!isLoading && classified && summary && (
         <>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <div className="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
-              <p className="text-sm text-gray-500 dark:text-gray-400">Planned (matched)</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Planned (matched to budget lines & categories)
+              </p>
               <p className="text-2xl font-semibold">{formatGbp(summary.planned)}</p>
             </div>
             <div className="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
@@ -156,6 +229,11 @@ export default function BudgetActual() {
             <div className="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
               <p className="text-sm text-gray-500 dark:text-gray-400">Unplanned spending</p>
               <p className="text-2xl font-semibold">{formatGbp(summary.unplanned)}</p>
+            </div>
+            <div className="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
+              <p className="text-sm text-gray-500 dark:text-gray-400">Total actual (all spending)</p>
+              <p className="text-2xl font-semibold">{formatGbp(summary.totalActual)}</p>
+              <VarianceCell planned={summary.planned} actual={summary.totalActual} />
             </div>
           </div>
 
@@ -183,41 +261,37 @@ export default function BudgetActual() {
                       </TableCell>
                     </TableRow>
                   ) : (
-                    classified.budgetLines.flatMap((group) => [
-                      <TableRow key={group.description} className="bg-gray-50 dark:bg-gray-700">
-                        <TableCell>
-                          <DescriptionCell description={group.description} />
-                        </TableCell>
-                        <TableCell>
-                          <CategoryBadge
-                            category={group.category}
-                            categoryColorMap={categoryColorMap}
-                          />
-                        </TableCell>
-                        <TableCell>{formatGbp(group.planned)}</TableCell>
-                        <TableCell>{formatGbp(group.actual)}</TableCell>
-                        <TableCell>
-                          <VarianceCell planned={group.planned} actual={group.actual} />
-                        </TableCell>
-                      </TableRow>,
-                      ...group.transactions.map((transaction) => (
-                        <TableRow
-                          key={transaction.id}
-                          className="text-sm text-gray-600 dark:text-gray-400"
-                        >
-                          <TableCell className="pl-8">
-                            <span className="text-gray-400">
-                              {format(parseISO(transaction.date), "d MMM")} —{" "}
-                            </span>
-                            <DescriptionCell description={transaction.description} />
+                    classified.budgetLines.flatMap((group) => {
+                      const expandKey = `line:${group.description}`
+                      const expanded = expandedGroups.has(expandKey)
+
+                      return [
+                        <TableRow key={group.description} className="bg-gray-50 dark:bg-gray-700">
+                          <TableCell>
+                            <div className="flex items-center gap-1">
+                              <ExpandChevron
+                                expanded={expanded}
+                                transactionCount={group.transactions.length}
+                                onToggle={() => toggleExpanded(expandKey)}
+                              />
+                              <DescriptionCell description={group.description} />
+                            </div>
                           </TableCell>
-                          <TableCell />
-                          <TableCell />
-                          <TableCell>{formatGbp(Math.abs(transaction.amount))}</TableCell>
-                          <TableCell />
-                        </TableRow>
-                      )),
-                    ])
+                          <TableCell>
+                            <CategoryBadge
+                              category={group.category}
+                              categoryColorMap={categoryColorMap}
+                            />
+                          </TableCell>
+                          <TableCell>{formatGbp(group.planned)}</TableCell>
+                          <TableCell>{formatGbp(group.actual)}</TableCell>
+                          <TableCell>
+                            <VarianceCell planned={group.planned} actual={group.actual} />
+                          </TableCell>
+                        </TableRow>,
+                        ...(expanded ? budgetLineTransactionRows(group.transactions) : []),
+                      ]
+                    })
                   )}
                 </TableBody>
               </Table>
@@ -247,40 +321,37 @@ export default function BudgetActual() {
                       </TableCell>
                     </TableRow>
                   ) : (
-                    classified.categories.flatMap((group) => [
-                      <TableRow
-                        key={group.categoryBudget.id}
-                        className="bg-gray-50 dark:bg-gray-700"
-                      >
-                        <TableCell>
-                          <CategoryBadge
-                            category={group.categoryBudget.category}
-                            categoryColorMap={categoryColorMap}
-                          />
-                        </TableCell>
-                        <TableCell>{formatGbp(group.planned)}</TableCell>
-                        <TableCell>{formatGbp(group.actual)}</TableCell>
-                        <TableCell>
-                          <VarianceCell planned={group.planned} actual={group.actual} />
-                        </TableCell>
-                      </TableRow>,
-                      ...group.transactions.map((transaction) => (
+                    classified.categories.flatMap((group) => {
+                      const expandKey = `category:${group.categoryBudget.id}`
+                      const expanded = expandedGroups.has(expandKey)
+
+                      return [
                         <TableRow
-                          key={transaction.id}
-                          className="text-sm text-gray-600 dark:text-gray-400"
+                          key={group.categoryBudget.id}
+                          className="bg-gray-50 dark:bg-gray-700"
                         >
-                          <TableCell className="pl-8">
-                            <span className="text-gray-400">
-                              {format(parseISO(transaction.date), "d MMM")} —{" "}
-                            </span>
-                            <DescriptionCell description={transaction.description} />
+                          <TableCell>
+                            <div className="flex items-center gap-1">
+                              <ExpandChevron
+                                expanded={expanded}
+                                transactionCount={group.transactions.length}
+                                onToggle={() => toggleExpanded(expandKey)}
+                              />
+                              <CategoryBadge
+                                category={group.categoryBudget.category}
+                                categoryColorMap={categoryColorMap}
+                              />
+                            </div>
                           </TableCell>
-                          <TableCell />
-                          <TableCell>{formatGbp(Math.abs(transaction.amount))}</TableCell>
-                          <TableCell />
-                        </TableRow>
-                      )),
-                    ])
+                          <TableCell>{formatGbp(group.planned)}</TableCell>
+                          <TableCell>{formatGbp(group.actual)}</TableCell>
+                          <TableCell>
+                            <VarianceCell planned={group.planned} actual={group.actual} />
+                          </TableCell>
+                        </TableRow>,
+                        ...(expanded ? categoryTransactionRows(group.transactions) : []),
+                      ]
+                    })
                   )}
                 </TableBody>
               </Table>
