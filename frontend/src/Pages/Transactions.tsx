@@ -1,5 +1,4 @@
 import {
-  Badge,
   Button,
   HR,
   Table,
@@ -8,7 +7,6 @@ import {
   TableHeadCell,
   TableRow,
   TextInput,
-  Tooltip,
 } from "flowbite-react"
 import { useUser } from "../Hooks/useUser"
 import {
@@ -19,18 +17,19 @@ import {
   UseGetUserByIdTransactionsByTransactionIdKeyFn,
   UseGetUserByIdTransactionsKeyFn,
 } from "../API/queries"
-import { FiEdit, FiPlus, FiSearch, FiTrash, FiUpload } from "react-icons/fi"
+import { FiPlus, FiSearch, FiUpload } from "react-icons/fi"
 import EditTransactionRow from "./Transactions/EditTransactionRow"
+import TransactionRow from "./Transactions/TransactionRow"
 import TableBodyWithButton from "../Components/TableBodyWithButton"
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
 import { useQueryClient } from "@tanstack/react-query"
+import { useVirtualizer } from "@tanstack/react-virtual"
 
 import BalanceGraph from "../Components/BalanceGraph"
 import CategoryPie from "../Components/CategoryPie"
 import UploadModal from "../Components/UploadModal"
 import { useGetUserByIdTransactionsInfinite } from "../API/queries/infiniteQueries"
 import { InView } from "react-intersection-observer"
-import { format, parseISO } from "date-fns"
 import FilterButton from "../Components/FilterButton"
 import { useAsyncMemo } from "../Hooks/useAsyncMemo"
 import { decryptTransaction } from "../Security/data"
@@ -39,6 +38,13 @@ import { useData } from "../Hooks/useData"
 import { useHotkey } from "@tanstack/react-hotkeys"
 import { HOTKEYS_BY_ID } from "../Hotkeys/hotkeys"
 import { transactionMatchesSearch } from "../utils/transactionSearch"
+import { useScrollContainer } from "../Hooks/useScrollContainer"
+import {
+  TRANSACTION_TABLE_COLUMN_COUNT,
+  TRANSACTION_TABLE_COLUMN_WIDTHS,
+} from "./Transactions/transactionTableLayout"
+
+const TRANSACTION_ROW_ESTIMATE_HEIGHT = 52
 
 export default function Transactions() {
   const { userId, decrypt } = useUser()
@@ -50,6 +56,7 @@ export default function Transactions() {
     categoryColorMap,
   } = useData()
   const queryClient = useQueryClient()
+  const scrollContainerRef = useScrollContainer()
 
   const { mutateAsync: deleteTransaction } = useDeleteUserByIdTransactionsByTransactionId()
 
@@ -124,10 +131,59 @@ export default function Transactions() {
     visibleTransactions.length === 0 &&
     (isLoading || isFetchingNextPage || hasNextPage)
 
+  const showVirtualizedRows =
+    visibleTransactions.length > 0 && !isSearchingOlder
+
   const [showAdd, setShowAdd] = useState(false)
   const [showUpload, setShowUpload] = useState(false)
   const [editingTransactionId, setEditingTransactionId] = useState<string | undefined>(undefined)
   const searchInputRef = useRef<HTMLInputElement>(null)
+  const virtualListStartRef = useRef<HTMLTableRowElement>(null)
+  const [scrollMargin, setScrollMargin] = useState(0)
+
+  const virtualizer = useVirtualizer({
+    count: showVirtualizedRows ? visibleTransactions.length : 0,
+    getScrollElement: () => scrollContainerRef.current,
+    estimateSize: () => TRANSACTION_ROW_ESTIMATE_HEIGHT,
+    overscan: 10,
+    scrollMargin,
+  })
+
+  const updateScrollMargin = useCallback(() => {
+    const scrollEl = scrollContainerRef.current
+    const listEl = virtualListStartRef.current
+    if (!scrollEl || !listEl) return
+
+    let offsetTop = 0
+    let el: HTMLElement | null = listEl
+    while (el && el !== scrollEl) {
+      offsetTop += el.offsetTop
+      el = el.offsetParent as HTMLElement | null
+    }
+    setScrollMargin(offsetTop)
+  }, [scrollContainerRef])
+
+  useLayoutEffect(() => {
+    updateScrollMargin()
+
+    const scrollEl = scrollContainerRef.current
+    const listEl = virtualListStartRef.current
+    if (!scrollEl || !listEl) return
+
+    const observer = new ResizeObserver(updateScrollMargin)
+    observer.observe(scrollEl)
+    observer.observe(listEl)
+
+    return () => {
+      observer.disconnect()
+    }
+  }, [scrollContainerRef, updateScrollMargin, showAdd, showVirtualizedRows])
+
+  useEffect(() => {
+    if (editingTransactionId) {
+      virtualizer.measure()
+    }
+  }, [editingTransactionId, virtualizer])
 
   useHotkey(HOTKEYS_BY_ID.openTransactionRow.combo, () => {
     if (!showAdd) setShowAdd(true)
@@ -165,6 +221,20 @@ export default function Transactions() {
     },
     [deleteTransaction, userId, editingTransactionId, queryClient],
   )
+
+  const handleEdit = useCallback((transactionId: string) => {
+    setEditingTransactionId(transactionId)
+  }, [])
+
+  const virtualItems = virtualizer.getVirtualItems()
+  const paddingTop =
+    virtualItems.length > 0
+      ? Math.max(0, virtualItems[0].start - scrollMargin)
+      : 0
+  const paddingBottom =
+    virtualItems.length > 0
+      ? Math.max(0, virtualizer.getTotalSize() - virtualItems[virtualItems.length - 1].end)
+      : 0
 
   return (
     <div className="flex flex-col gap-2 px-8 pb-8 md:gap-4 md:pb-16 md:px-16">
@@ -204,6 +274,7 @@ export default function Transactions() {
           striped
           theme={{
             root: {
+              base: "w-full table-fixed text-left text-sm text-gray-500 dark:text-gray-400",
               wrapper: "overflow-x-auto md:rounded-md custom-scrollbar",
             },
             body: {
@@ -216,6 +287,11 @@ export default function Transactions() {
             },
           }}
         >
+          <colgroup>
+            {TRANSACTION_TABLE_COLUMN_WIDTHS.map((width, index) => (
+              <col key={index} style={width ? { width } : undefined} />
+            ))}
+          </colgroup>
           <TableHead>
             <TableRow>
               <TableHeadCell>Date</TableHeadCell>
@@ -288,119 +364,92 @@ export default function Transactions() {
             )}
             {allTransactions.length === 0 && !showAdd && !isLoading ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center">
+                <TableCell colSpan={TRANSACTION_TABLE_COLUMN_COUNT} className="text-center">
                   No transactions found
                 </TableCell>
               </TableRow>
             ) : isSearchActive && visibleTransactions.length === 0 && !isSearchingOlder ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center">
+                <TableCell colSpan={TRANSACTION_TABLE_COLUMN_COUNT} className="text-center">
                   No transactions match your search
                 </TableCell>
               </TableRow>
             ) : isSearchingOlder ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center text-gray-500 dark:text-gray-400">
+                <TableCell
+                  colSpan={TRANSACTION_TABLE_COLUMN_COUNT}
+                  className="text-center text-gray-500 dark:text-gray-400"
+                >
                   Searching older transactions…
                 </TableCell>
               </TableRow>
             ) : (
-              visibleTransactions.map((transaction) =>
-                editingTransactionId == transaction.id ? (
-                  <EditTransactionRow
-                    key={transaction.id}
-                    transactionId={transaction.id}
-                    cancelCallback={() => setEditingTransactionId(undefined)}
-                  />
-                ) : (
-                  <TableRow key={transaction.id} className="group/trnscrow">
-                    <TableCell>{format(parseISO(transaction.date), "dd MMM yyyy")}</TableCell>
-                    <TableCell theme={{ base: "max-sm:p-0" }}>
-                      <div className="flex items-center">
-                        <Badge
-                          style={{
-                            backgroundColor: accountColorMap[transaction.account.id]?.fill,
-                            color: accountColorMap[transaction.account.id]?.text,
-                          }}
-                          className="w-8 h-8 -mx-2 md:h-5 md:w-fit"
-                        >
-                          <span className="hidden md:block">{transaction.account.name}</span>
-                        </Badge>
-                      </div>
-                    </TableCell>
-                    <TableCell theme={{ base: "max-sm:p-0" }}>
-                      <div className="flex items-center">
-                        <Badge
-                          style={{
-                            backgroundColor:
-                              categoryColorMap[transaction.category?.id || "uncategorised"]?.fill,
-                            color:
-                              categoryColorMap[transaction.category?.id || "uncategorised"]?.text,
-                          }}
-                          className="w-8 h-8 -mx-2 md:h-5 md:w-fit"
-                        >
-                          <span className="hidden md:block">
-                            {transaction.category?.name || "Uncategorised"}
-                          </span>
-                        </Badge>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <span className="hidden xl:block">{transaction.description}</span>
-                      <span className="xl:hidden">
-                        {transaction.description.length > 30 ? (
-                          <Tooltip content={transaction.description} placement="top">
-                            {transaction.description.slice(0, 30)}...
-                          </Tooltip>
-                        ) : (
-                          transaction.description
-                        )}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      {transaction.amount.toLocaleString("en-GB", {
-                        style: "currency",
-                        currency: "GBP",
-                      })}
-                    </TableCell>
-                    <TableCell className="p-0 px-[18px] py-[10px]">
-                      <div className="flex flex-row items-center justify-end invisible gap-2 group-hover/trnscrow:visible">
-                        <Button
-                          className="p-0 size-8"
-                          color="light"
-                          onClick={() => setEditingTransactionId(transaction.id)}
-                        >
-                          <FiEdit />
-                        </Button>
-                        <Button
-                          className="p-0 size-8"
-                          color="light"
-                          onClick={() => handleDelete(transaction.id)}
-                        >
-                          <FiTrash />
-                        </Button>
-                      </div>
-                    </TableCell>
+              <>
+                <tr ref={virtualListStartRef} aria-hidden="true" className="h-0 border-0">
+                  <td colSpan={TRANSACTION_TABLE_COLUMN_COUNT} className="h-0 border-0 p-0" />
+                </tr>
+                {paddingTop > 0 && (
+                  <TableRow aria-hidden="true">
+                    <TableCell
+                      colSpan={TRANSACTION_TABLE_COLUMN_COUNT}
+                      className="border-0 p-0"
+                      style={{ height: paddingTop }}
+                    />
                   </TableRow>
-                ),
-              )
+                )}
+                {virtualItems.map((virtualRow) => {
+                  const transaction = visibleTransactions[virtualRow.index]
+                  if (editingTransactionId === transaction.id) {
+                    return (
+                      <EditTransactionRow
+                        key={transaction.id}
+                        transactionId={transaction.id}
+                        cancelCallback={() => setEditingTransactionId(undefined)}
+                        rowRef={virtualizer.measureElement}
+                        data-index={virtualRow.index}
+                      />
+                    )
+                  }
+
+                  return (
+                    <TransactionRow
+                      key={transaction.id}
+                      ref={virtualizer.measureElement}
+                      data-index={virtualRow.index}
+                      transaction={transaction}
+                      accountColorMap={accountColorMap}
+                      categoryColorMap={categoryColorMap}
+                      onEdit={handleEdit}
+                      onDelete={handleDelete}
+                    />
+                  )
+                })}
+                {paddingBottom > 0 && (
+                  <TableRow aria-hidden="true">
+                    <TableCell
+                      colSpan={TRANSACTION_TABLE_COLUMN_COUNT}
+                      className="border-0 p-0"
+                      style={{ height: paddingBottom }}
+                    />
+                  </TableRow>
+                )}
+              </>
             )}
-            {isLoading ||
-              (isFetchingNextPage &&
-                Array(10)
-                  .fill(0)
-                  .map((_, index) => (
-                    <TableRow key={index} className="animate-pulse">
-                      {Array(5)
-                        .fill(0)
-                        .map(() => (
-                          <TableCell>
-                            <div className="h-8 bg-gray-200 rounded-md dark:bg-gray-600"></div>
-                          </TableCell>
-                        ))}
-                      <TableCell />
-                    </TableRow>
-                  )))}
+            {(isLoading || isFetchingNextPage) &&
+              Array(10)
+                .fill(0)
+                .map((_, index) => (
+                  <TableRow key={index} className="animate-pulse">
+                    {Array(5)
+                      .fill(0)
+                      .map((_, cellIndex) => (
+                        <TableCell key={cellIndex}>
+                          <div className="h-8 bg-gray-200 rounded-md dark:bg-gray-600"></div>
+                        </TableCell>
+                      ))}
+                    <TableCell />
+                  </TableRow>
+                ))}
           </TableBodyWithButton>
         </Table>
       </div>

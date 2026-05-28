@@ -7,7 +7,7 @@ import {
   createTheme,
 } from "flowbite-react"
 import { format, parseISO } from "date-fns"
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { Ref, useCallback, useEffect, useMemo, useState } from "react"
 import { FiSave, FiX } from "react-icons/fi"
 import {
   useGetUserByIdAccounts,
@@ -29,16 +29,20 @@ import { useAsyncMemo } from "../../Hooks/useAsyncMemo"
 import { decryptAccount, decryptCategory } from "../../Security/data"
 import { useHotkey } from "@tanstack/react-hotkeys"
 import { HOTKEYS_BY_ID } from "../../Hotkeys/hotkeys"
+import { transactionTableCellClass } from "./transactionTableLayout"
 
 type EditTransactionRowProps = {
   transactionId?: string
   cancelCallback?: () => void
   defaultAccountId?: string
   defaultCategoryId?: string
+  rowRef?: Ref<HTMLTableRowElement>
+  "data-index"?: number
 }
 
 export default function EditTransactionRow(props: EditTransactionRowProps) {
-  const { transactionId, cancelCallback, defaultAccountId, defaultCategoryId } = props
+  const { transactionId, cancelCallback, defaultAccountId, defaultCategoryId, rowRef, ...rowProps } =
+    props
 
   const { userId, decrypt, encrypt } = useUser()
   const queryClient = useQueryClient()
@@ -243,11 +247,11 @@ export default function EditTransactionRow(props: EditTransactionRowProps) {
 
   return (
     <ThemeProvider theme={tableTheme}>
-      <TableRow>
-        <TableCell>
+      <TableRow ref={rowRef} {...rowProps}>
+        <TableCell className={transactionTableCellClass.date}>
           <CalendarDatePicker value={date} onChange={setDate} autoFocus />
         </TableCell>
-        <TableCell>
+        <TableCell className={transactionTableCellClass.account}>
           <SearchSelect
             value={selectedAccount}
             options={accounts
@@ -265,7 +269,7 @@ export default function EditTransactionRow(props: EditTransactionRowProps) {
             onValueChange={setSelectedAccount}
           />
         </TableCell>
-        <TableCell>
+        <TableCell className={transactionTableCellClass.category}>
           <SearchSelect
             value={selectedCategory}
             options={categories
@@ -283,21 +287,23 @@ export default function EditTransactionRow(props: EditTransactionRowProps) {
             onValueChange={setSelectedCategory}
           />
         </TableCell>
-        <TableCell>
+        <TableCell className={transactionTableCellClass.description}>
           <TextInput
+            className="min-w-0"
             placeholder="Description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
           />
         </TableCell>
-        <TableCell>
+        <TableCell className={transactionTableCellClass.amount}>
           <TextInput
+            className="min-w-0"
             placeholder="Amount"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
           />
         </TableCell>
-        <TableCell>
+        <TableCell className={transactionTableCellClass.actions}>
           <div className="flex flex-row items-center justify-end gap-2">
             <Button className="p-0 size-8" color="light" onClick={doneFn}>
               <FiSave />

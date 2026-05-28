@@ -11,7 +11,8 @@ import KeyboardShortcutsModal from "./Components/KeyboardShortcutsModal"
 import SummaryRangeFilter from "./Components/SummaryRangeFilter"
 import { useHotkey } from "@tanstack/react-hotkeys"
 import { HOTKEYS_BY_ID } from "./Hotkeys/hotkeys"
-import { useMemo, useState } from "react"
+import { useMemo, useRef, useState } from "react"
+import { ScrollContainerContext } from "./Hooks/useScrollContainer"
 import { useUser } from "./Hooks/useUser"
 import { Button } from "flowbite-react"
 import { FiChevronRight, FiMenu } from "react-icons/fi"
@@ -22,6 +23,7 @@ function AppRoutes() {
   const [showShortcuts, setShowShortcuts] = useState(false)
   const [showDesktopSidebar, setShowDesktopSidebar] = useState(true)
   const [showMobileSidebar, setShowMobileSidebar] = useState(false)
+  const scrollContainerRef = useRef<HTMLElement>(null)
 
   const hasPrivateNav = useMemo(
     () =>
@@ -69,36 +71,38 @@ function AppRoutes() {
             onCloseMobile={() => setShowMobileSidebar(false)}
             onOpenShortcuts={() => setShowShortcuts(true)}
           />
-          <main className="relative min-h-0 flex-1 overflow-y-auto pt-4 md:pt-8">
-            {!showDesktopSidebar && (
-              <Button
-                color="light"
-                className="absolute left-2 top-4 z-10 hidden size-10 p-0 md:top-8 md:flex"
-                title="Show sidebar"
-                aria-label="Show sidebar"
-                onClick={() => setShowDesktopSidebar(true)}
-              >
-                <FiChevronRight />
-              </Button>
-            )}
-            {!showMobileSidebar && (
-              <Button
-                color="light"
-                className="absolute left-2 top-4 z-10 size-10 p-0 md:hidden"
-                title="Open navigation menu"
-                aria-label="Open navigation menu"
-                onClick={() => setShowMobileSidebar(true)}
-              >
-                <FiMenu />
-              </Button>
-            )}
-            {showSummaryRangeFilter && (
-              <div className="flex justify-end px-8 pb-4 md:px-16">
-                <SummaryRangeFilter />
-              </div>
-            )}
-            {routes}
-          </main>
+          <ScrollContainerContext.Provider value={scrollContainerRef}>
+            <main ref={scrollContainerRef} className="relative min-h-0 flex-1 overflow-y-auto pt-4 md:pt-8">
+              {!showDesktopSidebar && (
+                <Button
+                  color="light"
+                  className="absolute left-2 top-4 z-10 hidden size-10 p-0 md:top-8 md:flex"
+                  title="Show sidebar"
+                  aria-label="Show sidebar"
+                  onClick={() => setShowDesktopSidebar(true)}
+                >
+                  <FiChevronRight />
+                </Button>
+              )}
+              {!showMobileSidebar && (
+                <Button
+                  color="light"
+                  className="absolute left-2 top-4 z-10 size-10 p-0 md:hidden"
+                  title="Open navigation menu"
+                  aria-label="Open navigation menu"
+                  onClick={() => setShowMobileSidebar(true)}
+                >
+                  <FiMenu />
+                </Button>
+              )}
+              {showSummaryRangeFilter && (
+                <div className="flex justify-end px-8 pb-4 md:px-16">
+                  <SummaryRangeFilter />
+                </div>
+              )}
+              {routes}
+            </main>
+          </ScrollContainerContext.Provider>
         </div>
       ) : (
         routes
