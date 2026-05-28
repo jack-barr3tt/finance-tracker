@@ -1,6 +1,6 @@
 import { BudgetTransaction, Category, CategoryBudget, Transaction } from "../API/requests"
 import { isSegmentActiveInMonth, plannedForMonth } from "./plannedAmount"
-import { addDays, format, isSameMonth, parseISO, startOfMonth } from "date-fns"
+import { addDays, format, isSameMonth, parseISO } from "date-fns"
 
 function normalizeDescription(description: string | undefined): string {
   return (description ?? "").trim()
@@ -95,7 +95,7 @@ export function classifyBudgetSpending(
 ): ClassifiedSpending {
   const spending = excludeInterAccountTransfers(transactions)
     .filter((t) => t.amount < 0)
-    .filter((t) => isSameMonth(parseISO(t.date), startOfMonth(month)))
+    .filter((t) => isSameMonth(parseISO(t.date), month))
 
   const activeOutgoingBudgetLines = budgetTransactions.filter(
     (bt) =>
