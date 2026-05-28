@@ -7,6 +7,7 @@ import {
   TableHead,
   TableHeadCell,
   TableRow,
+  TextInput,
   Tooltip,
 } from "flowbite-react"
 import { useUser } from "../Hooks/useUser"
@@ -18,10 +19,10 @@ import {
   UseGetUserByIdTransactionsByTransactionIdKeyFn,
   UseGetUserByIdTransactionsKeyFn,
 } from "../API/queries"
-import { FiEdit, FiPlus, FiTrash, FiUpload } from "react-icons/fi"
+import { FiEdit, FiPlus, FiSearch, FiTrash, FiUpload } from "react-icons/fi"
 import EditTransactionRow from "./Transactions/EditTransactionRow"
 import TableBodyWithButton from "../Components/TableBodyWithButton"
-import { useCallback, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useQueryClient } from "@tanstack/react-query"
 
 import BalanceGraph from "../Components/BalanceGraph"
@@ -37,6 +38,7 @@ import AccountSummaries from "../Components/AccountSummaries"
 import { useData } from "../Hooks/useData"
 import { useHotkey } from "@tanstack/react-hotkeys"
 import { HOTKEYS_BY_ID } from "../Hotkeys/hotkeys"
+import { transactionMatchesSearch } from "../utils/transactionSearch"
 
 export default function Transactions() {
   const { userId, decrypt } = useUser()
@@ -53,6 +55,20 @@ export default function Transactions() {
 
   const [accountFilterId, setAccountFilterId] = useState<string | undefined>(undefined)
   const [categoryFilterId, setCategoryFilterId] = useState<string | undefined>(undefined)
+  const [searchQuery, setSearchQuery] = useState("")
+
+  const transactionListOptions = useMemo(
+    () => ({
+      path: { id: userId },
+      query: {
+        limit: 50,
+        account_id: accountFilterId,
+        category_id: categoryFilterId,
+        ...summaryDateQuery,
+      },
+    }),
+    [userId, accountFilterId, categoryFilterId, summaryDateQuery],
+  )
 
   const {
     data: encTransactions,
@@ -60,15 +76,7 @@ export default function Transactions() {
     isFetchingNextPage,
     hasNextPage,
     fetchNextPage,
-  } = useGetUserByIdTransactionsInfinite({
-    path: { id: userId },
-    query: {
-      limit: 50,
-      account_id: accountFilterId,
-      category_id: categoryFilterId,
-      ...summaryDateQuery,
-    },
-  })
+  } = useGetUserByIdTransactionsInfinite(transactionListOptions)
 
   const transactions = useAsyncMemo(
     async () => ({
@@ -84,13 +92,52 @@ export default function Transactions() {
     [encTransactions, decrypt],
   )
 
+  const allTransactions = useMemo(
+    () => transactions?.pages.flatMap((page) => page?.transactions ?? []) ?? [],
+    [transactions],
+  )
+
+  const isSearchActive = searchQuery.trim().length > 0
+
+  const visibleTransactions = useMemo(
+    () =>
+      isSearchActive
+        ? allTransactions.filter((t) => transactionMatchesSearch(t, searchQuery))
+        : allTransactions,
+    [allTransactions, isSearchActive, searchQuery],
+  )
+
+  useEffect(() => {
+    if (!isSearchActive || isLoading || isFetchingNextPage || !hasNextPage) return
+    fetchNextPage()
+  }, [
+    isSearchActive,
+    isLoading,
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
+    encTransactions?.pages.length,
+  ])
+
+  const isSearchingOlder =
+    isSearchActive &&
+    visibleTransactions.length === 0 &&
+    (isLoading || isFetchingNextPage || hasNextPage)
+
   const [showAdd, setShowAdd] = useState(false)
   const [showUpload, setShowUpload] = useState(false)
   const [editingTransactionId, setEditingTransactionId] = useState<string | undefined>(undefined)
+  const searchInputRef = useRef<HTMLInputElement>(null)
 
   useHotkey(HOTKEYS_BY_ID.openTransactionRow.combo, () => {
     if (!showAdd) setShowAdd(true)
   })
+
+  useHotkey(
+    HOTKEYS_BY_ID.focusTransactionSearch.combo,
+    () => searchInputRef.current?.focus(),
+    { preventDefault: true },
+  )
 
   const handleDelete = useCallback(
     async (transactionId: string) => {
@@ -136,10 +183,20 @@ export default function Transactions() {
 
       <div className="flex flex-row items-center justify-between mb-2 md:mb-0">
         <h2 className="text-2xl font-medium">Transactions</h2>
-        <Button onClick={() => setShowUpload(true)}>
-          <FiUpload className="mr-2" />
-          Import
-        </Button>
+        <div className="flex items-center gap-2">
+          <TextInput
+            ref={searchInputRef}
+            className="w-44 sm:w-52"
+            icon={FiSearch}
+            placeholder="Search..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+          <Button onClick={() => setShowUpload(true)}>
+            <FiUpload className="mr-2" />
+            Import
+          </Button>
+        </div>
       </div>
 
       <div className="-mx-8 md:mx-0">
@@ -229,94 +286,102 @@ export default function Transactions() {
                 }
               />
             )}
-            {transactions?.pages.reduce(
-              (acc, page) => acc + (page?.transactions.length || 0),
-              0,
-            ) === 0 && !showAdd ? (
+            {allTransactions.length === 0 && !showAdd && !isLoading ? (
               <TableRow>
                 <TableCell colSpan={6} className="text-center">
                   No transactions found
                 </TableCell>
               </TableRow>
+            ) : isSearchActive && visibleTransactions.length === 0 && !isSearchingOlder ? (
+              <TableRow>
+                <TableCell colSpan={6} className="text-center">
+                  No transactions match your search
+                </TableCell>
+              </TableRow>
+            ) : isSearchingOlder ? (
+              <TableRow>
+                <TableCell colSpan={6} className="text-center text-gray-500 dark:text-gray-400">
+                  Searching older transactions…
+                </TableCell>
+              </TableRow>
             ) : (
-              transactions?.pages.map((page) =>
-                page?.transactions.map((transaction) =>
-                  editingTransactionId == transaction.id ? (
-                    <EditTransactionRow
-                      transactionId={transaction.id}
-                      cancelCallback={() => setEditingTransactionId(undefined)}
-                    />
-                  ) : (
-                    <TableRow key={transaction.id} className="group/trnscrow">
-                      <TableCell>{format(parseISO(transaction.date), "dd MMM yyyy")}</TableCell>
-                      <TableCell theme={{ base: "max-sm:p-0" }}>
-                        <div className="flex items-center">
-                          <Badge
-                            style={{
-                              backgroundColor: accountColorMap[transaction.account.id]?.fill,
-                              color: accountColorMap[transaction.account.id]?.text,
-                            }}
-                            className="w-8 h-8 -mx-2 md:h-5 md:w-fit"
-                          >
-                            <span className="hidden md:block">{transaction.account.name}</span>
-                          </Badge>
-                        </div>
-                      </TableCell>
-                      <TableCell theme={{ base: "max-sm:p-0" }}>
-                        <div className="flex items-center">
-                          <Badge
-                            style={{
-                              backgroundColor:
-                                categoryColorMap[transaction.category?.id || "uncategorised"]?.fill,
-                              color:
-                                categoryColorMap[transaction.category?.id || "uncategorised"]?.text,
-                            }}
-                            className="w-8 h-8 -mx-2 md:h-5 md:w-fit"
-                          >
-                            <span className="hidden md:block">
-                              {transaction.category?.name || "Uncategorised"}
-                            </span>
-                          </Badge>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <span className="hidden xl:block">{transaction.description}</span>
-                        <span className="xl:hidden">
-                          {transaction.description.length > 30 ? (
-                            <Tooltip content={transaction.description} placement="top">
-                              {transaction.description.slice(0, 30)}...
-                            </Tooltip>
-                          ) : (
-                            transaction.description
-                          )}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        {transaction.amount.toLocaleString("en-GB", {
-                          style: "currency",
-                          currency: "GBP",
-                        })}
-                      </TableCell>
-                      <TableCell className="p-0 px-[18px] py-[10px]">
-                        <div className="flex flex-row items-center justify-end invisible gap-2 group-hover/trnscrow:visible">
-                          <Button
-                            className="p-0 size-8"
-                            color="light"
-                            onClick={() => setEditingTransactionId(transaction.id)}
-                          >
-                            <FiEdit />
-                          </Button>
-                          <Button
-                            className="p-0 size-8"
-                            color="light"
-                            onClick={() => handleDelete(transaction.id)}
-                          >
-                            <FiTrash />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ),
+              visibleTransactions.map((transaction) =>
+                editingTransactionId == transaction.id ? (
+                  <EditTransactionRow
+                    key={transaction.id}
+                    transactionId={transaction.id}
+                    cancelCallback={() => setEditingTransactionId(undefined)}
+                  />
+                ) : (
+                  <TableRow key={transaction.id} className="group/trnscrow">
+                    <TableCell>{format(parseISO(transaction.date), "dd MMM yyyy")}</TableCell>
+                    <TableCell theme={{ base: "max-sm:p-0" }}>
+                      <div className="flex items-center">
+                        <Badge
+                          style={{
+                            backgroundColor: accountColorMap[transaction.account.id]?.fill,
+                            color: accountColorMap[transaction.account.id]?.text,
+                          }}
+                          className="w-8 h-8 -mx-2 md:h-5 md:w-fit"
+                        >
+                          <span className="hidden md:block">{transaction.account.name}</span>
+                        </Badge>
+                      </div>
+                    </TableCell>
+                    <TableCell theme={{ base: "max-sm:p-0" }}>
+                      <div className="flex items-center">
+                        <Badge
+                          style={{
+                            backgroundColor:
+                              categoryColorMap[transaction.category?.id || "uncategorised"]?.fill,
+                            color:
+                              categoryColorMap[transaction.category?.id || "uncategorised"]?.text,
+                          }}
+                          className="w-8 h-8 -mx-2 md:h-5 md:w-fit"
+                        >
+                          <span className="hidden md:block">
+                            {transaction.category?.name || "Uncategorised"}
+                          </span>
+                        </Badge>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <span className="hidden xl:block">{transaction.description}</span>
+                      <span className="xl:hidden">
+                        {transaction.description.length > 30 ? (
+                          <Tooltip content={transaction.description} placement="top">
+                            {transaction.description.slice(0, 30)}...
+                          </Tooltip>
+                        ) : (
+                          transaction.description
+                        )}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      {transaction.amount.toLocaleString("en-GB", {
+                        style: "currency",
+                        currency: "GBP",
+                      })}
+                    </TableCell>
+                    <TableCell className="p-0 px-[18px] py-[10px]">
+                      <div className="flex flex-row items-center justify-end invisible gap-2 group-hover/trnscrow:visible">
+                        <Button
+                          className="p-0 size-8"
+                          color="light"
+                          onClick={() => setEditingTransactionId(transaction.id)}
+                        >
+                          <FiEdit />
+                        </Button>
+                        <Button
+                          className="p-0 size-8"
+                          color="light"
+                          onClick={() => handleDelete(transaction.id)}
+                        >
+                          <FiTrash />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
                 ),
               )
             )}
@@ -340,11 +405,13 @@ export default function Transactions() {
         </Table>
       </div>
 
-      <InView
-        onChange={(inView) => {
-          if (!isLoading && !isFetchingNextPage && inView && hasNextPage) fetchNextPage()
-        }}
-      />
+      {!isSearchActive && (
+        <InView
+          onChange={(inView) => {
+            if (!isLoading && !isFetchingNextPage && inView && hasNextPage) fetchNextPage()
+          }}
+        />
+      )}
     </div>
   )
 }

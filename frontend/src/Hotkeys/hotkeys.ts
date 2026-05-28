@@ -3,7 +3,7 @@ import type { Hotkey } from "@tanstack/react-hotkeys"
 export type HotkeyScope = "global" | "transactions"
 
 export type AppHotkey = {
-  id: "openTransactionRow" | "submitTransactionRow" | "openShortcutsModal"
+  id: "openTransactionRow" | "submitTransactionRow" | "openShortcutsModal" | "focusTransactionSearch"
   combo: Hotkey
   description: string
   scope: HotkeyScope
@@ -14,6 +14,12 @@ export const HOTKEYS: AppHotkey[] = [
     id: "openTransactionRow",
     combo: "N",
     description: "Open new transaction row",
+    scope: "transactions",
+  },
+  {
+    id: "focusTransactionSearch",
+    combo: "/",
+    description: "Focus transaction search",
     scope: "transactions",
   },
   {
@@ -32,6 +38,7 @@ export const HOTKEYS: AppHotkey[] = [
 
 export const HOTKEYS_BY_ID: Record<AppHotkey["id"], AppHotkey> = {
   openTransactionRow: HOTKEYS[0],
-  submitTransactionRow: HOTKEYS[1],
-  openShortcutsModal: HOTKEYS[2],
+  focusTransactionSearch: HOTKEYS[1],
+  submitTransactionRow: HOTKEYS[2],
+  openShortcutsModal: HOTKEYS[3],
 }
