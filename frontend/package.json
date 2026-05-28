@@ -12,6 +12,7 @@
     "postinstall": "flowbite-react patch"
   },
   "dependencies": {
+    "@chenglou/pretext": "^0.0.7",
     "@floating-ui/react": "^0.27.16",
     "@tanstack/react-devtools": "^0.10.0",
     "@tanstack/react-hotkeys": "^0.5.1",

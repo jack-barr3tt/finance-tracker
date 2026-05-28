@@ -29,7 +29,7 @@ import { useAsyncMemo } from "../../Hooks/useAsyncMemo"
 import { decryptAccount, decryptCategory } from "../../Security/data"
 import { useHotkey } from "@tanstack/react-hotkeys"
 import { HOTKEYS_BY_ID } from "../../Hotkeys/hotkeys"
-import { transactionTableCellClass } from "./transactionTableLayout"
+import { transactionTableCellClass } from "./transactionTableColumns"
 
 type EditTransactionRowProps = {
   transactionId?: string

@@ -19,11 +19,9 @@ import {
 } from "../API/queries"
 import { FiPlus, FiSearch, FiUpload } from "react-icons/fi"
 import EditTransactionRow from "./Transactions/EditTransactionRow"
-import TransactionRow from "./Transactions/TransactionRow"
 import TableBodyWithButton from "../Components/TableBodyWithButton"
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useQueryClient } from "@tanstack/react-query"
-import { useVirtualizer } from "@tanstack/react-virtual"
 
 import BalanceGraph from "../Components/BalanceGraph"
 import CategoryPie from "../Components/CategoryPie"
@@ -39,12 +37,9 @@ import { useHotkey } from "@tanstack/react-hotkeys"
 import { HOTKEYS_BY_ID } from "../Hotkeys/hotkeys"
 import { transactionMatchesSearch } from "../utils/transactionSearch"
 import { useScrollContainer } from "../Hooks/useScrollContainer"
-import {
-  TRANSACTION_TABLE_COLUMN_COUNT,
-  TRANSACTION_TABLE_COLUMN_WIDTHS,
-} from "./Transactions/transactionTableLayout"
-
-const TRANSACTION_ROW_ESTIMATE_HEIGHT = 52
+import { TRANSACTION_TABLE_COLUMN_COUNT, useTransactionTableColumnWidths } from "./Transactions/transactionTableColumns"
+import { useVirtualizedTransactionList } from "./Transactions/useVirtualizedTransactionList"
+import VirtualizedTransactionRows from "./Transactions/VirtualizedTransactionRows"
 
 export default function Transactions() {
   const { userId, decrypt } = useUser()
@@ -138,52 +133,28 @@ export default function Transactions() {
   const [showUpload, setShowUpload] = useState(false)
   const [editingTransactionId, setEditingTransactionId] = useState<string | undefined>(undefined)
   const searchInputRef = useRef<HTMLInputElement>(null)
-  const virtualListStartRef = useRef<HTMLTableRowElement>(null)
-  const [scrollMargin, setScrollMargin] = useState(0)
+  const tableRef = useRef<HTMLTableElement>(null)
 
-  const virtualizer = useVirtualizer({
-    count: showVirtualizedRows ? visibleTransactions.length : 0,
-    getScrollElement: () => scrollContainerRef.current,
-    estimateSize: () => TRANSACTION_ROW_ESTIMATE_HEIGHT,
-    overscan: 10,
-    scrollMargin,
+  const { columnWidths } = useTransactionTableColumnWidths({
+    tableRef,
+    accounts,
+    categories,
+    transactions: allTransactions,
   })
 
-  const updateScrollMargin = useCallback(() => {
-    const scrollEl = scrollContainerRef.current
-    const listEl = virtualListStartRef.current
-    if (!scrollEl || !listEl) return
-
-    let offsetTop = 0
-    let el: HTMLElement | null = listEl
-    while (el && el !== scrollEl) {
-      offsetTop += el.offsetTop
-      el = el.offsetParent as HTMLElement | null
-    }
-    setScrollMargin(offsetTop)
-  }, [scrollContainerRef])
-
-  useLayoutEffect(() => {
-    updateScrollMargin()
-
-    const scrollEl = scrollContainerRef.current
-    const listEl = virtualListStartRef.current
-    if (!scrollEl || !listEl) return
-
-    const observer = new ResizeObserver(updateScrollMargin)
-    observer.observe(scrollEl)
-    observer.observe(listEl)
-
-    return () => {
-      observer.disconnect()
-    }
-  }, [scrollContainerRef, updateScrollMargin, showAdd, showVirtualizedRows])
-
-  useEffect(() => {
-    if (editingTransactionId) {
-      virtualizer.measure()
-    }
-  }, [editingTransactionId, virtualizer])
+  const {
+    virtualListStartRef,
+    virtualizer,
+    virtualItems,
+    paddingTop,
+    paddingBottom,
+  } = useVirtualizedTransactionList({
+    scrollContainerRef,
+    rowCount: visibleTransactions.length,
+    enabled: showVirtualizedRows,
+    remeasureKey: editingTransactionId,
+    layoutKey: showAdd,
+  })
 
   useHotkey(HOTKEYS_BY_ID.openTransactionRow.combo, () => {
     if (!showAdd) setShowAdd(true)
@@ -226,16 +197,6 @@ export default function Transactions() {
     setEditingTransactionId(transactionId)
   }, [])
 
-  const virtualItems = virtualizer.getVirtualItems()
-  const paddingTop =
-    virtualItems.length > 0
-      ? Math.max(0, virtualItems[0].start - scrollMargin)
-      : 0
-  const paddingBottom =
-    virtualItems.length > 0
-      ? Math.max(0, virtualizer.getTotalSize() - virtualItems[virtualItems.length - 1].end)
-      : 0
-
   return (
     <div className="flex flex-col gap-2 px-8 pb-8 md:gap-4 md:pb-16 md:px-16">
       <UploadModal show={showUpload} onClose={() => setShowUpload(false)} />
@@ -271,6 +232,7 @@ export default function Transactions() {
 
       <div className="-mx-8 md:mx-0">
         <Table
+          ref={tableRef}
           striped
           theme={{
             root: {
@@ -288,8 +250,8 @@ export default function Transactions() {
           }}
         >
           <colgroup>
-            {TRANSACTION_TABLE_COLUMN_WIDTHS.map((width, index) => (
-              <col key={index} style={width ? { width } : undefined} />
+            {columnWidths.map((width, index) => (
+              <col key={index} style={width ? { width: `${width}px` } : undefined} />
             ))}
           </colgroup>
           <TableHead>
@@ -384,56 +346,20 @@ export default function Transactions() {
                 </TableCell>
               </TableRow>
             ) : (
-              <>
-                <tr ref={virtualListStartRef} aria-hidden="true" className="h-0 border-0">
-                  <td colSpan={TRANSACTION_TABLE_COLUMN_COUNT} className="h-0 border-0 p-0" />
-                </tr>
-                {paddingTop > 0 && (
-                  <TableRow aria-hidden="true">
-                    <TableCell
-                      colSpan={TRANSACTION_TABLE_COLUMN_COUNT}
-                      className="border-0 p-0"
-                      style={{ height: paddingTop }}
-                    />
-                  </TableRow>
-                )}
-                {virtualItems.map((virtualRow) => {
-                  const transaction = visibleTransactions[virtualRow.index]
-                  if (editingTransactionId === transaction.id) {
-                    return (
-                      <EditTransactionRow
-                        key={transaction.id}
-                        transactionId={transaction.id}
-                        cancelCallback={() => setEditingTransactionId(undefined)}
-                        rowRef={virtualizer.measureElement}
-                        data-index={virtualRow.index}
-                      />
-                    )
-                  }
-
-                  return (
-                    <TransactionRow
-                      key={transaction.id}
-                      ref={virtualizer.measureElement}
-                      data-index={virtualRow.index}
-                      transaction={transaction}
-                      accountColorMap={accountColorMap}
-                      categoryColorMap={categoryColorMap}
-                      onEdit={handleEdit}
-                      onDelete={handleDelete}
-                    />
-                  )
-                })}
-                {paddingBottom > 0 && (
-                  <TableRow aria-hidden="true">
-                    <TableCell
-                      colSpan={TRANSACTION_TABLE_COLUMN_COUNT}
-                      className="border-0 p-0"
-                      style={{ height: paddingBottom }}
-                    />
-                  </TableRow>
-                )}
-              </>
+              <VirtualizedTransactionRows
+                virtualListStartRef={virtualListStartRef}
+                paddingTop={paddingTop}
+                paddingBottom={paddingBottom}
+                virtualItems={virtualItems}
+                transactions={visibleTransactions}
+                editingTransactionId={editingTransactionId}
+                virtualizer={virtualizer}
+                accountColorMap={accountColorMap}
+                categoryColorMap={categoryColorMap}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                onCancelEdit={() => setEditingTransactionId(undefined)}
+              />
             )}
             {(isLoading || isFetchingNextPage) &&
               Array(10)

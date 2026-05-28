@@ -3,7 +3,7 @@ import { format, parseISO } from "date-fns"
 import { forwardRef, memo } from "react"
 import { FiEdit, FiTrash } from "react-icons/fi"
 import { Transaction } from "../../API/requests"
-import { transactionTableCellClass } from "./transactionTableLayout"
+import { transactionTableCellClass } from "./transactionTableColumns"
 
 type ColorPair = { fill?: string; text?: string }
 
@@ -49,9 +49,7 @@ const TransactionRow = memo(
               }}
               className="w-8 h-8 -mx-2 md:h-5 md:w-fit"
             >
-              <span className="hidden md:block">
-                {transaction.category?.name || "Uncategorised"}
-              </span>
+              <span className="hidden md:block">{transaction.category?.name || "Uncategorised"}</span>
             </Badge>
           </div>
         </TableCell>
