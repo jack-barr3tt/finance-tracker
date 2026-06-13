@@ -348,6 +348,7 @@ export default function Transactions() {
             ) : (
               <VirtualizedTransactionRows
                 virtualListStartRef={virtualListStartRef}
+                showAdd={showAdd}
                 paddingTop={paddingTop}
                 paddingBottom={paddingBottom}
                 virtualItems={virtualItems}

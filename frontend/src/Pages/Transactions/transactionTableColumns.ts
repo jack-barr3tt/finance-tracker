@@ -6,6 +6,16 @@ import { Account, Category, Transaction } from "../../API/requests"
 
 export const TRANSACTION_TABLE_COLUMN_COUNT = 6
 
+export function needsStripeOffsetRow(input: {
+  startIndex: number
+  showAdd: boolean
+  paddingTop: number
+}): boolean {
+  const basePosition =
+    1 + (input.showAdd ? 1 : 0) + 1 + (input.paddingTop > 0 ? 1 : 0)
+  return basePosition % 2 !== (input.startIndex + 1) % 2
+}
+
 export const transactionTableCellClass = {
   date: "whitespace-nowrap",
   account: "max-sm:p-0 whitespace-nowrap",
