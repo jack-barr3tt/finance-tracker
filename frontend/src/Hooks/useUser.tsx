@@ -1,18 +1,28 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, ReactNode, useCallback, useContext, useEffect, useState } from "react"
 import Cookies from "js-cookie"
+import { Spinner } from "flowbite-react"
 import { useGetUserById, usePostLogin } from "../API/queries"
-import { decryptMasterKey } from "../Security/keys"
+import { decryptMasterKey, exportMasterKey, importMasterKey } from "../Security/keys"
 
 export type DecryptFunction = <T extends string | null | undefined>(data: T) => Promise<T>
+
+const MASTER_KEY_JWK = "master_key_jwk"
 
 const autoLoginEmail = import.meta.env.VITE_AUTO_LOGIN_EMAIL
 const autoLoginPassword = import.meta.env.VITE_AUTO_LOGIN_PASSWORD
 const autoLoginEnabled =
   import.meta.env.DEV && Boolean(autoLoginEmail && autoLoginPassword)
 
+function getInitialUserId(): string {
+  const id = Cookies.get("user_id")
+  const token = Cookies.get("access_token")
+  return id && token ? id : ""
+}
+
 interface UserValue {
   userId: string
+  isSessionReady: boolean
   login: (email: string, password: string) => Promise<boolean>
   logout: () => void
   decrypt: DecryptFunction
@@ -28,13 +38,13 @@ export function useUser() {
 }
 
 export function UserProvider(props: { children: ReactNode }) {
-  const [userId, setUserId] = useState<string>("")
+  const [userId, setUserId] = useState(getInitialUserId)
   const [key, setKey] = useState<CryptoKey | null>(null)
-  const [autoLoggingIn, setAutoLoggingIn] = useState(autoLoginEnabled)
+  const [isSessionReady, setIsSessionReady] = useState(false)
 
   const { mutateAsync: loginReq } = usePostLogin()
   const { isError } = useGetUserById({ path: { id: userId } }, undefined, {
-    enabled: !!userId,
+    enabled: !!userId && isSessionReady,
   })
 
   const logout = useCallback(() => {
@@ -42,6 +52,7 @@ export function UserProvider(props: { children: ReactNode }) {
     setKey(null)
     Cookies.remove("access_token")
     Cookies.remove("user_id")
+    sessionStorage.removeItem(MASTER_KEY_JWK)
   }, [])
 
   const login = useCallback(
@@ -63,7 +74,9 @@ export function UserProvider(props: { children: ReactNode }) {
         Cookies.set("access_token", data.token || "", {})
         Cookies.set("user_id", String(data.id || ""), {})
 
-        setKey(await decryptMasterKey(data.salt, data.master_key, password))
+        const masterKey = await decryptMasterKey(data.salt, data.master_key, password)
+        sessionStorage.setItem(MASTER_KEY_JWK, await exportMasterKey(masterKey))
+        setKey(masterKey)
 
         return true
       } catch (error) {
@@ -106,33 +119,56 @@ export function UserProvider(props: { children: ReactNode }) {
   )
 
   useEffect(() => {
-    if (isError) {
+    if (isSessionReady && isError) {
       logout()
     }
-  }, [isError, logout])
+  }, [isError, isSessionReady, logout])
 
   useEffect(() => {
-    const storedUserId = Cookies.get("user_id")
-    const storedAccessToken = Cookies.get("access_token")
-    if (storedUserId && storedAccessToken) {
-      setUserId(storedUserId)
+    async function restoreSession() {
+      if (autoLoginEnabled) {
+        const success = await login(autoLoginEmail, autoLoginPassword)
+        if (!success) {
+          logout()
+          console.warn("Auto login failed")
+        }
+        setIsSessionReady(true)
+        return
+      }
+
+      const storedUserId = Cookies.get("user_id")
+      const storedAccessToken = Cookies.get("access_token")
+
+      if (storedUserId && storedAccessToken) {
+        const jwkJson = sessionStorage.getItem(MASTER_KEY_JWK)
+        if (!jwkJson) {
+          logout()
+        } else {
+          try {
+            setKey(await importMasterKey(jwkJson))
+          } catch {
+            logout()
+          }
+        }
+      }
+
+      setIsSessionReady(true)
     }
 
-    if (!autoLoginEnabled) return
-
-    void login(autoLoginEmail, autoLoginPassword).then((success) => {
-      if (!success) {
-        logout()
-        console.warn("Auto login failed")
-      }
-      setAutoLoggingIn(false)
-    })
+    void restoreSession()
   }, [login, logout])
 
-  if (autoLoggingIn) return null
+  if (!isSessionReady) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <Spinner size="xl" />
+      </div>
+    )
+  }
 
   const value: UserValue = {
     userId,
+    isSessionReady,
     login,
     logout,
     decrypt,

@@ -78,10 +78,20 @@ export async function decryptMasterKey(
     encryptedMasterKeyBytes.slice(12)
   )
 
-  const masterKey = await crypto.subtle.importKey("raw", masterKeyRaw, { name: "AES-GCM" }, false, [
+  const masterKey = await crypto.subtle.importKey("raw", masterKeyRaw, { name: "AES-GCM" }, true, [
     "encrypt",
     "decrypt",
   ])
 
   return masterKey
+}
+
+export async function exportMasterKey(key: CryptoKey): Promise<string> {
+  const jwk = await crypto.subtle.exportKey("jwk", key)
+  return JSON.stringify(jwk)
+}
+
+export async function importMasterKey(jwkJson: string): Promise<CryptoKey> {
+  const jwk = JSON.parse(jwkJson) as JsonWebKey
+  return crypto.subtle.importKey("jwk", jwk, { name: "AES-GCM" }, false, ["encrypt", "decrypt"])
 }

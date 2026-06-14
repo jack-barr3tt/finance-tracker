@@ -1,6 +1,6 @@
 import { FormEvent, useCallback, useState } from "react"
 import { useUser } from "../Hooks/useUser"
-import { Link, useNavigate } from "react-router-dom"
+import { Link, Navigate, useNavigate } from "react-router-dom"
 import { Button, TextInput } from "flowbite-react"
 import { FiArrowRight } from "react-icons/fi"
 
@@ -10,7 +10,7 @@ export default function Login() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
 
-  const { login } = useUser()
+  const { login, userId, isSessionReady } = useUser()
   const navigate = useNavigate()
 
   const handleSubmit = useCallback(
@@ -25,6 +25,10 @@ export default function Login() {
     },
     [login, email, password, navigate],
   )
+
+  if (isSessionReady && userId) {
+    return <Navigate to="/transactions" replace />
+  }
 
   return (
     <div className="flex items-center justify-center pt-32">
