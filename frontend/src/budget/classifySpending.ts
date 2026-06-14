@@ -164,6 +164,7 @@ export function classifyBudgetSpending(
         transactions: matchedTransactions,
       }
     })
+    .filter((group) => group.planned > 0 || group.actual > 0)
     .sort((a, b) => b.actual - a.actual)
 
   const categories: CategoryBudgetGroup[] = activeCategoryBudgets

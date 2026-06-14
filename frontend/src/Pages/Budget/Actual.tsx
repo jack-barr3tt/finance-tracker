@@ -257,7 +257,7 @@ export default function BudgetActual() {
                   {classified.budgetLines.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={5} className="text-center">
-                        No spending matched to budget lines this month
+                        No budget lines due or matched this month
                       </TableCell>
                     </TableRow>
                   ) : (

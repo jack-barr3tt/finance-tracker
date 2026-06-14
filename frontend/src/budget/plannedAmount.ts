@@ -1,7 +1,9 @@
 import { PeriodUnit } from "../API/requests"
-import { toMonthlyAmount } from "../utils"
 import {
-  differenceInCalendarMonths,
+  addDays,
+  addMonths,
+  addWeeks,
+  addYears,
   endOfMonth,
   format,
   isAfter,
@@ -20,6 +22,56 @@ export type BudgetSegment = {
 
 function parseSegmentDate(date: string): Date {
   return startOfMonth(parseISO(date))
+}
+
+function addRecurrence(date: Date, repeatEvery: number, repeatUntil: PeriodUnit): Date {
+  switch (repeatUntil) {
+    case "day":
+      return addDays(date, repeatEvery)
+    case "week":
+      return addWeeks(date, repeatEvery)
+    case "month":
+      return addMonths(date, repeatEvery)
+    case "year":
+      return addYears(date, repeatEvery)
+  }
+}
+
+function occurrenceCountInMonth(
+  repeatEvery: number,
+  repeatUntil: PeriodUnit,
+  startsOn: string,
+  month: Date,
+  endsOn?: string,
+): number {
+  const monthStart = startOfMonth(month)
+  const monthEnd = endOfMonth(month)
+  const anchor = parseISO(startsOn)
+  const segmentEnd = endsOn ? parseISO(endsOn) : null
+
+  if (isAfter(anchor, monthEnd)) {
+    return 0
+  }
+
+  if (segmentEnd && isBefore(segmentEnd, monthStart)) {
+    return 0
+  }
+
+  let current = anchor
+  while (isBefore(current, monthStart)) {
+    current = addRecurrence(current, repeatEvery, repeatUntil)
+  }
+
+  let count = 0
+  while (!isAfter(current, monthEnd)) {
+    if (segmentEnd && isAfter(current, segmentEnd)) {
+      break
+    }
+    count++
+    current = addRecurrence(current, repeatEvery, repeatUntil)
+  }
+
+  return count
 }
 
 export function isSegmentActiveInMonth(segment: Pick<BudgetSegment, "starts_on" | "ends_on">, month: Date): boolean {
@@ -41,17 +93,6 @@ export function isSegmentActiveInMonth(segment: Pick<BudgetSegment, "starts_on" 
   return true
 }
 
-function intervalMonths(repeatEvery: number, repeatUntil: PeriodUnit): number | null {
-  switch (repeatUntil) {
-    case "month":
-      return repeatEvery
-    case "year":
-      return repeatEvery * 12
-    default:
-      return null
-  }
-}
-
 export function plannedForMonth(
   amount: number,
   repeatEvery: number,
@@ -64,17 +105,8 @@ export function plannedForMonth(
     return 0
   }
 
-  const interval = intervalMonths(repeatEvery, repeatUntil)
-  if (interval === null) {
-    return toMonthlyAmount(amount, repeatEvery, repeatUntil)
-  }
-
-  const monthsSinceStart = differenceInCalendarMonths(startOfMonth(month), parseSegmentDate(startsOn))
-  if (monthsSinceStart < 0 || monthsSinceStart % interval !== 0) {
-    return 0
-  }
-
-  return Math.abs(amount)
+  const count = occurrenceCountInMonth(repeatEvery, repeatUntil, startsOn, month, endsOn)
+  return count * Math.abs(amount)
 }
 
 export function isSegmentActiveToday(segment: Pick<BudgetSegment, "starts_on" | "ends_on">): boolean {
