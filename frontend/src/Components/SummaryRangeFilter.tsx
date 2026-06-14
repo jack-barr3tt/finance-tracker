@@ -19,9 +19,15 @@ import {
   differenceInCalendarDays,
   differenceInCalendarMonths,
   differenceInCalendarYears,
+  endOfMonth,
+  endOfWeek,
+  endOfYear,
   format,
   isSameDay,
+  isSameMonth,
   isSameYear,
+  startOfMonth,
+  startOfWeek,
   startOfYear,
   subDays,
   subMonths,
@@ -33,10 +39,15 @@ import { SummaryRange, useData } from "../Hooks/useData"
 import CalendarDatePicker from "./CalendarDatePicker"
 import SearchSelect from "./SearchSelect"
 
-type SummaryRangeSelection = TimePeriod | "custom"
+type SummaryPresetId = TimePeriod | "wtd" | "mtd"
+type SummaryRangeSelection = SummaryPresetId | "custom"
+
+const WEEK_STARTS_ON = 1
+
+const weekOptions = { weekStartsOn: WEEK_STARTS_ON as const }
 
 const SUMMARY_PRESETS: Array<{
-  value: TimePeriod
+  value: SummaryPresetId
   title: string
   getRange: (today: Date) => SummaryRange
 }> = [
@@ -68,11 +79,29 @@ const SUMMARY_PRESETS: Array<{
     }),
   },
   {
+    value: "wtd",
+    title: "WTD",
+    getRange: (today) => ({
+      startDate: startOfWeek(today, weekOptions),
+      endDate: endOfWeek(today, weekOptions),
+      interval: "day",
+    }),
+  },
+  {
+    value: "mtd",
+    title: "MTD",
+    getRange: (today) => ({
+      startDate: startOfMonth(today),
+      endDate: endOfMonth(today),
+      interval: "day",
+    }),
+  },
+  {
     value: "ytd",
     title: "YTD",
     getRange: (today) => ({
       startDate: startOfYear(today),
-      endDate: today,
+      endDate: endOfYear(today),
       interval: "month",
     }),
   },
@@ -105,9 +134,59 @@ function formatRangeLabel(range: SummaryRange) {
   return `${format(startDate, dateFormat)} - ${format(endDate, "d MMM yyyy")}`
 }
 
+function isCalendarWeekRange(startDate: Date, endDate: Date) {
+  return (
+    isSameDay(startDate, startOfWeek(startDate, weekOptions)) &&
+    isSameDay(endDate, endOfWeek(startDate, weekOptions))
+  )
+}
+
+function isCalendarMonthRange(startDate: Date, endDate: Date) {
+  return (
+    isSameMonth(startDate, endDate) &&
+    isSameDay(startDate, startOfMonth(startDate)) &&
+    isSameDay(endDate, endOfMonth(startDate))
+  )
+}
+
+function isCalendarYearRange(startDate: Date, endDate: Date) {
+  return (
+    isSameYear(startDate, endDate) &&
+    isSameDay(startDate, startOfYear(startDate)) &&
+    isSameDay(endDate, endOfYear(startDate))
+  )
+}
+
 function shiftDateRange(range: SummaryRange, direction: -1 | 1): SummaryRange {
   const { startDate, endDate } = range
   if (!startDate || !endDate) return range
+
+  if (isCalendarWeekRange(startDate, endDate)) {
+    const shiftedStart = addWeeks(startDate, direction)
+    return {
+      ...range,
+      startDate: startOfWeek(shiftedStart, weekOptions),
+      endDate: endOfWeek(shiftedStart, weekOptions),
+    }
+  }
+
+  if (isCalendarMonthRange(startDate, endDate)) {
+    const shiftedStart = addMonths(startDate, direction)
+    return {
+      ...range,
+      startDate: startOfMonth(shiftedStart),
+      endDate: endOfMonth(shiftedStart),
+    }
+  }
+
+  if (isCalendarYearRange(startDate, endDate)) {
+    const shiftedStart = addYears(startDate, direction)
+    return {
+      ...range,
+      startDate: startOfYear(shiftedStart),
+      endDate: endOfYear(shiftedStart),
+    }
+  }
 
   const years = differenceInCalendarYears(endDate, startDate)
   if (years > 0 && isSameDay(addYears(startDate, years), endDate)) {
