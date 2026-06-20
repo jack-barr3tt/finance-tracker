@@ -42,9 +42,9 @@ import SearchSelect from "./SearchSelect"
 type SummaryPresetId = TimePeriod | "wtd" | "mtd"
 type SummaryRangeSelection = SummaryPresetId | "custom"
 
-const WEEK_STARTS_ON = 1
+const WEEK_STARTS_ON = 1 as const
 
-const weekOptions = { weekStartsOn: WEEK_STARTS_ON as const }
+const weekOptions = { weekStartsOn: WEEK_STARTS_ON }
 
 const SUMMARY_PRESETS: Array<{
   value: SummaryPresetId
