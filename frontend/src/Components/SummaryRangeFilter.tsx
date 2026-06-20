@@ -249,7 +249,14 @@ export default function SummaryRangeFilter() {
     [refs],
   )
 
-  const rangeLabel = useMemo(() => formatRangeLabel(summaryRange), [summaryRange])
+  const rangeLabel = useMemo(() => {
+    if (summaryRangeSelection !== "custom") {
+      const preset = SUMMARY_PRESETS.find((entry) => entry.value === summaryRangeSelection)
+      if (preset) return preset.title
+    }
+
+    return formatRangeLabel(summaryRange)
+  }, [summaryRange, summaryRangeSelection])
   const canShiftRange = Boolean(summaryRange.startDate && summaryRange.endDate)
 
   const updateCustomRange = useCallback(
