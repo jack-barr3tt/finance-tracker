@@ -58,6 +58,7 @@ export default function Transactions() {
   const [accountFilterId, setAccountFilterId] = useState<string | undefined>(undefined)
   const [categoryFilterId, setCategoryFilterId] = useState<string | undefined>(undefined)
   const [searchQuery, setSearchQuery] = useState("")
+  const isSearchActive = searchQuery.trim().length > 0
 
   const transactionListOptions = useMemo(
     () => ({
@@ -66,10 +67,10 @@ export default function Transactions() {
         limit: 50,
         account_id: accountFilterId,
         category_id: categoryFilterId,
-        ...summaryDateQuery,
+        ...(isSearchActive ? {} : summaryDateQuery),
       },
     }),
-    [userId, accountFilterId, categoryFilterId, summaryDateQuery],
+    [userId, accountFilterId, categoryFilterId, summaryDateQuery, isSearchActive],
   )
 
   const {
@@ -98,8 +99,6 @@ export default function Transactions() {
     () => transactions?.pages.flatMap((page) => page?.transactions ?? []) ?? [],
     [transactions],
   )
-
-  const isSearchActive = searchQuery.trim().length > 0
 
   const visibleTransactions = useMemo(
     () =>
