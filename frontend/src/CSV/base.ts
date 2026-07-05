@@ -5,20 +5,16 @@ import {
   postUserByIdTransactionsBulk,
   postUserByIdTransactionsBulkDelete,
   postUserByIdTransactionsBulkFinalise,
-  TransactionBulkResponse,
   TransactionCreateRequest,
 } from "../API/requests"
+import { formatError } from "../utils/formatError"
+import { getImportFailureMessage } from "./importErrors"
 
 async function hashFile(file: File): Promise<string> {
   const arrayBuffer = await file.arrayBuffer()
   const hashBuffer = await crypto.subtle.digest("SHA-256", arrayBuffer)
   const hashArray = Array.from(new Uint8Array(hashBuffer))
   return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("")
-}
-
-type BulkResponse = {
-  data: TransactionBulkResponse | undefined
-  error: unknown
 }
 
 type BaseTransactionData = {
@@ -52,7 +48,7 @@ export function parseCSV<T>(
             ),
           }))
         ).then((categories) => {
-          const requests: Promise<BulkResponse>[] = []
+          const requests: Promise<unknown>[] = []
 
           const applyRule = (
             description: string,
@@ -76,10 +72,9 @@ export function parseCSV<T>(
             return { description, category_id: undefined }
           }
 
-          new Promise((resolve, reject) => {
+          new Promise((resolveParse, rejectParse) => {
             Papa.parse(file, {
               chunk: async (results: { data: T[] }) => {
-                console.log("chunk", results)
                 requests.push(
                   (async () =>
                     postUserByIdTransactionsBulk({
@@ -112,50 +107,41 @@ export function parseCSV<T>(
                     }))()
                 )
               },
-              complete: resolve,
-              error: reject,
+              complete: resolveParse,
+              error: rejectParse,
               ...config,
             })
-          }).then(() => {
-            Promise.allSettled(requests).then((results) => {
-              console.log(results)
-
-              if (results.length === 0) {
-                reject(new Error("No transactions to process"))
-                return
-              }
-
-              if (
-                results.some((result) => result.status === "rejected") ||
-                results.some(
-                  (result) => (result as PromiseFulfilledResult<BulkResponse>).value.error != null
-                )
-              ) {
-                postUserByIdTransactionsBulkDelete({
-                  path: { id: userId },
-                  body: {
-                    hash,
-                    cancel: true,
-                  },
-                })
-                  .then(() => {
-                    reject(new Error("Failed to process some transactions"))
-                  })
-                  .catch(reject)
-              } else {
-                postUserByIdTransactionsBulkFinalise({
-                  path: { id: userId },
-                  body: {
-                    hash,
-                  },
-                })
-                  .then(() => {
-                    resolve(true)
-                  })
-                  .catch(reject)
-              }
-            })
           })
+            .then(() =>
+              Promise.allSettled(requests).then(async (results) => {
+                if (results.length === 0) {
+                  throw new Error("No transactions to process")
+                }
+
+                if (results.some((result) => result.status === "rejected")) {
+                  const failureMessage = getImportFailureMessage(results)
+                  await postUserByIdTransactionsBulkDelete({
+                    path: { id: userId },
+                    body: {
+                      hash,
+                      cancel: true,
+                    },
+                  }).catch(() => undefined)
+                  throw new Error(failureMessage)
+                }
+
+                await postUserByIdTransactionsBulkFinalise({
+                  path: { id: userId },
+                  body: {
+                    hash,
+                  },
+                })
+              })
+            )
+            .then(() => resolve(true))
+            .catch((error) =>
+              reject(new Error(formatError(error, "Failed to import transactions.")))
+            )
         })
       })
     })

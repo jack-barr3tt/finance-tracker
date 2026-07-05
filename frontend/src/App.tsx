@@ -4,6 +4,7 @@ import { client } from "./API/requests"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { createTheme, ThemeProvider } from "flowbite-react"
 import Cookies from "js-cookie"
+import { Toaster } from "sonner"
 import { DataProvider } from "./Hooks/useData"
 
 client.setConfig({
@@ -37,6 +38,7 @@ function App() {
           <DataProvider>
             <Router />
           </DataProvider>
+          <Toaster richColors closeButton position="bottom-right" />
         </UserProvider>
       </QueryClientProvider>
     </ThemeProvider>
