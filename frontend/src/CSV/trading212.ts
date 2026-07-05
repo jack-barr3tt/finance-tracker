@@ -135,6 +135,15 @@ export async function parseTrading212(
                 account_id: uninvestedAccountId,
               }
             : []
+        case "Spin off":
+          return parseFloat(data.Total) > 0
+            ? {
+                date: parseDate(data.Time),
+                amount: parseFloat(data.Total),
+                description: `Spin off ${data.Name}`,
+                account_id: uninvestedAccountId,
+              }
+            : []
         case "Stock split open":
           return {
             date: parseDate(data.Time),
