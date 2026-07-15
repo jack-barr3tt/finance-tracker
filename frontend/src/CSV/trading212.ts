@@ -25,8 +25,19 @@ type Trading212Row = {
   "Stamp duty reserve tax": string
   Ticker: string
   Time: string
+  "Time (UTC)": string
   Total: string
   "Withholding tax": string
+}
+
+function timeFormat(time: string): string {
+  const hasTimezone = /[+-]\d{2}:\d{2}$/.test(time)
+  const hasMillis = time.includes(".")
+
+  if (hasMillis && hasTimezone) return "yyyy-MM-dd HH:mm:ss.SSSXXX"
+  if (hasMillis) return "yyyy-MM-dd HH:mm:ss.SSS"
+  if (hasTimezone) return "yyyy-MM-dd HH:mm:ssXXX"
+  return "yyyy-MM-dd HH:mm:ss"
 }
 
 export async function parseTrading212(
@@ -44,38 +55,35 @@ export async function parseTrading212(
     encrypt,
     decrypt,
     (data) => {
+      const time = data.Time || data["Time (UTC)"]
       const parseDate = (dateString: string) =>
-        parse(
-          dateString,
-          data.Time.includes(".") ? "yyyy-MM-dd HH:mm:ss.SSS" : "yyyy-MM-dd HH:mm:ss",
-          startOfDay(new Date())
-        )
+        parse(dateString, timeFormat(dateString), startOfDay(new Date()))
 
       switch (data.Action) {
         case "Deposit":
           return {
-            date: parseDate(data.Time),
+            date: parseDate(time),
             amount: parseFloat(data.Total),
             description: "Deposit",
             account_id: uninvestedAccountId,
           }
         case "Withdrawal":
           return {
-            date: parseDate(data.Time),
+            date: parseDate(time),
             amount: parseFloat(data.Total),
             description: "Withdrawal",
             account_id: uninvestedAccountId,
           }
         case "Card debit":
           return {
-            date: parseDate(data.Time),
+            date: parseDate(time),
             amount: parseFloat(data.Total),
             description: data["Merchant name"] || "Card debit",
             account_id: uninvestedAccountId,
           }
         case "Card credit":
           return {
-            date: parseDate(data.Time),
+            date: parseDate(time),
             amount: parseFloat(data.Total),
             description: data["Merchant name"] || "Card credit",
             account_id: uninvestedAccountId,
@@ -83,21 +91,21 @@ export async function parseTrading212(
         case "Interest on cash":
           if (data["Currency (Total)"] !== "GBP") return []
           return {
-            date: parseDate(data.Time),
+            date: parseDate(time),
             amount: parseFloat(data.Total),
             description: `Interest on cash`,
             account_id: uninvestedAccountId,
           }
         case "Spending cashback":
           return {
-            date: parseDate(data.Time),
+            date: parseDate(time),
             amount: parseFloat(data.Total),
             description: "Spending cashback",
             account_id: uninvestedAccountId,
           }
         case "Currency conversion":
           return {
-            date: parseDate(data.Time),
+            date: parseDate(time),
             amount: parseFloat(data.Total),
             description: `Currency conversion ${data.Notes}`,
             account_id: uninvestedAccountId,
@@ -107,21 +115,21 @@ export async function parseTrading212(
         case "Dividend (Interest)":
         case "Dividend (Tax exempted)":
           return {
-            date: parseDate(data.Time),
+            date: parseDate(time),
             amount: parseFloat(data.Total),
             description: `Dividend ${data.Name}`,
             account_id: uninvestedAccountId,
           }
         case "Dividend adjustment":
           return {
-            date: parseDate(data.Time),
+            date: parseDate(time),
             amount: parseFloat(data.Total),
             description: data.Notes,
             account_id: uninvestedAccountId,
           }
         case "Result adjustment":
           return {
-            date: parseDate(data.Time),
+            date: parseDate(time),
             amount: parseFloat(data.Total),
             description: data.Notes || "Result adjustment",
             account_id: uninvestedAccountId,
@@ -129,7 +137,7 @@ export async function parseTrading212(
         case "Stock distribution":
           return parseFloat(data.Total) > 0
             ? {
-                date: parseDate(data.Time),
+                date: parseDate(time),
                 amount: parseFloat(data.Total),
                 description: `Stock distribution ${data.Name}`,
                 account_id: uninvestedAccountId,
@@ -138,7 +146,7 @@ export async function parseTrading212(
         case "Spin off":
           return parseFloat(data.Total) > 0
             ? {
-                date: parseDate(data.Time),
+                date: parseDate(time),
                 amount: parseFloat(data.Total),
                 description: `Spin off ${data.Name}`,
                 account_id: uninvestedAccountId,
@@ -146,14 +154,14 @@ export async function parseTrading212(
             : []
         case "Stock split open":
           return {
-            date: parseDate(data.Time),
+            date: parseDate(time),
             amount: -parseFloat(data.Total),
             description: `Stock split open ${data.Name}`,
             account_id: uninvestedAccountId,
           }
         case "Stock split close":
           return {
-            date: parseDate(data.Time),
+            date: parseDate(time),
             amount: parseFloat(data.Total),
             description: `Stock split close ${data.Name}`,
             account_id: uninvestedAccountId,
@@ -162,13 +170,13 @@ export async function parseTrading212(
         case "Limit buy":
           return [
             {
-              date: parseDate(data.Time),
+              date: parseDate(time),
               amount: parseFloat(data.Total),
               description: `Market buy ${data.Name}`,
               account_id: portfolioAccountId,
             },
             {
-              date: parseDate(data.Time),
+              date: parseDate(time),
               amount: -parseFloat(data.Total),
               description: `Market buy ${data.Name}`,
               account_id: uninvestedAccountId,
@@ -178,13 +186,13 @@ export async function parseTrading212(
         case "Limit sell":
           return [
             {
-              date: parseDate(data.Time),
+              date: parseDate(time),
               amount: -parseFloat(data.Total),
               description: `Market sell ${data.Name}`,
               account_id: portfolioAccountId,
             },
             {
-              date: parseDate(data.Time),
+              date: parseDate(time),
               amount: parseFloat(data.Total),
               description: `Market sell ${data.Name}`,
               account_id: uninvestedAccountId,
@@ -192,14 +200,14 @@ export async function parseTrading212(
           ]
         case "New card cost":
           return {
-            date: parseDate(data.Time),
+            date: parseDate(time),
             amount: parseFloat(data.Total),
             description: "New card cost",
             account_id: uninvestedAccountId,
           }
         case "ADR Fee":
           return {
-            date: parseDate(data.Time),
+            date: parseDate(time),
             amount: parseFloat(data.Total),
             description: "ADR Fee",
             account_id: uninvestedAccountId,
