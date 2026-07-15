@@ -19,10 +19,7 @@ import { useData } from "../../Hooks/useData"
 import { useBudgetMonthTransactions } from "../../Hooks/useBudgetMonthTransactions"
 import { classifyBudgetSpending } from "../../budget/classifySpending"
 import { Category, Transaction } from "../../API/requests"
-
-function formatGbp(amount: number) {
-  return amount.toLocaleString("en-GB", { style: "currency", currency: "GBP" })
-}
+import { formatCurrencyGBP } from "../../utils"
 
 function VarianceCell({ planned, actual }: { planned: number; actual: number }) {
   const delta = actual - planned
@@ -40,7 +37,7 @@ function VarianceCell({ planned, actual }: { planned: number; actual: number }) 
   return (
     <span className={colorClass}>
       {delta > 0 ? "+" : ""}
-      {formatGbp(delta)}
+      {formatCurrencyGBP(delta)}
     </span>
   )
 }
@@ -133,7 +130,7 @@ function budgetLineTransactionRows(transactions: Transaction[]) {
       </TableCell>
       <TableCell />
       <TableCell />
-      <TableCell>{formatGbp(Math.abs(transaction.amount))}</TableCell>
+      <TableCell>{formatCurrencyGBP(Math.abs(transaction.amount))}</TableCell>
       <TableCell />
     </TableRow>
   ))
@@ -149,7 +146,7 @@ function categoryTransactionRows(transactions: Transaction[]) {
         <DescriptionCell description={transaction.description} />
       </TableCell>
       <TableCell />
-      <TableCell>{formatGbp(Math.abs(transaction.amount))}</TableCell>
+      <TableCell>{formatCurrencyGBP(Math.abs(transaction.amount))}</TableCell>
       <TableCell />
     </TableRow>
   ))
@@ -219,20 +216,20 @@ export default function BudgetActual() {
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 Planned (matched to budget lines & categories)
               </p>
-              <p className="text-2xl font-semibold">{formatGbp(summary.planned)}</p>
+              <p className="text-2xl font-semibold">{formatCurrencyGBP(summary.planned)}</p>
             </div>
             <div className="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
               <p className="text-sm text-gray-500 dark:text-gray-400">Actual (matched)</p>
-              <p className="text-2xl font-semibold">{formatGbp(summary.actual)}</p>
+              <p className="text-2xl font-semibold">{formatCurrencyGBP(summary.actual)}</p>
               <VarianceCell planned={summary.planned} actual={summary.actual} />
             </div>
             <div className="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
               <p className="text-sm text-gray-500 dark:text-gray-400">Unplanned spending</p>
-              <p className="text-2xl font-semibold">{formatGbp(summary.unplanned)}</p>
+              <p className="text-2xl font-semibold">{formatCurrencyGBP(summary.unplanned)}</p>
             </div>
             <div className="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
               <p className="text-sm text-gray-500 dark:text-gray-400">Total actual (all spending)</p>
-              <p className="text-2xl font-semibold">{formatGbp(summary.totalActual)}</p>
+              <p className="text-2xl font-semibold">{formatCurrencyGBP(summary.totalActual)}</p>
               <VarianceCell planned={summary.planned} actual={summary.totalActual} />
             </div>
           </div>
@@ -283,8 +280,8 @@ export default function BudgetActual() {
                               categoryColorMap={categoryColorMap}
                             />
                           </TableCell>
-                          <TableCell>{formatGbp(group.planned)}</TableCell>
-                          <TableCell>{formatGbp(group.actual)}</TableCell>
+                          <TableCell>{formatCurrencyGBP(group.planned)}</TableCell>
+                          <TableCell>{formatCurrencyGBP(group.actual)}</TableCell>
                           <TableCell>
                             <VarianceCell planned={group.planned} actual={group.actual} />
                           </TableCell>
@@ -343,8 +340,8 @@ export default function BudgetActual() {
                               />
                             </div>
                           </TableCell>
-                          <TableCell>{formatGbp(group.planned)}</TableCell>
-                          <TableCell>{formatGbp(group.actual)}</TableCell>
+                          <TableCell>{formatCurrencyGBP(group.planned)}</TableCell>
+                          <TableCell>{formatCurrencyGBP(group.actual)}</TableCell>
                           <TableCell>
                             <VarianceCell planned={group.planned} actual={group.actual} />
                           </TableCell>
@@ -400,7 +397,7 @@ export default function BudgetActual() {
                           <TableCell>
                             {format(parseISO(transaction.date), "d MMM yyyy")}
                           </TableCell>
-                          <TableCell>{formatGbp(Math.abs(transaction.amount))}</TableCell>
+                          <TableCell>{formatCurrencyGBP(Math.abs(transaction.amount))}</TableCell>
                         </TableRow>
                       ))
                   )}

@@ -34,6 +34,13 @@ export function getChartColors(
   return map
 }
 
+export function formatCurrencyGBP(value: number): string {
+  return value.toLocaleString("en-GB", {
+    style: "currency",
+    currency: "GBP",
+  })
+}
+
 export function prependToFile(file: File, line: string): Promise<File> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()

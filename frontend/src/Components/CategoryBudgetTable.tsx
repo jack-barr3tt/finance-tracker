@@ -12,7 +12,7 @@ import EditCategoryBudgetRow from "../Pages/Budget/EditCategoryBudgetRow"
 import TableBodyWithButton from "./TableBodyWithButton"
 import { CategoryBudget } from "../API/requests"
 import { formatSegmentDateRange, isSegmentActiveToday } from "../budget/plannedAmount"
-import { formatRepeat, toMonthlyAmount } from "../utils"
+import { formatCurrencyGBP, formatRepeat, toMonthlyAmount } from "../utils"
 
 type CategoryBudgetTableProps = {
   categoryBudgets: CategoryBudget[]
@@ -129,10 +129,7 @@ export default function CategoryBudgetTable(props: CategoryBudgetTableProps) {
                       </div>
                     </TableCell>
                     <TableCell>
-                      {categoryBudget.amount.toLocaleString("en-GB", {
-                        style: "currency",
-                        currency: "GBP",
-                      })}
+                      {formatCurrencyGBP(categoryBudget.amount)}
                     </TableCell>
                     <TableCell>
                       {formatRepeat(categoryBudget.repeat_every, categoryBudget.repeat_until)}

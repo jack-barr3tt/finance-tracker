@@ -1,23 +1,16 @@
-import {
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Legend,
-  Tooltip,
-  Chart as ChartJS,
-} from "chart.js"
+import type { EChartsOption } from "echarts"
 import Color from "color"
-import { Card } from "flowbite-react"
+import { format, parseISO } from "date-fns"
+import { Card, useThemeMode } from "flowbite-react"
 import { useMemo } from "react"
-import { Line } from "react-chartjs-2"
-import { getBrightColors } from "../utils"
+import EChart from "../charts/EChart"
+import { getChartBaseOption, getLineChartAxesOption } from "../charts/theme"
+import { formatCurrencyGBP, getBrightColors } from "../utils"
 import { useData } from "../Hooks/useData"
 
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend)
-
 export default function BalanceGraph() {
+  const { computedMode } = useThemeMode()
+  const isDark = computedMode === "dark"
   const { balanceSummary, accountColorMap: colorMap } = useData()
 
   const { borders: lineBorders, fills: lineFills } = useMemo(
@@ -25,51 +18,93 @@ export default function BalanceGraph() {
     [balanceSummary?.accounts.length],
   )
 
+  const option = useMemo<EChartsOption>(() => {
+    const dates =
+      balanceSummary?.total.map((item) => format(parseISO(item.date), "dd MMM yyyy")) || []
+
+    const datasets = [
+      {
+        label: "Total",
+        data: balanceSummary?.total.map((item) => item.balance) || [],
+        borderColor: colorMap ? colorMap["total"]?.border : lineBorders[0],
+        backgroundColor: colorMap
+          ? Color(colorMap["total"]?.fill).alpha(0.25).string()
+          : lineFills[0],
+      },
+      ...(balanceSummary?.accounts.map((account, i) => ({
+        label: account.account.name,
+        data: account.balance.map((item) => item.balance),
+        borderColor: colorMap ? colorMap[account.account.id].border : lineBorders[i + 1],
+        backgroundColor: colorMap
+          ? Color(colorMap[account.account.id].fill).alpha(0.25).string()
+          : lineFills[i + 1],
+      })) || []),
+    ].sort((a, b) => a.label.localeCompare(b.label))
+
+    const baseOption = getChartBaseOption(isDark)
+    const axesOption = getLineChartAxesOption(isDark)
+
+    return {
+      ...baseOption,
+      tooltip: {
+        ...baseOption.tooltip,
+        trigger: "axis",
+        axisPointer: {
+          type: "cross",
+        },
+        valueFormatter: (value) => formatCurrencyGBP(value as number),
+      },
+      legend: {
+        ...baseOption.legend,
+        data: datasets.map((dataset) => dataset.label),
+        selectedMode: true,
+      },
+      grid: {
+        left: "3%",
+        right: "4%",
+        bottom: "15%",
+        containLabel: true,
+      },
+      xAxis: {
+        ...axesOption.xAxis,
+        type: "category",
+        boundaryGap: false,
+        data: dates,
+      },
+      yAxis: {
+        ...axesOption.yAxis,
+        type: "value",
+        axisLabel: {
+          ...(typeof axesOption.yAxis === "object" && !Array.isArray(axesOption.yAxis)
+            ? axesOption.yAxis.axisLabel
+            : {}),
+          formatter: (value: number) => formatCurrencyGBP(value),
+        },
+      },
+      series: datasets.map((dataset) => ({
+        name: dataset.label,
+        type: "line",
+        showSymbol: false,
+        data: dataset.data,
+        lineStyle: {
+          color: dataset.borderColor,
+        },
+        itemStyle: {
+          color: dataset.borderColor,
+        },
+        areaStyle: {
+          color: dataset.backgroundColor,
+        },
+      })),
+    }
+  }, [balanceSummary, colorMap, isDark, lineBorders, lineFills])
+
   return (
     <Card className="flex flex-col w-1/2 min-h-full">
       <div className="flex flex-col justify-between flex-1 gap-4">
         <h1 className="w-full text-xl font-medium text-center">Balance over Time</h1>
         <div className="w-full h-96">
-          <Line
-            data={{
-              labels:
-                balanceSummary?.total.map((item) => new Date(item.date).toLocaleDateString()) || [],
-              datasets: [
-                {
-                  label: "Total",
-                  data: balanceSummary?.total.map((item) => item.balance) || [],
-                  borderColor: colorMap ? colorMap["total"]?.border : lineBorders[0],
-                  backgroundColor: colorMap
-                    ? Color(colorMap["total"]?.fill).alpha(0.25).string()
-                    : lineFills[0],
-                },
-                ...(balanceSummary?.accounts.map((account, i) => ({
-                  label: account.account.name,
-                  data: account.balance.map((item) => item.balance),
-                  borderColor: colorMap ? colorMap[account.account.id].border : lineBorders[i + 1],
-                  backgroundColor: colorMap
-                    ? Color(colorMap[account.account.id].fill).alpha(0.25).string()
-                    : lineFills[i + 1],
-                })) || []),
-              ].sort((a, b) => a.label.localeCompare(b.label)),
-            }}
-            options={{
-              responsive: true,
-              maintainAspectRatio: false,
-              plugins: {
-                legend: {
-                  position: "bottom",
-                },
-                tooltip: {
-                  callbacks: {
-                    label: (context) =>
-                      `${context.dataset.label}: £${(context.parsed.y as number).toFixed(2)}`,
-                  },
-                },
-              },
-              animation: false,
-            }}
-          />
+          <EChart option={option} />
         </div>
       </div>
     </Card>

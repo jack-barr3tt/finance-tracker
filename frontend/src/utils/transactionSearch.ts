@@ -1,4 +1,5 @@
 import { Transaction } from "../API/requests"
+import { formatCurrencyGBP } from "../utils"
 
 export function transactionMatchesSearch(transaction: Transaction, query: string): boolean {
   const q = query.trim().toLowerCase()
@@ -8,8 +9,7 @@ export function transactionMatchesSearch(transaction: Transaction, query: string
 
   const amountStr = transaction.amount.toString()
   const absAmountStr = Math.abs(transaction.amount).toFixed(2)
-  const formattedAmount = transaction.amount
-    .toLocaleString("en-GB", { style: "currency", currency: "GBP" })
+  const formattedAmount = formatCurrencyGBP(transaction.amount)
     .replace(/[£,\s]/g, "")
     .toLowerCase()
 

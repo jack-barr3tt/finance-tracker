@@ -13,7 +13,7 @@ import EditBudgetTransactionRow from "../Pages/Budget/EditBudgetTransactionRow"
 import TableBodyWithButton from "./TableBodyWithButton"
 import { BudgetTransaction } from "../API/requests"
 import { formatSegmentDateRange, isSegmentActiveToday } from "../budget/plannedAmount"
-import { formatRepeat, toMonthlyAmount } from "../utils"
+import { formatRepeat, toMonthlyAmount, formatCurrencyGBP } from "../utils"
 
 type BudgetTableProps = {
   budgetTransactions: BudgetTransaction[]
@@ -159,13 +159,11 @@ export default function BudgetTable(props: BudgetTableProps) {
                       )}
                     </TableCell>
                     <TableCell>
-                      {(isOutgoings
-                        ? Math.abs(budgetTransaction.amount)
-                        : budgetTransaction.amount
-                      ).toLocaleString("en-GB", {
-                        style: "currency",
-                        currency: "GBP",
-                      })}
+                      {formatCurrencyGBP(
+                        isOutgoings
+                          ? Math.abs(budgetTransaction.amount)
+                          : budgetTransaction.amount,
+                      )}
                     </TableCell>
                     <TableCell>
                       {formatRepeat(budgetTransaction.repeat_every, budgetTransaction.repeat_until)}

@@ -1,5 +1,6 @@
 import { Card } from "flowbite-react"
 import { useData } from "../Hooks/useData"
+import { formatCurrencyGBP } from "../utils"
 
 export default function AccountSummaries() {
   const { accountSummary } = useData()
@@ -18,10 +19,7 @@ export default function AccountSummaries() {
                   <h1 className="order-3 font-medium md:order-1">{account.account.name}</h1>
                   <h2 className="font-light">{account.account.bank.name}</h2>
                   <p className="order-first col-span-1 row-span-2 text-3xl md:text-4xl md:order-3 md:col-span-2 md:row-span-1">
-                    {account.balance.toLocaleString("en-GB", {
-                      style: "currency",
-                      currency: "GBP",
-                    })}
+                    {formatCurrencyGBP(account.balance)}
                   </p>
                 </div>
               </Card>
@@ -32,10 +30,7 @@ export default function AccountSummaries() {
                 <div className="flex flex-row items-center gap-4 text-2xl md:text-3xl">
                   <h1 className="font-medium">Total:</h1>
                   <p>
-                    {accountSummary?.total.toLocaleString("en-GB", {
-                      style: "currency",
-                      currency: "GBP",
-                    })}
+                    {formatCurrencyGBP(accountSummary?.total ?? 0)}
                   </p>
                 </div>
               </Card>

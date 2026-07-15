@@ -3,6 +3,7 @@ import { format, parseISO } from "date-fns"
 import { forwardRef, memo } from "react"
 import { FiEdit, FiTrash } from "react-icons/fi"
 import { Transaction } from "../../API/requests"
+import { formatCurrencyGBP } from "../../utils"
 import { transactionTableCellClass } from "./transactionTableColumns"
 
 type ColorPair = { fill?: string; text?: string }
@@ -66,10 +67,7 @@ const TransactionRow = memo(
           </span>
         </TableCell>
         <TableCell className={transactionTableCellClass.amount}>
-          {transaction.amount.toLocaleString("en-GB", {
-            style: "currency",
-            currency: "GBP",
-          })}
+          {formatCurrencyGBP(transaction.amount)}
         </TableCell>
         <TableCell className={transactionTableCellClass.actions}>
           <div className="flex flex-row items-center justify-end invisible gap-2 group-hover/trnscrow:visible">

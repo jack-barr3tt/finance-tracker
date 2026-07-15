@@ -1,13 +1,12 @@
-import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js"
-import { Card } from "flowbite-react"
+import type { EChartsOption } from "echarts"
 import Color from "color"
+import { Card, useThemeMode } from "flowbite-react"
 import { useMemo } from "react"
-import { Doughnut } from "react-chartjs-2"
 import { BudgetTransaction, CategoryBudget } from "../API/requests"
+import EChart from "../charts/EChart"
+import { getChartBaseOption, getDoughnutSeriesOption } from "../charts/theme"
 import { isSegmentActiveToday } from "../budget/plannedAmount"
-import { toMonthlyAmount } from "../utils"
-
-ChartJS.register(ArcElement, Tooltip, Legend)
+import { formatCurrencyGBP, toMonthlyAmount } from "../utils"
 
 type BudgetPieProps = {
   budgetTransactions: BudgetTransaction[]
@@ -17,6 +16,8 @@ type BudgetPieProps = {
 
 export default function BudgetPie(props: BudgetPieProps) {
   const { budgetTransactions, categoryBudgets, categoryColorMap } = props
+  const { computedMode } = useThemeMode()
+  const isDark = computedMode === "dark"
 
   const chartData = useMemo(() => {
     const activeBudgetTransactions = budgetTransactions.filter(
@@ -38,7 +39,7 @@ export default function BudgetPie(props: BudgetPieProps) {
     const addToCategoryTotal = (
       categoryId: string,
       categoryName: string,
-      monthlyAmount: number
+      monthlyAmount: number,
     ) => {
       if (!categoryTotals[categoryId]) {
         categoryTotals[categoryId] = {
@@ -57,7 +58,7 @@ export default function BudgetPie(props: BudgetPieProps) {
         const categoryId = bt.category?.id || "uncategorised"
         const categoryName = bt.category?.name || "Uncategorised"
         const monthlyAmount = Math.abs(
-          toMonthlyAmount(bt.amount, bt.repeat_every, bt.repeat_until)
+          toMonthlyAmount(bt.amount, bt.repeat_every, bt.repeat_until),
         )
         addToCategoryTotal(categoryId, categoryName, monthlyAmount)
       })
@@ -94,6 +95,49 @@ export default function BudgetPie(props: BudgetPieProps) {
     }
   }, [budgetTransactions, categoryBudgets, categoryColorMap])
 
+  const option = useMemo<EChartsOption>(() => {
+    const baseOption = getChartBaseOption(isDark)
+
+    const data = chartData.labels.map((label, index) => {
+      const isRemaining = label === "Remaining"
+      const fill = chartData.backgroundColors[index]
+      const border = chartData.borderColors[index]
+
+      return {
+        name: label,
+        value: chartData.data[index],
+        selected: isRemaining,
+        selectedOffset: isRemaining ? 20 : 0,
+        itemStyle: {
+          color: fill,
+          borderColor: border,
+          borderWidth: 2,
+        },
+      }
+    })
+
+    return {
+      ...baseOption,
+      tooltip: {
+        ...baseOption.tooltip,
+        trigger: "item",
+        valueFormatter: (value) => formatCurrencyGBP(value as number),
+      },
+      legend: {
+        ...baseOption.legend,
+        data: chartData.labels,
+        selectedMode: false,
+      },
+      series: [
+        {
+          ...getDoughnutSeriesOption(),
+          selectedMode: false,
+          data,
+        },
+      ],
+    }
+  }, [chartData, isDark])
+
   return (
     <Card className="w-full">
       <div className="flex flex-col items-center gap-4">
@@ -106,10 +150,7 @@ export default function BudgetPie(props: BudgetPieProps) {
                 Monthly Income
               </span>
               <span className="text-xl font-bold text-green-600 lg:text-2xl dark:text-green-400">
-                {chartData.monthlyIncome.toLocaleString("en-GB", {
-                  style: "currency",
-                  currency: "GBP",
-                })}
+                {formatCurrencyGBP(chartData.monthlyIncome)}
               </span>
             </div>
 
@@ -118,10 +159,7 @@ export default function BudgetPie(props: BudgetPieProps) {
                 Monthly Outgoings
               </span>
               <span className="text-xl font-bold text-red-600 lg:text-2xl dark:text-red-400">
-                {chartData.totalOutgoings.toLocaleString("en-GB", {
-                  style: "currency",
-                  currency: "GBP",
-                })}
+                {formatCurrencyGBP(chartData.totalOutgoings)}
               </span>
             </div>
 
@@ -136,49 +174,13 @@ export default function BudgetPie(props: BudgetPieProps) {
                     : "text-red-600 dark:text-red-400"
                 }`}
               >
-                {chartData.remaining.toLocaleString("en-GB", {
-                  style: "currency",
-                  currency: "GBP",
-                })}
+                {formatCurrencyGBP(chartData.remaining)}
               </span>
             </div>
           </div>
 
           <div className="w-full lg:w-96 h-96 lg:order-2">
-            <Doughnut
-              data={{
-                labels: chartData.labels,
-                datasets: [
-                  {
-                    label: "Amount",
-                    data: chartData.data,
-                    backgroundColor: chartData.backgroundColors,
-                    borderColor: chartData.borderColors,
-                    offset: chartData.labels.map((label) => (label === "Remaining" ? 50 : 0)),
-                  },
-                ],
-              }}
-              options={{
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                  legend: {
-                    position: "bottom",
-                  },
-                  tooltip: {
-                    callbacks: {
-                      label: (context) => {
-                        const label = context.label || ""
-                        const value = context.parsed || 0
-                        return `${label}: £${value.toFixed(2)}`
-                      },
-                    },
-                  },
-                },
-                animation: false,
-              }}
-              className="w-full"
-            />
+            <EChart option={option} />
           </div>
         </div>
       </div>

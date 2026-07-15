@@ -3,6 +3,7 @@ import { RefObject, useLayoutEffect, useMemo, useState } from "react"
 import { measureNaturalWidth, prepareWithSegments } from "@chenglou/pretext"
 import { layoutNextRichInlineLineRange, prepareRichInline } from "@chenglou/pretext/rich-inline"
 import { Account, Category, Transaction } from "../../API/requests"
+import { formatCurrencyGBP } from "../../utils"
 
 export const TRANSACTION_TABLE_COLUMN_COUNT = 6
 
@@ -87,10 +88,6 @@ function badgeColumnWidth(
   )
 }
 
-function formatAmount(amount: number): string {
-  return amount.toLocaleString("en-GB", { style: "currency", currency: "GBP" })
-}
-
 function readTableFonts(table: HTMLTableElement): TableFonts {
   const headerCell = table.querySelector("thead th")
   const bodyCell = table.querySelector("tbody td")
@@ -115,7 +112,7 @@ export function computeTransactionTableColumnWidths(input: ColumnWidthInput): (n
   )
   const amountWidth = Math.max(
     textWidth("Amount", fonts.header),
-    ...transactions.map((transaction) => textWidth(formatAmount(transaction.amount), fonts.body)),
+    ...transactions.map((transaction) => textWidth(formatCurrencyGBP(transaction.amount), fonts.body)),
   )
 
   return [

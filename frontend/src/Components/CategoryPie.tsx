@@ -1,13 +1,13 @@
-import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js"
-import { Card, useThemeMode } from "flowbite-react"
+import type { EChartsOption } from "echarts"
 import Color from "color"
+import { Card, useThemeMode } from "flowbite-react"
 import { useMemo } from "react"
-import { Doughnut } from "react-chartjs-2"
-import { getBrightColors } from "../utils"
+import EChart from "../charts/EChart"
+import { getChartBaseOption, getDoughnutSeriesOption } from "../charts/theme"
+import { formatCurrencyGBP, getBrightColors } from "../utils"
 import { useData } from "../Hooks/useData"
 import { useUser } from "../Hooks/useUser"
 import { useGetUserByIdSummaryTotals } from "../API/queries"
-ChartJS.register(ArcElement, Tooltip, Legend)
 
 export default function CategoryPie() {
   const { computedMode } = useThemeMode()
@@ -27,8 +27,49 @@ export default function CategoryPie() {
 
   const { borders: pieBorders, fills: pieFills } = useMemo(
     () => getBrightColors(categorySummaries?.filter((cat) => cat.total < 0).length || 0),
-    [categorySummaries]
+    [categorySummaries],
   )
+
+  const option = useMemo<EChartsOption>(() => {
+    const spendingCategories = categorySummaries?.filter((cat) => cat.total < 0) || []
+    const baseOption = getChartBaseOption(isDark)
+
+    const data = spendingCategories.map((cat, index) => {
+      const categoryId = cat.category?.id || "uncategorised"
+      const fill = colorMap ? colorMap[categoryId]?.fill : pieFills[index]
+      const border = colorMap ? colorMap[categoryId]?.border : pieBorders[index]
+      const c = Color(fill)
+
+      return {
+        name: cat.category?.name || "Uncategorised",
+        value: -cat.total,
+        itemStyle: {
+          color: isDark ? c.alpha(0.25).string() : c.string(),
+          borderColor: border,
+          borderWidth: 2,
+        },
+      }
+    })
+
+    return {
+      ...baseOption,
+      tooltip: {
+        ...baseOption.tooltip,
+        trigger: "item",
+        valueFormatter: (value) => formatCurrencyGBP(value as number),
+      },
+      legend: {
+        ...baseOption.legend,
+        data: data.map((item) => item.name),
+      },
+      series: [
+        {
+          ...getDoughnutSeriesOption(),
+          data,
+        },
+      ],
+    }
+  }, [categorySummaries, colorMap, isDark, pieBorders, pieFills])
 
   return (
     <Card className="w-1/2">
@@ -42,10 +83,7 @@ export default function CategoryPie() {
                 Income
               </span>
               <span className="text-xl font-bold text-green-600 xl:text-2xl dark:text-green-400">
-                {(totals?.income ?? 0).toLocaleString("en-GB", {
-                  style: "currency",
-                  currency: "GBP",
-                })}
+                {formatCurrencyGBP(totals?.income ?? 0)}
               </span>
             </div>
 
@@ -54,10 +92,7 @@ export default function CategoryPie() {
                 Outgoings
               </span>
               <span className="text-xl font-bold text-red-600 xl:text-2xl dark:text-red-400">
-                {(totals?.outgoing ?? 0).toLocaleString("en-GB", {
-                  style: "currency",
-                  currency: "GBP",
-                })}
+                {formatCurrencyGBP(totals?.outgoing ?? 0)}
               </span>
             </div>
 
@@ -72,56 +107,13 @@ export default function CategoryPie() {
                     : "text-red-600 dark:text-red-400"
                 }`}
               >
-                {(totals?.net ?? 0).toLocaleString("en-GB", {
-                  style: "currency",
-                  currency: "GBP",
-                })}
+                {formatCurrencyGBP(totals?.net ?? 0)}
               </span>
             </div>
           </div>
 
           <div className="w-full xl:w-96 h-96 xl:order-2">
-            <Doughnut
-              data={{
-                labels:
-                  categorySummaries
-                    ?.filter((cat) => cat.total < 0)
-                    .map((cat) => cat.category?.name || "Uncategorised") || [],
-                datasets: [
-                  {
-                    label: "Total",
-                    data:
-                      categorySummaries?.filter((cat) => cat.total < 0).map((cat) => -cat.total) ||
-                      [],
-                    backgroundColor: colorMap
-                      ? categorySummaries
-                          ?.filter((cat) => cat.total < 0)
-                          .map((cat) => {
-                            const fill = colorMap[cat.category?.id || "uncategorised"]?.fill
-                            const c = Color(fill)
-                            return isDark ? c.alpha(0.25).string() : c.string()
-                          })
-                      : pieFills,
-                    borderColor: colorMap
-                      ? categorySummaries
-                          ?.filter((cat) => cat.total < 0)
-                          .map((cat) => colorMap[cat.category?.id || "uncategorised"]?.border)
-                      : pieBorders,
-                  },
-                ],
-              }}
-              options={{
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                  legend: {
-                    position: "bottom",
-                  },
-                },
-                animation: false,
-              }}
-              className="w-full"
-            />
+            <EChart option={option} />
           </div>
         </div>
       </div>
