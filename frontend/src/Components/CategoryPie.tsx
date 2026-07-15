@@ -105,15 +105,11 @@ export default function CategoryPie() {
       .map((series, index) => {
         const categoryId = series.category?.id || "uncategorised"
         const borderColor = colorMap ? colorMap[categoryId]?.border : pieBorders[index]
-        const backgroundColor = colorMap
-          ? Color(colorMap[categoryId]?.fill).alpha(0.25).string()
-          : pieFills[index]
 
         return {
           label: series.category?.name || "Uncategorised",
-          data: series.amounts.map((item) => item.amount),
+          data: series.amounts.map((item) => Math.abs(item.amount)),
           borderColor,
-          backgroundColor,
         }
       })
       .sort((a, b) => a.label.localeCompare(b.label))
@@ -146,6 +142,7 @@ export default function CategoryPie() {
       yAxis: {
         ...axesOption.yAxis,
         type: "value",
+        min: 0,
         axisLabel: {
           ...(typeof axesOption.yAxis === "object" && !Array.isArray(axesOption.yAxis)
             ? axesOption.yAxis.axisLabel
@@ -163,9 +160,6 @@ export default function CategoryPie() {
         },
         itemStyle: {
           color: dataset.borderColor,
-        },
-        areaStyle: {
-          color: dataset.backgroundColor,
         },
       })),
     }
