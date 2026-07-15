@@ -3,7 +3,7 @@ import { format, parseISO } from "date-fns"
 import { Card, useThemeMode } from "flowbite-react"
 import { useMemo } from "react"
 import EChart from "../charts/EChart"
-import { getChartBaseOption, getLineChartAxesOption } from "../charts/theme"
+import { getChartBaseOption, getLineChartAxesOption, getLineChartGridOption, getLineChartLegendOption } from "../charts/theme"
 import { formatCurrencyGBP, getBrightColors } from "../utils"
 import { useData } from "../Hooks/useData"
 
@@ -48,16 +48,11 @@ export default function BalanceGraph() {
         valueFormatter: (value) => formatCurrencyGBP(value as number),
       },
       legend: {
-        ...baseOption.legend,
+        ...getLineChartLegendOption(isDark),
         data: datasets.map((dataset) => dataset.label),
         selectedMode: true,
       },
-      grid: {
-        left: "3%",
-        right: "4%",
-        bottom: "15%",
-        containLabel: true,
-      },
+      grid: getLineChartGridOption(),
       xAxis: {
         ...axesOption.xAxis,
         type: "category",

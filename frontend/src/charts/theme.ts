@@ -63,46 +63,42 @@ export function getLineChartAxesOption(isDark: boolean): Pick<EChartsOption, "xA
   }
 }
 
-export function getDoughnutLegendOption(
-  itemCount: number,
-  isDark: boolean,
-): LegendComponentOption {
+export function getWrappedLegendOption(isDark: boolean): LegendComponentOption {
   const textColor = isDark ? DARK_TEXT : LIGHT_TEXT
-  const base: LegendComponentOption = {
+
+  return {
     bottom: 0,
     left: "center",
+    width: "95%",
+    orient: "horizontal",
+    itemGap: 10,
     textStyle: {
       color: textColor,
     },
   }
-
-  if (itemCount > 6) {
-    return {
-      ...base,
-      type: "scroll",
-      height: 30,
-      width: "90%",
-    }
-  }
-
-  return base
 }
 
-export function getDoughnutSeriesOption(itemCount: number): PieSeriesOption {
-  let center: [string, string] = ["50%", "45%"]
-  let radius: [string, string] = ["38%", "70%"]
+export function getDoughnutLegendOption(isDark: boolean): LegendComponentOption {
+  return getWrappedLegendOption(isDark)
+}
 
-  if (itemCount > 6) {
-    center = ["50%", "38%"]
-    radius = ["38%", "62%"]
-  } else if (itemCount > 3) {
-    center = ["50%", "42%"]
+export function getLineChartLegendOption(isDark: boolean): LegendComponentOption {
+  return getWrappedLegendOption(isDark)
+}
+
+export function getLineChartGridOption(): EChartsOption["grid"] {
+  return {
+    left: "3%",
+    right: "4%",
+    bottom: 48,
+    containLabel: true,
   }
+}
 
+export function getDoughnutSeriesOption(): PieSeriesOption {
   return {
     type: "pie",
-    center,
-    radius,
+    radius: ["38%", "70%"],
     itemStyle: {
       borderWidth: 2,
     },

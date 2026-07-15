@@ -5,7 +5,7 @@ import { Button, ButtonGroup, Card, useThemeMode } from "flowbite-react"
 import { useMemo, useState } from "react"
 import { LuChartLine, LuChartPie } from "react-icons/lu"
 import EChart from "../charts/EChart"
-import { getChartBaseOption, getDoughnutLegendOption, getDoughnutSeriesOption, getLineChartAxesOption } from "../charts/theme"
+import { getChartBaseOption, getDoughnutLegendOption, getDoughnutSeriesOption, getLineChartAxesOption, getLineChartGridOption, getLineChartLegendOption } from "../charts/theme"
 import { formatCurrencyGBP, getBrightColors } from "../utils"
 import { useData } from "../Hooks/useData"
 import { useUser } from "../Hooks/useUser"
@@ -79,12 +79,12 @@ export default function CategoryPie() {
         valueFormatter: (value) => formatCurrencyGBP(value as number),
       },
       legend: {
-        ...getDoughnutLegendOption(data.length, isDark),
+        ...getDoughnutLegendOption(isDark),
         data: data.map((item) => item.name),
       },
       series: [
         {
-          ...getDoughnutSeriesOption(data.length),
+          ...getDoughnutSeriesOption(),
           data,
         },
       ],
@@ -132,16 +132,11 @@ export default function CategoryPie() {
         valueFormatter: (value) => formatCurrencyGBP(value as number),
       },
       legend: {
-        ...baseOption.legend,
+        ...getLineChartLegendOption(isDark),
         data: datasets.map((dataset) => dataset.label),
         selectedMode: true,
       },
-      grid: {
-        left: "3%",
-        right: "4%",
-        bottom: "15%",
-        containLabel: true,
-      },
+      grid: getLineChartGridOption(),
       xAxis: {
         ...axesOption.xAxis,
         type: "category",

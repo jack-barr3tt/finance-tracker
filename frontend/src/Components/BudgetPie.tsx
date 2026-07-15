@@ -124,13 +124,12 @@ export default function BudgetPie(props: BudgetPieProps) {
         valueFormatter: (value) => formatCurrencyGBP(value as number),
       },
       legend: {
-        ...getDoughnutLegendOption(chartData.labels.length, isDark),
+        ...getDoughnutLegendOption(isDark),
         data: chartData.labels,
-        selectedMode: false,
       },
       series: [
         {
-          ...getDoughnutSeriesOption(chartData.labels.length),
+          ...getDoughnutSeriesOption(),
           selectedMode: false,
           data,
         },
