@@ -7,6 +7,7 @@ import {
   BudgetTransaction,
   Category,
   CategoryBudget,
+  CategorySpendingSummary,
   CategorySummary,
   SummaryInterval,
 } from "../API/requests"
@@ -19,6 +20,7 @@ import {
   useGetUserByIdSummaryAccounts,
   useGetUserByIdSummaryBalance,
   useGetUserByIdSummaryCategories,
+  useGetUserByIdSummaryCategoriesSpending,
 } from "../API/queries"
 import { decryptAccount, decryptBudgetTransaction, decryptCategory, decryptCategoryBudget } from "../Security/data"
 import { useAsyncMemo } from "./useAsyncMemo"
@@ -61,6 +63,7 @@ type DataValue = {
   accountSummary: AllAccountSummary | null
   balanceSummary: BalanceSummary | null
   categorySummaries: CategorySummary[] | null
+  categorySpendingSummary: CategorySpendingSummary | null
   categoryColorMap: ColorMap
   accountColorMap: ColorMap
 }
@@ -250,6 +253,31 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     [encCategorySummaries, decrypt],
   )
 
+  const { data: encCategorySpendingSummary } = useGetUserByIdSummaryCategoriesSpending(
+    { path: { id: userId }, query: summaryBalanceQuery },
+    undefined,
+    {
+      enabled: !!userId,
+    },
+  )
+  const categorySpendingSummary = useAsyncMemo(async () => {
+    if (!encCategorySpendingSummary) return null
+    return {
+      ...encCategorySpendingSummary,
+      categories: await Promise.all(
+        encCategorySpendingSummary.categories.map(async (series) => ({
+          ...series,
+          category: series.category
+            ? {
+                ...series.category,
+                name: await decrypt(series.category.name),
+              }
+            : undefined,
+        })),
+      ),
+    }
+  }, [encCategorySpendingSummary, decrypt])
+
   const accountColorMap = useMemo(
     () => getChartColors(accounts ? [...accounts.map((acc) => acc.id), "total"] : []),
     [accounts],
@@ -272,6 +300,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
       accountSummary,
       balanceSummary,
       categorySummaries,
+      categorySpendingSummary,
       categoryColorMap,
       accountColorMap,
     }),
@@ -285,6 +314,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
       categoryBudgets,
       categoryColorMap,
       categorySummaries,
+      categorySpendingSummary,
       summaryBalanceQuery,
       summaryDateQuery,
       summaryRange,

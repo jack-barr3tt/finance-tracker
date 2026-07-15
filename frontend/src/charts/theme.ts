@@ -1,4 +1,4 @@
-import type { EChartsOption, PieSeriesOption } from "echarts"
+import type { EChartsOption, LegendComponentOption, PieSeriesOption } from "echarts"
 
 const LIGHT_TEXT = "#6B7280"
 const DARK_TEXT = "#9CA3AF"
@@ -63,10 +63,46 @@ export function getLineChartAxesOption(isDark: boolean): Pick<EChartsOption, "xA
   }
 }
 
-export function getDoughnutSeriesOption(): PieSeriesOption {
+export function getDoughnutLegendOption(
+  itemCount: number,
+  isDark: boolean,
+): LegendComponentOption {
+  const textColor = isDark ? DARK_TEXT : LIGHT_TEXT
+  const base: LegendComponentOption = {
+    bottom: 0,
+    left: "center",
+    textStyle: {
+      color: textColor,
+    },
+  }
+
+  if (itemCount > 6) {
+    return {
+      ...base,
+      type: "scroll",
+      height: 30,
+      width: "90%",
+    }
+  }
+
+  return base
+}
+
+export function getDoughnutSeriesOption(itemCount: number): PieSeriesOption {
+  let center: [string, string] = ["50%", "45%"]
+  let radius: [string, string] = ["38%", "70%"]
+
+  if (itemCount > 6) {
+    center = ["50%", "38%"]
+    radius = ["38%", "62%"]
+  } else if (itemCount > 3) {
+    center = ["50%", "42%"]
+  }
+
   return {
     type: "pie",
-    radius: ["38%", "70%"],
+    center,
+    radius,
     itemStyle: {
       borderWidth: 2,
     },

@@ -311,6 +311,20 @@ export type CategorySummary = {
     percentage: number;
 };
 
+export type CategorySpendingSummary = {
+    categories: Array<CategorySpendingSeries>;
+};
+
+export type CategorySpendingSeries = {
+    category?: Category;
+    amounts: Array<SpendingDatapoint>;
+};
+
+export type SpendingDatapoint = {
+    date: string;
+    amount: number;
+};
+
 export type BalanceSummary = {
     total: Array<BalanceDatapoint>;
     accounts: Array<BalanceSummaryAccount>;
@@ -635,6 +649,21 @@ export type GetUserByIdSummaryCategoriesData = {
 export type GetUserByIdSummaryCategoriesResponse = (Array<CategorySummary>);
 
 export type GetUserByIdSummaryCategoriesError = unknown;
+
+export type GetUserByIdSummaryCategoriesSpendingData = {
+    path: {
+        id: string;
+    };
+    query?: {
+        end_date?: string;
+        interval?: SummaryInterval;
+        start_date?: string;
+    };
+};
+
+export type GetUserByIdSummaryCategoriesSpendingResponse = (CategorySpendingSummary);
+
+export type GetUserByIdSummaryCategoriesSpendingError = unknown;
 
 export type GetUserByIdSummaryBalanceData = {
     path: {

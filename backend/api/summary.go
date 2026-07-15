@@ -174,6 +174,54 @@ func addSummaryInterval(date time.Time, interval SummaryInterval) time.Time {
 	}
 }
 
+func summaryRangeEnd(dateRange summaryRange) time.Time {
+	now := time.Now().UTC()
+	rangeEnd := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
+	if dateRange.EndExclusive != nil {
+		rangeEnd = dateRange.EndExclusive.AddDate(0, 0, -1)
+	}
+	return rangeEnd
+}
+
+func buildSummaryBucketDates(dateRange summaryRange, interval SummaryInterval, firstTransactionDate *time.Time) []time.Time {
+	rangeEnd := summaryRangeEnd(dateRange)
+
+	if firstTransactionDate == nil {
+		pointDate := rangeEnd
+		if dateRange.Start != nil {
+			pointDate = alignSummaryStart(*dateRange.Start, interval)
+		}
+		return []time.Time{pointDate}
+	}
+
+	startDate := firstTransactionDate.AddDate(0, 0, -1)
+	if dateRange.Start != nil {
+		startDate = *dateRange.Start
+	}
+	startDate = alignSummaryStart(startDate, interval)
+	if startDate.After(rangeEnd) {
+		startDate = rangeEnd
+	}
+
+	bucketDates := []time.Time{}
+	for currentDate := startDate; !currentDate.After(rangeEnd); currentDate = addSummaryInterval(currentDate, interval) {
+		bucketDates = append(bucketDates, currentDate)
+	}
+	if len(bucketDates) == 0 || !bucketDates[len(bucketDates)-1].Equal(rangeEnd) {
+		bucketDates = append(bucketDates, rangeEnd)
+	}
+	return bucketDates
+}
+
+func categorySpendingBucketIndex(txDate time.Time, bucketDates []time.Time) int {
+	for i, bucketDate := range bucketDates {
+		if !txDate.After(bucketDate) && (i == 0 || txDate.After(bucketDates[i-1])) {
+			return i
+		}
+	}
+	return len(bucketDates) - 1
+}
+
 func (s *Server) GetUserIdSummaryCategories(c *fiber.Ctx, userId string, params GetUserIdSummaryCategoriesParams) error {
 	tokUserId := GetTokenClaim[string](c, "id")
 
@@ -293,6 +341,143 @@ func (s *Server) GetUserIdSummaryCategories(c *fiber.Ctx, userId string, params 
 	return c.JSON(result)
 }
 
+func (s *Server) GetUserIdSummaryCategoriesSpending(c *fiber.Ctx, userId string, params GetUserIdSummaryCategoriesSpendingParams) error {
+	tokUserId := GetTokenClaim[string](c, "id")
+
+	if tokUserId != userId {
+		return c.SendStatus(fiber.StatusUnauthorized)
+	}
+
+	dateRange, err := parseSummaryRange(params.StartDate, params.EndDate)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	}
+
+	interval, err := getSummaryInterval(params.Interval)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	}
+
+	categories := map[string]CategorySpendingSeries{
+		"uncategorized": {
+			Category: nil,
+			Amounts:  []SpendingDatapoint{},
+		},
+	}
+
+	rows, err := s.DB.Query(
+		c.Context(),
+		`SELECT 
+			c.id, c.name, c.created_at
+		FROM category c 
+		WHERE c.user_id = $1
+		ORDER BY c.name`,
+		userId,
+	)
+	if err != nil {
+		return DBError(c, err)
+	}
+
+	for rows.Next() {
+		category := Category{
+			Rules: []CategoryRule{},
+		}
+		err = rows.Scan(&category.Id, &category.Name, &category.CreatedAt)
+		if err != nil {
+			return DBError(c, err)
+		}
+		categories[category.Id] = CategorySpendingSeries{
+			Category: &category,
+			Amounts:  []SpendingDatapoint{},
+		}
+	}
+
+	var firstTransactionDate *time.Time
+	err = s.DB.QueryRow(
+		c.Context(),
+		`SELECT MIN(t.date)::DATE
+		FROM transaction t
+		LEFT JOIN account a ON t.account_id = a.id
+		WHERE a.user_id = $1`,
+		userId,
+	).Scan(&firstTransactionDate)
+	if err != nil {
+		return DBError(c, err)
+	}
+
+	bucketDates := buildSummaryBucketDates(dateRange, interval, firstTransactionDate)
+
+	for categoryKey := range categories {
+		amounts := make([]SpendingDatapoint, len(bucketDates))
+		for i, bucketDate := range bucketDates {
+			amounts[i] = SpendingDatapoint{
+				Date:   bucketDate,
+				Amount: 0,
+			}
+		}
+		series := categories[categoryKey]
+		series.Amounts = amounts
+		categories[categoryKey] = series
+	}
+
+	conditions := []string{"a.user_id = $1"}
+	args := []interface{}{userId}
+	conditions, args = appendSummaryRangeConditions(conditions, args, dateRange)
+	whereClause := strings.Join(conditions, " AND ")
+
+	rows, err = s.DB.Query(
+		c.Context(),
+		fmt.Sprintf(
+			`SELECT
+				t.category_id,
+				t.amount,
+				t.date::DATE
+			FROM transaction t
+			LEFT JOIN account a ON t.account_id = a.id
+			WHERE %[1]s
+			ORDER BY t.date ASC`,
+			whereClause,
+		),
+		args...,
+	)
+	if err != nil {
+		return DBError(c, err)
+	}
+
+	for rows.Next() {
+		var categoryId *string
+		var amount float32
+		var txDate time.Time
+		err = rows.Scan(&categoryId, &amount, &txDate)
+		if err != nil {
+			return DBError(c, err)
+		}
+
+		categoryKey := "uncategorized"
+		if categoryId != nil {
+			if _, ok := categories[*categoryId]; ok {
+				categoryKey = *categoryId
+			} else {
+				continue
+			}
+		}
+
+		bucketIdx := categorySpendingBucketIndex(txDate, bucketDates)
+		series := categories[categoryKey]
+		series.Amounts[bucketIdx].Amount += amount
+		categories[categoryKey] = series
+	}
+
+	result := CategorySpendingSummary{
+		Categories: []CategorySpendingSeries{},
+	}
+	for _, category := range categories {
+		result.Categories = append(result.Categories, category)
+	}
+
+	return c.JSON(result)
+}
+
 func (s *Server) GetUserIdSummaryBalance(c *fiber.Ctx, userId string, params GetUserIdSummaryBalanceParams) error {
 	tokUserId := GetTokenClaim[string](c, "id")
 
@@ -361,17 +546,9 @@ func (s *Server) GetUserIdSummaryBalance(c *fiber.Ctx, userId string, params Get
 		transactions = append(transactions, t)
 	}
 
-	now := time.Now().UTC()
-	rangeEnd := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
-	if dateRange.EndExclusive != nil {
-		rangeEnd = dateRange.EndExclusive.AddDate(0, 0, -1)
-	}
-
 	if len(transactions) == 0 {
-		pointDate := rangeEnd
-		if dateRange.Start != nil {
-			pointDate = alignSummaryStart(*dateRange.Start, interval)
-		}
+		bucketDates := buildSummaryBucketDates(dateRange, interval, nil)
+		pointDate := bucketDates[0]
 
 		result := BalanceSummary{
 			Total: []BalanceDatapoint{
@@ -397,14 +574,8 @@ func (s *Server) GetUserIdSummaryBalance(c *fiber.Ctx, userId string, params Get
 		return c.JSON(result)
 	}
 
-	startDate := transactions[0].Date.AddDate(0, 0, -1)
-	if dateRange.Start != nil {
-		startDate = *dateRange.Start
-	}
-	startDate = alignSummaryStart(startDate, interval)
-	if startDate.After(rangeEnd) {
-		startDate = rangeEnd
-	}
+	firstTransactionDate := transactions[0].Date
+	bucketDates := buildSummaryBucketDates(dateRange, interval, &firstTransactionDate)
 
 	totals := map[string][]BalanceDatapoint{}
 	for _, accountId := range accountIds {
@@ -442,11 +613,8 @@ func (s *Server) GetUserIdSummaryBalance(c *fiber.Ctx, userId string, params Get
 		})
 	}
 
-	for currentDate := startDate; !currentDate.After(rangeEnd); currentDate = addSummaryInterval(currentDate, interval) {
-		appendPoint(currentDate)
-	}
-	if len(grandTotals) == 0 || !grandTotals[len(grandTotals)-1].Date.Equal(rangeEnd) {
-		appendPoint(rangeEnd)
+	for _, pointDate := range bucketDates {
+		appendPoint(pointDate)
 	}
 
 	result := BalanceSummary{

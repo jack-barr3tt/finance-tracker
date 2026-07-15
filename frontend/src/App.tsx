@@ -28,6 +28,11 @@ const theme = createTheme({
       },
     },
   },
+  button: {
+    color: {
+      blue: "border border-transparent bg-blue-700 text-white hover:bg-blue-800 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800",
+    },
+  },
 })
 
 function App() {

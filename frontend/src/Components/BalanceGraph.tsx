@@ -1,5 +1,4 @@
 import type { EChartsOption } from "echarts"
-import Color from "color"
 import { format, parseISO } from "date-fns"
 import { Card, useThemeMode } from "flowbite-react"
 import { useMemo } from "react"
@@ -13,7 +12,7 @@ export default function BalanceGraph() {
   const isDark = computedMode === "dark"
   const { balanceSummary, accountColorMap: colorMap } = useData()
 
-  const { borders: lineBorders, fills: lineFills } = useMemo(
+  const { borders: lineBorders } = useMemo(
     () => getBrightColors((balanceSummary?.accounts.length || 0) + 1),
     [balanceSummary?.accounts.length],
   )
@@ -27,17 +26,11 @@ export default function BalanceGraph() {
         label: "Total",
         data: balanceSummary?.total.map((item) => item.balance) || [],
         borderColor: colorMap ? colorMap["total"]?.border : lineBorders[0],
-        backgroundColor: colorMap
-          ? Color(colorMap["total"]?.fill).alpha(0.25).string()
-          : lineFills[0],
       },
       ...(balanceSummary?.accounts.map((account, i) => ({
         label: account.account.name,
         data: account.balance.map((item) => item.balance),
         borderColor: colorMap ? colorMap[account.account.id].border : lineBorders[i + 1],
-        backgroundColor: colorMap
-          ? Color(colorMap[account.account.id].fill).alpha(0.25).string()
-          : lineFills[i + 1],
       })) || []),
     ].sort((a, b) => a.label.localeCompare(b.label))
 
@@ -92,12 +85,9 @@ export default function BalanceGraph() {
         itemStyle: {
           color: dataset.borderColor,
         },
-        areaStyle: {
-          color: dataset.backgroundColor,
-        },
       })),
     }
-  }, [balanceSummary, colorMap, isDark, lineBorders, lineFills])
+  }, [balanceSummary, colorMap, isDark, lineBorders])
 
   return (
     <Card className="flex flex-col w-1/2 min-h-full">

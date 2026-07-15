@@ -1,19 +1,29 @@
 import type { EChartsOption } from "echarts"
 import Color from "color"
-import { Card, useThemeMode } from "flowbite-react"
-import { useMemo } from "react"
+import { format, parseISO } from "date-fns"
+import { Button, ButtonGroup, Card, useThemeMode } from "flowbite-react"
+import { useMemo, useState } from "react"
+import { LuChartLine, LuChartPie } from "react-icons/lu"
 import EChart from "../charts/EChart"
-import { getChartBaseOption, getDoughnutSeriesOption } from "../charts/theme"
+import { getChartBaseOption, getDoughnutLegendOption, getDoughnutSeriesOption, getLineChartAxesOption } from "../charts/theme"
 import { formatCurrencyGBP, getBrightColors } from "../utils"
 import { useData } from "../Hooks/useData"
 import { useUser } from "../Hooks/useUser"
 import { useGetUserByIdSummaryTotals } from "../API/queries"
 
+type ChartView = "pie" | "line"
+
 export default function CategoryPie() {
   const { computedMode } = useThemeMode()
   const isDark = computedMode === "dark"
   const { userId } = useUser()
-  const { categorySummaries, categoryColorMap: colorMap, summaryDateQuery } = useData()
+  const [view, setView] = useState<ChartView>("pie")
+  const {
+    categorySummaries,
+    categorySpendingSummary,
+    categoryColorMap: colorMap,
+    summaryDateQuery,
+  } = useData()
   const { data: totals } = useGetUserByIdSummaryTotals(
     {
       path: { id: userId },
@@ -25,12 +35,22 @@ export default function CategoryPie() {
     },
   )
 
-  const { borders: pieBorders, fills: pieFills } = useMemo(
-    () => getBrightColors(categorySummaries?.filter((cat) => cat.total < 0).length || 0),
+  const spendingCategoryIds = useMemo(
+    () =>
+      new Set(
+        (categorySummaries?.filter((cat) => cat.total < 0) || []).map(
+          (cat) => cat.category?.id || "uncategorised",
+        ),
+      ),
     [categorySummaries],
   )
 
-  const option = useMemo<EChartsOption>(() => {
+  const { borders: pieBorders, fills: pieFills } = useMemo(
+    () => getBrightColors(spendingCategoryIds.size),
+    [spendingCategoryIds.size],
+  )
+
+  const pieOption = useMemo<EChartsOption>(() => {
     const spendingCategories = categorySummaries?.filter((cat) => cat.total < 0) || []
     const baseOption = getChartBaseOption(isDark)
 
@@ -59,22 +79,138 @@ export default function CategoryPie() {
         valueFormatter: (value) => formatCurrencyGBP(value as number),
       },
       legend: {
-        ...baseOption.legend,
+        ...getDoughnutLegendOption(data.length, isDark),
         data: data.map((item) => item.name),
       },
       series: [
         {
-          ...getDoughnutSeriesOption(),
+          ...getDoughnutSeriesOption(data.length),
           data,
         },
       ],
     }
   }, [categorySummaries, colorMap, isDark, pieBorders, pieFills])
 
+  const lineOption = useMemo<EChartsOption>(() => {
+    const spendingSeries =
+      categorySpendingSummary?.categories.filter((series) => {
+        const categoryId = series.category?.id || "uncategorised"
+        return spendingCategoryIds.has(categoryId)
+      }) || []
+
+    const dates =
+      spendingSeries[0]?.amounts.map((item) => format(parseISO(item.date), "dd MMM yyyy")) || []
+
+    const datasets = spendingSeries
+      .map((series, index) => {
+        const categoryId = series.category?.id || "uncategorised"
+        const borderColor = colorMap ? colorMap[categoryId]?.border : pieBorders[index]
+        const backgroundColor = colorMap
+          ? Color(colorMap[categoryId]?.fill).alpha(0.25).string()
+          : pieFills[index]
+
+        return {
+          label: series.category?.name || "Uncategorised",
+          data: series.amounts.map((item) => item.amount),
+          borderColor,
+          backgroundColor,
+        }
+      })
+      .sort((a, b) => a.label.localeCompare(b.label))
+
+    const baseOption = getChartBaseOption(isDark)
+    const axesOption = getLineChartAxesOption(isDark)
+
+    return {
+      ...baseOption,
+      tooltip: {
+        ...baseOption.tooltip,
+        trigger: "axis",
+        axisPointer: {
+          type: "cross",
+        },
+        valueFormatter: (value) => formatCurrencyGBP(value as number),
+      },
+      legend: {
+        ...baseOption.legend,
+        data: datasets.map((dataset) => dataset.label),
+        selectedMode: true,
+      },
+      grid: {
+        left: "3%",
+        right: "4%",
+        bottom: "15%",
+        containLabel: true,
+      },
+      xAxis: {
+        ...axesOption.xAxis,
+        type: "category",
+        boundaryGap: false,
+        data: dates,
+      },
+      yAxis: {
+        ...axesOption.yAxis,
+        type: "value",
+        axisLabel: {
+          ...(typeof axesOption.yAxis === "object" && !Array.isArray(axesOption.yAxis)
+            ? axesOption.yAxis.axisLabel
+            : {}),
+          formatter: (value: number) => formatCurrencyGBP(value),
+        },
+      },
+      series: datasets.map((dataset) => ({
+        name: dataset.label,
+        type: "line",
+        showSymbol: false,
+        data: dataset.data,
+        lineStyle: {
+          color: dataset.borderColor,
+        },
+        itemStyle: {
+          color: dataset.borderColor,
+        },
+        areaStyle: {
+          color: dataset.backgroundColor,
+        },
+      })),
+    }
+  }, [
+    categorySpendingSummary,
+    colorMap,
+    isDark,
+    pieBorders,
+    pieFills,
+    spendingCategoryIds,
+  ])
+
+  const option = view === "pie" ? pieOption : lineOption
+
   return (
     <Card className="w-1/2">
       <div className="flex flex-col items-center gap-4">
-        <h1 className="text-xl font-medium">Spending by Category</h1>
+        <div className="flex items-center justify-between w-full gap-4">
+          <h1 className="text-xl font-medium">Spending by Category</h1>
+          <ButtonGroup>
+            <Button
+              color={view === "pie" ? "blue" : "light"}
+              title="Pie chart"
+              aria-label="Pie chart"
+              aria-pressed={view === "pie"}
+              onClick={() => setView("pie")}
+            >
+              <LuChartPie />
+            </Button>
+            <Button
+              color={view === "line" ? "blue" : "light"}
+              title="Line chart"
+              aria-label="Line chart"
+              aria-pressed={view === "line"}
+              onClick={() => setView("line")}
+            >
+              <LuChartLine />
+            </Button>
+          </ButtonGroup>
+        </div>
 
         <div className="flex flex-col items-center justify-center w-full gap-8 xl:flex-row">
           <div className="flex flex-row w-full gap-4 overflow-x-auto xl:flex-col xl:order-1 xl:w-auto">

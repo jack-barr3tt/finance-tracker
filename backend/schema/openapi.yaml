@@ -737,6 +737,40 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/CategorySummary"
+  /user/{id}/summary/categories/spending:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: interval
+        in: query
+        required: false
+        schema:
+          $ref: "#/components/schemas/SummaryInterval"
+      - name: start_date
+        in: query
+        required: false
+        schema:
+          type: string
+          format: date
+      - name: end_date
+        in: query
+        required: false
+        schema:
+          type: string
+          format: date
+    get:
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Category spending time series response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CategorySpendingSummary"
   /user/{id}/summary/balance:
     parameters:
       - name: id
@@ -1756,6 +1790,37 @@ components:
       required:
         - total
         - percentage
+    CategorySpendingSummary:
+      type: object
+      properties:
+        categories:
+          type: array
+          items:
+            $ref: "#/components/schemas/CategorySpendingSeries"
+      required:
+        - categories
+    CategorySpendingSeries:
+      type: object
+      properties:
+        category:
+          $ref: "#/components/schemas/Category"
+        amounts:
+          type: array
+          items:
+            $ref: "#/components/schemas/SpendingDatapoint"
+      required:
+        - amounts
+    SpendingDatapoint:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date-time
+        amount:
+          type: number
+      required:
+        - date
+        - amount
     BalanceSummary:
       type: object
       properties:

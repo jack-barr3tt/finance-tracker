@@ -876,6 +876,49 @@ export const CategorySummarySchema = {
     required: ['total', 'percentage']
 } as const;
 
+export const CategorySpendingSummarySchema = {
+    type: 'object',
+    properties: {
+        categories: {
+            type: 'array',
+            items: {
+                '$ref': '#/components/schemas/CategorySpendingSeries'
+            }
+        }
+    },
+    required: ['categories']
+} as const;
+
+export const CategorySpendingSeriesSchema = {
+    type: 'object',
+    properties: {
+        category: {
+            '$ref': '#/components/schemas/Category'
+        },
+        amounts: {
+            type: 'array',
+            items: {
+                '$ref': '#/components/schemas/SpendingDatapoint'
+            }
+        }
+    },
+    required: ['amounts']
+} as const;
+
+export const SpendingDatapointSchema = {
+    type: 'object',
+    properties: {
+        date: {
+            type: 'string',
+            format: 'date-time'
+        },
+        amount: {
+            type: 'number'
+        }
+    },
+    required: ['date', 'amount']
+} as const;
+
 export const BalanceSummarySchema = {
     type: 'object',
     properties: {

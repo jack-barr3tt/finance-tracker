@@ -4,7 +4,7 @@ import { Card, useThemeMode } from "flowbite-react"
 import { useMemo } from "react"
 import { BudgetTransaction, CategoryBudget } from "../API/requests"
 import EChart from "../charts/EChart"
-import { getChartBaseOption, getDoughnutSeriesOption } from "../charts/theme"
+import { getChartBaseOption, getDoughnutLegendOption, getDoughnutSeriesOption } from "../charts/theme"
 import { isSegmentActiveToday } from "../budget/plannedAmount"
 import { formatCurrencyGBP, toMonthlyAmount } from "../utils"
 
@@ -124,13 +124,13 @@ export default function BudgetPie(props: BudgetPieProps) {
         valueFormatter: (value) => formatCurrencyGBP(value as number),
       },
       legend: {
-        ...baseOption.legend,
+        ...getDoughnutLegendOption(chartData.labels.length, isDark),
         data: chartData.labels,
         selectedMode: false,
       },
       series: [
         {
-          ...getDoughnutSeriesOption(),
+          ...getDoughnutSeriesOption(chartData.labels.length),
           selectedMode: false,
           data,
         },
