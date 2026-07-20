@@ -3,6 +3,7 @@ when:
 
 steps:
   - name: lint-frontend
+    depends_on: []
     image: node:22-alpine
     commands:
       - corepack enable
@@ -11,6 +12,7 @@ steps:
       - yarn lint
 
   - name: lint-backend
+    depends_on: []
     image: golangci/golangci-lint:v1.62-alpine
     commands:
       - cd backend
