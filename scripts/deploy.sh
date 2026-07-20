@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Installs a CI-built release into DEPLOY_PATH and reloads services.
 set -euo pipefail
 
 DEPLOY_PATH="${DEPLOY_PATH:?DEPLOY_PATH is required}"
