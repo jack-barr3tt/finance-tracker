@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Triggered by Woodpecker after a merge to main.
+# Runs on Woodpecker after a merge to main.
 set -euo pipefail
 
 DEPLOY_PATH="${DEPLOY_PATH:?DEPLOY_PATH is required}"
