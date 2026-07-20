@@ -1,4 +1,11 @@
-import { TableRow, TableCell, TextInput, Button, ThemeProvider, createTheme } from "flowbite-react"
+import {
+  TableRow,
+  TableCell,
+  TextInput,
+  Button,
+  ThemeProvider,
+  createTheme,
+} from "flowbite-react"
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { FiSave, FiX } from "react-icons/fi"
 import {
@@ -14,7 +21,10 @@ import { useQueryClient } from "@tanstack/react-query"
 import { useAsyncMemo } from "../../Hooks/useAsyncMemo"
 import { decryptCategory, decryptCategoryBudget } from "../../Security/data"
 import { CategoryBudget, PeriodUnit } from "../../API/requests"
-import { isSegmentActiveToday, todayDateInputValue } from "../../budget/plannedAmount"
+import {
+  isSegmentActiveToday,
+  todayDateInputValue,
+} from "../../budget/plannedAmount"
 
 type EditCategoryBudgetRowProps = {
   categoryBudgetId?: string
@@ -22,36 +32,47 @@ type EditCategoryBudgetRowProps = {
   existingCategoryBudgets: CategoryBudget[]
 }
 
-export default function EditCategoryBudgetRow(props: EditCategoryBudgetRowProps) {
+export default function EditCategoryBudgetRow(
+  props: EditCategoryBudgetRowProps,
+) {
   const { categoryBudgetId, cancelCallback, existingCategoryBudgets } = props
 
   const { userId, decrypt } = useUser()
   const queryClient = useQueryClient()
-  const { data: encCategories } = useGetUserByIdCategories({ path: { id: userId } })
+  const { data: encCategories } = useGetUserByIdCategories({
+    path: { id: userId },
+  })
   const categories = useAsyncMemo(
     async () =>
-      (await Promise.all(encCategories?.map((cat) => decryptCategory(cat, decrypt)) ?? [])).sort(
-        (a, b) => a.name.localeCompare(b.name)
-      ),
-    [decrypt, encCategories]
+      (
+        await Promise.all(
+          encCategories?.map((cat) => decryptCategory(cat, decrypt)) ?? [],
+        )
+      ).sort((a, b) => a.name.localeCompare(b.name)),
+    [decrypt, encCategories],
   )
 
   const { mutateAsync: addCategoryBudget } = usePostUserByIdCategoryBudgets()
   const { mutateAsync: editCategoryBudget } =
     usePatchUserByIdCategoryBudgetsByCategoryBudgetId()
-  const { data: categoryBudget } = useGetUserByIdCategoryBudgetsByCategoryBudgetId(
-    {
-      path: { id: userId, category_budget_id: categoryBudgetId || "" },
-    },
-    undefined,
-    {
-      enabled: !!categoryBudgetId,
-    }
-  )
+  const { data: categoryBudget } =
+    useGetUserByIdCategoryBudgetsByCategoryBudgetId(
+      {
+        path: { id: userId, category_budget_id: categoryBudgetId || "" },
+      },
+      undefined,
+      {
+        enabled: !!categoryBudgetId,
+      },
+    )
 
-  const [categorySearch, setCategorySearch] = useState<string | undefined>(undefined)
+  const [categorySearch, setCategorySearch] = useState<string | undefined>(
+    undefined,
+  )
   const [amount, setAmount] = useState("")
-  const [selectedCategory, setSelectedCategory] = useState<string | undefined>(undefined)
+  const [selectedCategory, setSelectedCategory] = useState<string | undefined>(
+    undefined,
+  )
   const [repeatUntil, setRepeatUntil] = useState<PeriodUnit>("month")
   const [repeatEvery, setRepeatEvery] = useState("")
   const [startsOn, setStartsOn] = useState(todayDateInputValue())
@@ -76,8 +97,13 @@ export default function EditCategoryBudgetRow(props: EditCategoryBudgetRowProps)
   const takenCategoryIds = useMemo(() => {
     const ids = new Set(
       existingCategoryBudgets
-        .filter((cb) => !cb.deleted_at && cb.id !== categoryBudgetId && isSegmentActiveToday(cb))
-        .map((cb) => cb.category.id)
+        .filter(
+          (cb) =>
+            !cb.deleted_at &&
+            cb.id !== categoryBudgetId &&
+            isSegmentActiveToday(cb),
+        )
+        .map((cb) => cb.category.id),
     )
     return ids
   }, [categoryBudgetId, existingCategoryBudgets])
@@ -181,12 +207,12 @@ export default function EditCategoryBudgetRow(props: EditCategoryBudgetRowProps)
           },
         },
       }),
-    []
+    [],
   )
 
   const doneFn = useMemo(
     () => (categoryBudgetId ? handleEdit : handleAdd),
-    [handleAdd, handleEdit, categoryBudgetId]
+    [handleAdd, handleEdit, categoryBudgetId],
   )
 
   if (!categories) return null
@@ -201,8 +227,10 @@ export default function EditCategoryBudgetRow(props: EditCategoryBudgetRowProps)
               .filter(
                 (category) =>
                   (!categorySearch ||
-                    category.name.toLowerCase().includes(categorySearch.toLowerCase())) &&
-                  !takenCategoryIds.has(category.id)
+                    category.name
+                      .toLowerCase()
+                      .includes(categorySearch.toLowerCase())) &&
+                  !takenCategoryIds.has(category.id),
               )
               .map((category) => ({
                 label: category.name,
@@ -284,7 +312,11 @@ export default function EditCategoryBudgetRow(props: EditCategoryBudgetRowProps)
             <Button className="p-0 size-8" color="light" onClick={doneFn}>
               <FiSave />
             </Button>
-            <Button className="p-0 size-8" color="light" onClick={cancelCallback}>
+            <Button
+              className="p-0 size-8"
+              color="light"
+              onClick={cancelCallback}
+            >
               <FiX />
             </Button>
           </div>

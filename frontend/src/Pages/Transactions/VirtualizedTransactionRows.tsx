@@ -4,7 +4,10 @@ import { RefObject } from "react"
 import { Transaction } from "../../API/requests"
 import EditTransactionRow from "./EditTransactionRow"
 import TransactionRow from "./TransactionRow"
-import { needsStripeOffsetRow, TRANSACTION_TABLE_COLUMN_COUNT } from "./transactionTableColumns"
+import {
+  needsStripeOffsetRow,
+  TRANSACTION_TABLE_COLUMN_COUNT,
+} from "./transactionTableColumns"
 import { TransactionVirtualizer } from "./useVirtualizedTransactionList"
 
 type ColorPair = { fill?: string; text?: string }
@@ -39,7 +42,9 @@ function SpacerRow({ height }: { height: number }) {
   )
 }
 
-export default function VirtualizedTransactionRows(props: VirtualizedTransactionRowsProps) {
+export default function VirtualizedTransactionRows(
+  props: VirtualizedTransactionRowsProps,
+) {
   const {
     virtualListStartRef,
     showAdd,
@@ -57,17 +62,27 @@ export default function VirtualizedTransactionRows(props: VirtualizedTransaction
   } = props
 
   const startIndex = virtualItems[0]?.index ?? 0
-  const stripeOffsetRow = needsStripeOffsetRow({ startIndex, showAdd, paddingTop })
+  const stripeOffsetRow = needsStripeOffsetRow({
+    startIndex,
+    showAdd,
+    paddingTop,
+  })
 
   return (
     <>
       <tr ref={virtualListStartRef} aria-hidden="true" className="h-0 border-0">
-        <td colSpan={TRANSACTION_TABLE_COLUMN_COUNT} className="h-0 border-0 p-0" />
+        <td
+          colSpan={TRANSACTION_TABLE_COLUMN_COUNT}
+          className="h-0 border-0 p-0"
+        />
       </tr>
       <SpacerRow height={paddingTop} />
       {stripeOffsetRow && (
         <tr aria-hidden="true" className="h-0 border-0">
-          <td colSpan={TRANSACTION_TABLE_COLUMN_COUNT} className="h-0 border-0 p-0" />
+          <td
+            colSpan={TRANSACTION_TABLE_COLUMN_COUNT}
+            className="h-0 border-0 p-0"
+          />
         </tr>
       )}
       {virtualItems.map((virtualRow) => {

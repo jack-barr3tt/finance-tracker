@@ -1,7 +1,10 @@
 import { format, parseISO } from "date-fns"
 import { RefObject, useLayoutEffect, useMemo, useState } from "react"
 import { measureNaturalWidth, prepareWithSegments } from "@chenglou/pretext"
-import { layoutNextRichInlineLineRange, prepareRichInline } from "@chenglou/pretext/rich-inline"
+import {
+  layoutNextRichInlineLineRange,
+  prepareRichInline,
+} from "@chenglou/pretext/rich-inline"
 import { Account, Category, Transaction } from "../../API/requests"
 import { formatCurrencyGBP } from "../../utils"
 
@@ -65,7 +68,9 @@ function badgeWidth(text: string, font: string): number {
   const prepared = prepareRichInline([
     { text, font, break: "never", extraWidth: layout.badgeExtra },
   ])
-  return layoutNextRichInlineLineRange(prepared, Number.MAX_SAFE_INTEGER)?.width ?? 0
+  return (
+    layoutNextRichInlineLineRange(prepared, Number.MAX_SAFE_INTEGER)?.width ?? 0
+  )
 }
 
 function paddedWidth(contentWidth: number): number {
@@ -84,7 +89,10 @@ function badgeColumnWidth(
 ): number {
   if (compactBadges) return layout.compactBadge
   return paddedWidth(
-    Math.max(headerWithFilter(header, fonts.header), ...labels.map((label) => badgeWidth(label, fonts.badge))),
+    Math.max(
+      headerWithFilter(header, fonts.header),
+      ...labels.map((label) => badgeWidth(label, fonts.badge)),
+    ),
   )
 }
 
@@ -92,7 +100,9 @@ function readTableFonts(table: HTMLTableElement): TableFonts {
   const headerCell = table.querySelector("thead th")
   const bodyCell = table.querySelector("tbody td")
   const badgeLabel = table.querySelector("tbody span.hidden.md\\:block")
-  const body = bodyCell ? getComputedStyle(bodyCell).font : getComputedStyle(table).font
+  const body = bodyCell
+    ? getComputedStyle(bodyCell).font
+    : getComputedStyle(table).font
 
   return {
     header: headerCell ? getComputedStyle(headerCell).font : body,
@@ -101,7 +111,9 @@ function readTableFonts(table: HTMLTableElement): TableFonts {
   }
 }
 
-export function computeTransactionTableColumnWidths(input: ColumnWidthInput): (number | undefined)[] {
+export function computeTransactionTableColumnWidths(
+  input: ColumnWidthInput,
+): (number | undefined)[] {
   const { fonts, accounts, categories, transactions, compactBadges } = input
 
   const dateWidth = Math.max(
@@ -112,15 +124,25 @@ export function computeTransactionTableColumnWidths(input: ColumnWidthInput): (n
   )
   const amountWidth = Math.max(
     textWidth("Amount", fonts.header),
-    ...transactions.map((transaction) => textWidth(formatCurrencyGBP(transaction.amount), fonts.body)),
+    ...transactions.map((transaction) =>
+      textWidth(formatCurrencyGBP(transaction.amount), fonts.body),
+    ),
   )
 
   return [
     paddedWidth(dateWidth),
-    badgeColumnWidth("Account", accounts?.map((account) => account.name) ?? [], fonts, compactBadges),
+    badgeColumnWidth(
+      "Account",
+      accounts?.map((account) => account.name) ?? [],
+      fonts,
+      compactBadges,
+    ),
     badgeColumnWidth(
       "Category",
-      ["Uncategorised", ...(categories?.map((category) => category.name) ?? [])],
+      [
+        "Uncategorised",
+        ...(categories?.map((category) => category.name) ?? []),
+      ],
       fonts,
       compactBadges,
     ),
@@ -137,7 +159,9 @@ type UseTransactionTableColumnWidthsInput = {
   transactions: Transaction[]
 }
 
-export function useTransactionTableColumnWidths(input: UseTransactionTableColumnWidthsInput) {
+export function useTransactionTableColumnWidths(
+  input: UseTransactionTableColumnWidthsInput,
+) {
   const { tableRef, accounts, categories, transactions } = input
   const [measurement, setMeasurement] = useState<{
     fonts: TableFonts
@@ -168,7 +192,12 @@ export function useTransactionTableColumnWidths(input: UseTransactionTableColumn
 
   return useMemo(() => {
     const widths = measurement
-      ? computeTransactionTableColumnWidths({ ...measurement, accounts, categories, transactions })
+      ? computeTransactionTableColumnWidths({
+          ...measurement,
+          accounts,
+          categories,
+          transactions,
+        })
       : fallbackWidths
 
     return { columnWidths: widths.slice(0, TRANSACTION_TABLE_COLUMN_COUNT) }

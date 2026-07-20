@@ -16,7 +16,9 @@ export default function AccountSummaries() {
             {accountSummary?.accounts.map((account) => (
               <Card className="h-30">
                 <div className="grid grid-cols-2 gap-2 -m-2 auto-cols-auto md:m-0">
-                  <h1 className="order-3 font-medium md:order-1">{account.account.name}</h1>
+                  <h1 className="order-3 font-medium md:order-1">
+                    {account.account.name}
+                  </h1>
                   <h2 className="font-light">{account.account.bank.name}</h2>
                   <p className="order-first col-span-1 row-span-2 text-3xl md:text-4xl md:order-3 md:col-span-2 md:row-span-1">
                     {formatCurrencyGBP(account.balance)}
@@ -29,9 +31,7 @@ export default function AccountSummaries() {
               <Card className="h-30">
                 <div className="flex flex-row items-center gap-4 text-2xl md:text-3xl">
                   <h1 className="font-medium">Total:</h1>
-                  <p>
-                    {formatCurrencyGBP(accountSummary?.total ?? 0)}
-                  </p>
+                  <p>{formatCurrencyGBP(accountSummary?.total ?? 0)}</p>
                 </div>
               </Card>
             </div>

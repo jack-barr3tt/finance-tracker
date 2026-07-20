@@ -13,7 +13,7 @@ export async function parseNationwide(
   userId: string,
   accountId: string,
   encrypt: (text: string) => Promise<string>,
-  decrypt: (text: string) => Promise<string>
+  decrypt: (text: string) => Promise<string>,
 ): Promise<boolean> {
   const getAmount = (str: string): number => {
     const match = str.match(/[\d.,]+/)
@@ -31,6 +31,6 @@ export async function parseNationwide(
       amount: getAmount(data["Paid in"]) - getAmount(data["Paid out"]),
       description: data.Description,
     }),
-    { header: true, skipEmptyLines: true, skipFirstNLines: 3 }
+    { header: true, skipEmptyLines: true, skipFirstNLines: 3 },
   )
 }

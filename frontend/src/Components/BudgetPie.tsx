@@ -4,14 +4,21 @@ import { Card, useThemeMode } from "flowbite-react"
 import { useMemo } from "react"
 import { BudgetTransaction, CategoryBudget } from "../API/requests"
 import EChart from "../charts/EChart"
-import { getChartBaseOption, getDoughnutLegendOption, getDoughnutSeriesOption } from "../charts/theme"
+import {
+  getChartBaseOption,
+  getDoughnutLegendOption,
+  getDoughnutSeriesOption,
+} from "../charts/theme"
 import { isSegmentActiveToday } from "../budget/plannedAmount"
 import { formatCurrencyGBP, toMonthlyAmount } from "../utils"
 
 type BudgetPieProps = {
   budgetTransactions: BudgetTransaction[]
   categoryBudgets: CategoryBudget[]
-  categoryColorMap: Record<string, { fill: string; text: string; border: string }>
+  categoryColorMap: Record<
+    string,
+    { fill: string; text: string; border: string }
+  >
 }
 
 export default function BudgetPie(props: BudgetPieProps) {
@@ -29,7 +36,11 @@ export default function BudgetPie(props: BudgetPieProps) {
 
     const monthlyIncome = activeBudgetTransactions
       .filter((bt) => bt.amount > 0)
-      .reduce((sum, bt) => sum + toMonthlyAmount(bt.amount, bt.repeat_every, bt.repeat_until), 0)
+      .reduce(
+        (sum, bt) =>
+          sum + toMonthlyAmount(bt.amount, bt.repeat_every, bt.repeat_until),
+        0,
+      )
 
     const categoryTotals: Record<
       string,
@@ -64,7 +75,11 @@ export default function BudgetPie(props: BudgetPieProps) {
       })
 
     activeCategoryBudgets.forEach((cb) => {
-      const monthlyAmount = toMonthlyAmount(cb.amount, cb.repeat_every, cb.repeat_until)
+      const monthlyAmount = toMonthlyAmount(
+        cb.amount,
+        cb.repeat_every,
+        cb.repeat_until,
+      )
       addToCategoryTotal(cb.category.id, cb.category.name, monthlyAmount)
     })
 
@@ -74,7 +89,9 @@ export default function BudgetPie(props: BudgetPieProps) {
 
     const labels = categories.map((cat) => cat.name)
     const data = categories.map((cat) => cat.value)
-    const backgroundColors = categories.map((cat) => Color(cat.fill).alpha(0.25).string())
+    const backgroundColors = categories.map((cat) =>
+      Color(cat.fill).alpha(0.25).string(),
+    )
     const borderColors = categories.map((cat) => cat.border)
 
     if (remaining > 0) {

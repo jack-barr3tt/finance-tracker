@@ -1,4 +1,10 @@
-import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router-dom"
+import {
+  BrowserRouter,
+  Navigate,
+  Route,
+  Routes,
+  useLocation,
+} from "react-router-dom"
 import Transactions from "./Pages/Transactions"
 import SignUp from "./Pages/SignUp"
 import Login from "./Pages/Login"
@@ -32,7 +38,8 @@ function AppRoutes() {
       !location.pathname.includes("signup"),
     [location.pathname, userId],
   )
-  const showSummaryRangeFilter = hasPrivateNav && location.pathname.startsWith("/transactions")
+  const showSummaryRangeFilter =
+    hasPrivateNav && location.pathname.startsWith("/transactions")
 
   const routes = (
     <Routes>
@@ -61,7 +68,10 @@ function AppRoutes() {
 
   return (
     <>
-      <KeyboardShortcutsModal show={showShortcuts} onClose={() => setShowShortcuts(false)} />
+      <KeyboardShortcutsModal
+        show={showShortcuts}
+        onClose={() => setShowShortcuts(false)}
+      />
       {hasPrivateNav ? (
         <div className="flex min-h-0 flex-1 flex-col md:flex-row">
           <NavBar
@@ -72,7 +82,10 @@ function AppRoutes() {
             onOpenShortcuts={() => setShowShortcuts(true)}
           />
           <ScrollContainerContext.Provider value={scrollContainerRef}>
-            <main ref={scrollContainerRef} className="relative min-h-0 flex-1 overflow-y-auto pt-4 md:pt-8">
+            <main
+              ref={scrollContainerRef}
+              className="relative min-h-0 flex-1 overflow-y-auto pt-4 md:pt-8"
+            >
               {!showDesktopSidebar && (
                 <Button
                   color="light"

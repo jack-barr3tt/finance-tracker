@@ -54,7 +54,11 @@ export function prependToFile(file: File, line: string): Promise<File> {
   })
 }
 
-export function toMonthlyAmount(amount: number, repeatEvery: number, repeatUntil: string): number {
+export function toMonthlyAmount(
+  amount: number,
+  repeatEvery: number,
+  repeatUntil: string,
+): number {
   const absAmount = Math.abs(amount)
 
   switch (repeatUntil) {

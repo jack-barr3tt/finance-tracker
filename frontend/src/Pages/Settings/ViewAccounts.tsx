@@ -15,15 +15,21 @@ import { decryptAccount } from "../../Security/data"
 export default function ViewAccounts() {
   const { userId, decrypt } = useUser()
   const queryClient = useQueryClient()
-  const { data: encAccounts } = useGetUserByIdAccounts({ path: { id: userId } }, undefined, {
-    enabled: !!userId,
-  })
+  const { data: encAccounts } = useGetUserByIdAccounts(
+    { path: { id: userId } },
+    undefined,
+    {
+      enabled: !!userId,
+    },
+  )
   const accounts = useAsyncMemo(
     async () =>
-      (await Promise.all(encAccounts?.map((acc) => decryptAccount(acc, decrypt)) ?? [])).sort(
-        (a, b) => a.name.localeCompare(b.name)
-      ),
-    [encAccounts]
+      (
+        await Promise.all(
+          encAccounts?.map((acc) => decryptAccount(acc, decrypt)) ?? [],
+        )
+      ).sort((a, b) => a.name.localeCompare(b.name)),
+    [encAccounts],
   )
 
   const { mutateAsync: deleteAccount } = useDeleteUserByIdAccountsByAccountId()
@@ -37,7 +43,7 @@ export default function ViewAccounts() {
         queryKey: UseGetUserByIdAccountsKeyFn({ path: { id: userId } }),
       })
     },
-    [deleteAccount, queryClient, userId]
+    [deleteAccount, queryClient, userId],
   )
 
   return (

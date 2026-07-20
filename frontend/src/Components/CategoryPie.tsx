@@ -5,7 +5,14 @@ import { Button, ButtonGroup, Card, useThemeMode } from "flowbite-react"
 import { useMemo, useState } from "react"
 import { LuChartLine, LuChartPie } from "react-icons/lu"
 import EChart from "../charts/EChart"
-import { getChartBaseOption, getDoughnutLegendOption, getDoughnutSeriesOption, getLineChartAxesOption, getLineChartGridOption, getLineChartLegendOption } from "../charts/theme"
+import {
+  getChartBaseOption,
+  getDoughnutLegendOption,
+  getDoughnutSeriesOption,
+  getLineChartAxesOption,
+  getLineChartGridOption,
+  getLineChartLegendOption,
+} from "../charts/theme"
 import { formatCurrencyGBP, getBrightColors } from "../utils"
 import { useData } from "../Hooks/useData"
 import { useUser } from "../Hooks/useUser"
@@ -51,7 +58,8 @@ export default function CategoryPie() {
   )
 
   const pieOption = useMemo<EChartsOption>(() => {
-    const spendingCategories = categorySummaries?.filter((cat) => cat.total < 0) || []
+    const spendingCategories =
+      categorySummaries?.filter((cat) => cat.total < 0) || []
     const baseOption = getChartBaseOption(isDark)
 
     const data = spendingCategories.map((cat, index) => {
@@ -99,12 +107,16 @@ export default function CategoryPie() {
       }) || []
 
     const dates =
-      spendingSeries[0]?.amounts.map((item) => format(parseISO(item.date), "dd MMM yyyy")) || []
+      spendingSeries[0]?.amounts.map((item) =>
+        format(parseISO(item.date), "dd MMM yyyy"),
+      ) || []
 
     const datasets = spendingSeries
       .map((series, index) => {
         const categoryId = series.category?.id || "uncategorised"
-        const borderColor = colorMap ? colorMap[categoryId]?.border : pieBorders[index]
+        const borderColor = colorMap
+          ? colorMap[categoryId]?.border
+          : pieBorders[index]
 
         return {
           label: series.category?.name || "Uncategorised",
@@ -144,7 +156,8 @@ export default function CategoryPie() {
         type: "value",
         min: 0,
         axisLabel: {
-          ...(typeof axesOption.yAxis === "object" && !Array.isArray(axesOption.yAxis)
+          ...(typeof axesOption.yAxis === "object" &&
+          !Array.isArray(axesOption.yAxis)
             ? axesOption.yAxis.axisLabel
             : {}),
           formatter: (value: number) => formatCurrencyGBP(value),
@@ -168,7 +181,6 @@ export default function CategoryPie() {
     colorMap,
     isDark,
     pieBorders,
-    pieFills,
     spendingCategoryIds,
   ])
 

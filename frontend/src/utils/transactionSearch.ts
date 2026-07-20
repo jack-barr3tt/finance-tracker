@@ -1,7 +1,10 @@
 import { Transaction } from "../API/requests"
 import { formatCurrencyGBP } from "../utils"
 
-export function transactionMatchesSearch(transaction: Transaction, query: string): boolean {
+export function transactionMatchesSearch(
+  transaction: Transaction,
+  query: string,
+): boolean {
   const q = query.trim().toLowerCase()
   if (!q) return true
 

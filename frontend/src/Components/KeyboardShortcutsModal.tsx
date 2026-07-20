@@ -7,12 +7,16 @@ type KeyboardShortcutsModalProps = {
   onClose: () => void
 }
 
-export default function KeyboardShortcutsModal(props: KeyboardShortcutsModalProps) {
+export default function KeyboardShortcutsModal(
+  props: KeyboardShortcutsModalProps,
+) {
   const { show, onClose } = props
 
   return (
     <Modal show={show} onClose={onClose}>
-      <ModalHeader className="text-gray-900 dark:text-white">Keyboard Shortcuts</ModalHeader>
+      <ModalHeader className="text-gray-900 dark:text-white">
+        Keyboard Shortcuts
+      </ModalHeader>
       <ModalBody className="text-gray-900 dark:text-white">
         <div className="flex flex-col gap-2">
           {HOTKEYS.map((shortcut) => (

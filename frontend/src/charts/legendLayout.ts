@@ -10,7 +10,10 @@ type LegendView = {
 
 type LayoutChart = {
   getModel: () => {
-    getComponent: (mainType: string, idx: number) => { get: (key: string) => unknown } | undefined
+    getComponent: (
+      mainType: string,
+      idx: number,
+    ) => { get: (key: string) => unknown } | undefined
   }
   getViewOfComponentModel: (componentModel: unknown) => LegendView | undefined
 }
@@ -37,14 +40,16 @@ export function applyLegendLayout(chart: ECharts): boolean {
   const chartHeight = chart.getHeight()
   const bottomPadding = legendHeight + LEGEND_GAP
   const option = chart.getOption()
-  const series = option.series as Array<{ type?: string; center?: [unknown, unknown] }> | undefined
+  const series = option.series as
+    Array<{ type?: string; center?: [unknown, unknown] }> | undefined
   const firstSeries = series?.[0]
 
   if (firstSeries?.type === "pie") {
     const centerY = (chartHeight - bottomPadding) / 2
     const currentY = firstSeries.center?.[1]
 
-    if (typeof currentY === "number" && Math.abs(currentY - centerY) < 1) return false
+    if (typeof currentY === "number" && Math.abs(currentY - centerY) < 1)
+      return false
 
     chart.setOption({
       series: [{ center: ["50%", centerY] }],
@@ -52,10 +57,16 @@ export function applyLegendLayout(chart: ECharts): boolean {
     return true
   }
 
-  const grid = option.grid as { bottom?: number | string } | Array<{ bottom?: number | string }> | undefined
+  const grid = option.grid as
+    | { bottom?: number | string }
+    | Array<{ bottom?: number | string }>
+    | undefined
   const currentBottom = Array.isArray(grid) ? grid[0]?.bottom : grid?.bottom
 
-  if (typeof currentBottom === "number" && Math.abs(currentBottom - bottomPadding) < 1) {
+  if (
+    typeof currentBottom === "number" &&
+    Math.abs(currentBottom - bottomPadding) < 1
+  ) {
     return false
   }
 

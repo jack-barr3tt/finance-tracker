@@ -56,9 +56,16 @@ export default function SearchSelect(props: SearchSelectProps) {
   const dismiss = useDismiss(context)
   const role = useRole(context)
 
-  const { getReferenceProps, getFloatingProps } = useInteractions([click, dismiss, role])
+  const { getReferenceProps, getFloatingProps } = useInteractions([
+    click,
+    dismiss,
+    role,
+  ])
 
-  const chosenOption = useMemo(() => options.find((o) => o.value === selected), [options, selected])
+  const chosenOption = useMemo(
+    () => options.find((o) => o.value === selected),
+    [options, selected],
+  )
 
   const handleSelectFirst = () => {
     if (options.length > 0) {

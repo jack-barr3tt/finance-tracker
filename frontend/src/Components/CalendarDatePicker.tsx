@@ -38,9 +38,7 @@ const WEEK_STARTS_ON = 1
 const INPUT_FORMAT = "dd/MM/yyyy"
 
 type ParsedInputResult =
-  | { kind: "empty" }
-  | { kind: "valid"; value: Date }
-  | { kind: "invalid" }
+  { kind: "empty" } | { kind: "valid"; value: Date } | { kind: "invalid" }
 
 function formatInputValue(value: Date | null) {
   return value ? format(value, INPUT_FORMAT) : ""
@@ -81,12 +79,19 @@ function parseDateInput(text: string): ParsedInputResult {
 }
 
 export default function CalendarDatePicker(props: CalendarDatePickerProps) {
-  const { value, onChange, autoFocus = false, placeholder = "DD/MM/YYYY" } = props
+  const {
+    value,
+    onChange,
+    autoFocus = false,
+    placeholder = "DD/MM/YYYY",
+  } = props
 
   const [isOpen, setIsOpen] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
   const inputRef = useRef<HTMLInputElement | null>(null)
-  const [visibleMonth, setVisibleMonth] = useState(() => startOfMonth(value ?? new Date()))
+  const [visibleMonth, setVisibleMonth] = useState(() =>
+    startOfMonth(value ?? new Date()),
+  )
   const [inputValue, setInputValue] = useState(() => formatInputValue(value))
 
   const { refs, floatingStyles, context } = useFloating({
@@ -99,7 +104,10 @@ export default function CalendarDatePicker(props: CalendarDatePickerProps) {
 
   const dismiss = useDismiss(context, { outsidePress: false })
   const role = useRole(context)
-  const { getReferenceProps, getFloatingProps } = useInteractions([dismiss, role])
+  const { getReferenceProps, getFloatingProps } = useInteractions([
+    dismiss,
+    role,
+  ])
 
   useEffect(() => {
     if (isOpen) setVisibleMonth(startOfMonth(value ?? new Date()))
@@ -110,8 +118,12 @@ export default function CalendarDatePicker(props: CalendarDatePickerProps) {
   }, [isEditing, value])
 
   const weekdayLabels = useMemo(() => {
-    const firstWeekday = startOfWeek(new Date(), { weekStartsOn: WEEK_STARTS_ON })
-    return Array.from({ length: 7 }, (_, index) => format(addDays(firstWeekday, index), "EEE"))
+    const firstWeekday = startOfWeek(new Date(), {
+      weekStartsOn: WEEK_STARTS_ON,
+    })
+    return Array.from({ length: 7 }, (_, index) =>
+      format(addDays(firstWeekday, index), "EEE"),
+    )
   }, [])
 
   const calendarDays = useMemo(() => {
@@ -176,7 +188,9 @@ export default function CalendarDatePicker(props: CalendarDatePickerProps) {
           value={inputValue}
           placeholder={placeholder}
           {...getReferenceProps({
-            "aria-label": value ? `Selected date ${formatInputValue(value)}` : "Select date",
+            "aria-label": value
+              ? `Selected date ${formatInputValue(value)}`
+              : "Select date",
             onFocus: () => {
               setIsEditing(true)
               setIsOpen(true)
@@ -193,7 +207,8 @@ export default function CalendarDatePicker(props: CalendarDatePickerProps) {
               const nextFocus = event.relatedTarget as Node | null
               if (nextFocus === inputRef.current) return
               const floatingEl = refs.floating.current
-              if (floatingEl && nextFocus && floatingEl.contains(nextFocus)) return
+              if (floatingEl && nextFocus && floatingEl.contains(nextFocus))
+                return
               setIsOpen(false)
             },
             onKeyDown: (event) => {
@@ -226,87 +241,104 @@ export default function CalendarDatePicker(props: CalendarDatePickerProps) {
               theme={{ root: { children: "p-3!" } }}
               className="border border-gray-200 shadow-lg dark:border-gray-700"
             >
-                <div className="flex items-center justify-between gap-2">
-                  <button
-                    type="button"
-                    tabIndex={-1}
-                    className="flex items-center justify-center text-gray-900 transition-colors rounded-lg size-8 hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700"
-                    onClick={() => setVisibleMonth((currentMonth) => subMonths(currentMonth, 1))}
-                    aria-label="Previous month"
-                  >
-                    <FiChevronLeft />
-                  </button>
-                  <p className="text-xl font-semibold text-gray-900 dark:text-white">
-                    {format(visibleMonth, "MMMM yyyy")}
-                  </p>
-                  <button
-                    type="button"
-                    tabIndex={-1}
-                    className="flex items-center justify-center text-gray-900 transition-colors rounded-lg size-8 hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700"
-                    onClick={() => setVisibleMonth((currentMonth) => addMonths(currentMonth, 1))}
-                    aria-label="Next month"
-                  >
-                    <FiChevronRight />
-                  </button>
-                </div>
-
-                <div className="grid grid-cols-7 mt-3 mb-1">
-                  {weekdayLabels.map((label) => (
-                    <span
-                      key={label}
-                      className="text-sm font-semibold text-center text-gray-500 dark:text-gray-400"
-                    >
-                      {label}
-                    </span>
-                  ))}
-                </div>
-
-                <div className="grid grid-cols-7 gap-y-0.5">
-                  {calendarDays.map((day) => {
-                    const isSelected = value ? isSameDay(day, value) : false
-                    const isInVisibleMonth = isSameMonth(day, visibleMonth)
-                    const isCurrentDay = isToday(day)
-
-                    return (
-                      <button
-                        key={day.toISOString()}
-                        type="button"
-                        tabIndex={-1}
-                        className={[
-                          "flex items-center justify-center w-full h-9 text-base font-semibold rounded-lg transition-colors",
-                          isSelected &&
-                            "bg-cyan-700 text-white hover:bg-cyan-800 dark:bg-cyan-600 dark:hover:bg-cyan-500",
-                          !isSelected &&
-                            isCurrentDay &&
-                            "bg-cyan-50 text-cyan-700 hover:bg-cyan-100 dark:bg-cyan-900/20 dark:text-cyan-300 dark:hover:bg-cyan-900/40",
-                          !isSelected &&
-                            !isCurrentDay &&
-                            isInVisibleMonth &&
-                            "text-gray-900 hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700",
-                          !isSelected &&
-                            !isCurrentDay &&
-                            !isInVisibleMonth &&
-                            "text-gray-400 hover:bg-gray-100 dark:text-gray-500 dark:hover:bg-gray-700",
-                        ]
-                          .filter(Boolean)
-                          .join(" ")}
-                        onClick={() => selectDate(day)}
-                        aria-label={format(day, "dd MMMM yyyy")}
-                      >
-                        {format(day, "d")}
-                      </button>
+              <div className="flex items-center justify-between gap-2">
+                <button
+                  type="button"
+                  tabIndex={-1}
+                  className="flex items-center justify-center text-gray-900 transition-colors rounded-lg size-8 hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700"
+                  onClick={() =>
+                    setVisibleMonth((currentMonth) =>
+                      subMonths(currentMonth, 1),
                     )
-                  })}
-                </div>
+                  }
+                  aria-label="Previous month"
+                >
+                  <FiChevronLeft />
+                </button>
+                <p className="text-xl font-semibold text-gray-900 dark:text-white">
+                  {format(visibleMonth, "MMMM yyyy")}
+                </p>
+                <button
+                  type="button"
+                  tabIndex={-1}
+                  className="flex items-center justify-center text-gray-900 transition-colors rounded-lg size-8 hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700"
+                  onClick={() =>
+                    setVisibleMonth((currentMonth) =>
+                      addMonths(currentMonth, 1),
+                    )
+                  }
+                  aria-label="Next month"
+                >
+                  <FiChevronRight />
+                </button>
+              </div>
 
-                <div className="grid grid-cols-2 gap-3 mt-3">
-                  <Button type="button" tabIndex={-1} onClick={() => selectDate(new Date())}>
-                    Today
-                  </Button>
-                  <Button color="light" type="button" tabIndex={-1} onClick={() => selectDate(null)}>
-                    Clear
-                  </Button>
-                </div>
+              <div className="grid grid-cols-7 mt-3 mb-1">
+                {weekdayLabels.map((label) => (
+                  <span
+                    key={label}
+                    className="text-sm font-semibold text-center text-gray-500 dark:text-gray-400"
+                  >
+                    {label}
+                  </span>
+                ))}
+              </div>
+
+              <div className="grid grid-cols-7 gap-y-0.5">
+                {calendarDays.map((day) => {
+                  const isSelected = value ? isSameDay(day, value) : false
+                  const isInVisibleMonth = isSameMonth(day, visibleMonth)
+                  const isCurrentDay = isToday(day)
+
+                  return (
+                    <button
+                      key={day.toISOString()}
+                      type="button"
+                      tabIndex={-1}
+                      className={[
+                        "flex items-center justify-center w-full h-9 text-base font-semibold rounded-lg transition-colors",
+                        isSelected &&
+                          "bg-cyan-700 text-white hover:bg-cyan-800 dark:bg-cyan-600 dark:hover:bg-cyan-500",
+                        !isSelected &&
+                          isCurrentDay &&
+                          "bg-cyan-50 text-cyan-700 hover:bg-cyan-100 dark:bg-cyan-900/20 dark:text-cyan-300 dark:hover:bg-cyan-900/40",
+                        !isSelected &&
+                          !isCurrentDay &&
+                          isInVisibleMonth &&
+                          "text-gray-900 hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700",
+                        !isSelected &&
+                          !isCurrentDay &&
+                          !isInVisibleMonth &&
+                          "text-gray-400 hover:bg-gray-100 dark:text-gray-500 dark:hover:bg-gray-700",
+                      ]
+                        .filter(Boolean)
+                        .join(" ")}
+                      onClick={() => selectDate(day)}
+                      aria-label={format(day, "dd MMMM yyyy")}
+                    >
+                      {format(day, "d")}
+                    </button>
+                  )
+                })}
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 mt-3">
+                <Button
+                  type="button"
+                  tabIndex={-1}
+                  onClick={() => selectDate(new Date())}
+                >
+                  Today
+                </Button>
+                <Button
+                  color="light"
+                  type="button"
+                  tabIndex={-1}
+                  onClick={() => selectDate(null)}
+                >
+                  Clear
+                </Button>
+              </div>
             </Card>
           </div>
         </FloatingPortal>

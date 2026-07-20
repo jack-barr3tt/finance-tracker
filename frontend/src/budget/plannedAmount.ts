@@ -24,7 +24,11 @@ function parseSegmentDate(date: string): Date {
   return startOfMonth(parseISO(date))
 }
 
-function addRecurrence(date: Date, repeatEvery: number, repeatUntil: PeriodUnit): Date {
+function addRecurrence(
+  date: Date,
+  repeatEvery: number,
+  repeatUntil: PeriodUnit,
+): Date {
   switch (repeatUntil) {
     case "day":
       return addDays(date, repeatEvery)
@@ -74,7 +78,10 @@ function occurrenceCountInMonth(
   return count
 }
 
-export function isSegmentActiveInMonth(segment: Pick<BudgetSegment, "starts_on" | "ends_on">, month: Date): boolean {
+export function isSegmentActiveInMonth(
+  segment: Pick<BudgetSegment, "starts_on" | "ends_on">,
+  month: Date,
+): boolean {
   const monthStart = startOfMonth(month)
   const monthEnd = endOfMonth(month)
   const segmentStart = parseSegmentDate(segment.starts_on)
@@ -101,19 +108,32 @@ export function plannedForMonth(
   month: Date,
   endsOn?: string,
 ): number {
-  if (!isSegmentActiveInMonth({ starts_on: startsOn, ends_on: endsOn }, month)) {
+  if (
+    !isSegmentActiveInMonth({ starts_on: startsOn, ends_on: endsOn }, month)
+  ) {
     return 0
   }
 
-  const count = occurrenceCountInMonth(repeatEvery, repeatUntil, startsOn, month, endsOn)
+  const count = occurrenceCountInMonth(
+    repeatEvery,
+    repeatUntil,
+    startsOn,
+    month,
+    endsOn,
+  )
   return count * Math.abs(amount)
 }
 
-export function isSegmentActiveToday(segment: Pick<BudgetSegment, "starts_on" | "ends_on">): boolean {
+export function isSegmentActiveToday(
+  segment: Pick<BudgetSegment, "starts_on" | "ends_on">,
+): boolean {
   return isSegmentActiveInMonth(segment, new Date())
 }
 
-export function formatSegmentDateRange(startsOn: string, endsOn?: string): string {
+export function formatSegmentDateRange(
+  startsOn: string,
+  endsOn?: string,
+): string {
   const startLabel = format(parseSegmentDate(startsOn), "MMM yyyy")
 
   if (!endsOn) {

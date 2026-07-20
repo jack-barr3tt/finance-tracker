@@ -49,6 +49,6 @@ Do **not** edit `backend/api/gen.go` or files under `frontend/src/API/` by hand 
 
 ## Validation
 
-- For frontend changes, run `yarn lint` and, for broader TypeScript/UI changes, `yarn build` from `frontend`.
-- For backend changes, run `go test ./api/...` from `backend`.
+- For frontend changes, run `yarn lint` and `yarn format:check` from `frontend`, and for broader TypeScript/UI changes, `yarn build`.
+- For backend changes, run `golangci-lint run` and `go test ./api/...` from `backend`.
 - After changing OpenAPI schema, regenerate both backend and frontend API code and include the generated diffs.

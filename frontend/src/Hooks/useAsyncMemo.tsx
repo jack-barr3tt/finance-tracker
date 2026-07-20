@@ -1,7 +1,9 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, type DependencyList } from "react"
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function useAsyncMemo<T>(factory: () => Promise<T>, deps: any[]): T | null {
+export function useAsyncMemo<T>(
+  factory: () => Promise<T>,
+  deps: DependencyList,
+): T | null {
   const [value, setValue] = useState<T | null>(null)
 
   useEffect(() => {

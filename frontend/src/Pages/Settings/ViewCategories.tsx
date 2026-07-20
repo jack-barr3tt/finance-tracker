@@ -20,18 +20,22 @@ export default function ViewCategories() {
     undefined,
     {
       enabled: !!userId,
-    }
+    },
   )
 
   const categories = useAsyncMemo(
     async () =>
       (
-        await Promise.all(encryptedCategories?.map((cat) => decryptCategory(cat, decrypt)) ?? [])
+        await Promise.all(
+          encryptedCategories?.map((cat) => decryptCategory(cat, decrypt)) ??
+            [],
+        )
       ).sort((a, b) => a.name.localeCompare(b.name)),
-    [decrypt, encryptedCategories]
+    [decrypt, encryptedCategories],
   )
 
-  const { mutateAsync: deleteCategory } = useDeleteUserByIdCategoriesByCategoryId()
+  const { mutateAsync: deleteCategory } =
+    useDeleteUserByIdCategoriesByCategoryId()
   const navigate = useNavigate()
 
   const handleDeleteCategory = useCallback(
@@ -41,7 +45,7 @@ export default function ViewCategories() {
         queryKey: UseGetUserByIdCategoriesKeyFn({ path: { id: userId } }),
       })
     },
-    [deleteCategory, queryClient, userId]
+    [deleteCategory, queryClient, userId],
   )
 
   return (
@@ -51,7 +55,8 @@ export default function ViewCategories() {
           <div className="grid items-center grid-cols-3 md:grid-cols-2">
             <h3 className="font-medium">{category.name}</h3>
             <p className="text-sm md:order-last">
-              {category.rules.length} rule{category.rules.length !== 1 ? "s" : ""}
+              {category.rules.length} rule
+              {category.rules.length !== 1 ? "s" : ""}
             </p>
 
             <div className="flex flex-row items-center justify-end gap-2 md:row-span-2 md:items-end md:flex-col">

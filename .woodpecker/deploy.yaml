@@ -1,0 +1,85 @@
+when:
+  - event: push
+    branch: main
+
+concurrency:
+  limit: 1
+
+steps:
+  - name: lint-frontend
+    image: node:22-alpine
+    commands:
+      - corepack enable
+      - cd frontend
+      - yarn install --frozen-lockfile
+      - yarn lint
+
+  - name: lint-backend
+    image: golangci/golangci-lint:v1.62-alpine
+    commands:
+      - cd backend
+      - golangci-lint run
+      - go test ./api/...
+
+  - name: build-frontend
+    image: node:22-alpine
+    depends_on:
+      - lint-frontend
+    environment:
+      VITE_BACKEND_URL:
+        from_secret: vite_backend_url
+    commands:
+      - corepack enable
+      - cd frontend
+      - yarn install --frozen-lockfile
+      - yarn build
+
+  - name: build-backend
+    image: golang:1.23-alpine
+    depends_on:
+      - lint-backend
+    commands:
+      - cd backend
+      - CGO_ENABLED=0 go build -o finance-tracker .
+
+  - name: package
+    image: alpine:3.20
+    depends_on:
+      - build-frontend
+      - build-backend
+    commands:
+      - mkdir -p release/dist
+      - cp backend/finance-tracker release/
+      - cp -r frontend/dist/. release/dist/
+      - cp scripts/deploy.sh release/
+      - chmod +x release/deploy.sh
+      - tar -czf release.tar.gz -C release .
+
+  - name: deploy
+    image: alpine:3.20
+    depends_on:
+      - package
+    environment:
+      SSH_KEY:
+        from_secret: deploy_ssh_key
+      DEPLOY_HOST:
+        from_secret: deploy_host
+      DEPLOY_USER:
+        from_secret: deploy_user
+      DEPLOY_PATH:
+        from_secret: deploy_path
+    commands:
+      - apk add --no-cache openssh-client tar
+      - mkdir -p ~/.ssh && chmod 700 ~/.ssh
+      - printf '%s\n' "$SSH_KEY" > ~/.ssh/id_ed25519 && chmod 600 ~/.ssh/id_ed25519
+      - ssh-keyscan -H "$DEPLOY_HOST" >> ~/.ssh/known_hosts
+      - ssh "${DEPLOY_USER}@${DEPLOY_HOST}" "mkdir -p '${DEPLOY_PATH}/incoming'"
+      - scp release.tar.gz "${DEPLOY_USER}@${DEPLOY_HOST}:${DEPLOY_PATH}/incoming/"
+      - |
+        ssh "${DEPLOY_USER}@${DEPLOY_HOST}" "
+          set -euo pipefail
+          cd '${DEPLOY_PATH}/incoming'
+          tar -xzf release.tar.gz
+          DEPLOY_PATH='${DEPLOY_PATH}' ./deploy.sh
+          rm -f release.tar.gz
+        "

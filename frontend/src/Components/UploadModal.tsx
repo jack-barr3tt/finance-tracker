@@ -1,4 +1,12 @@
-import { Button, FileInput, Modal, ModalBody, ModalFooter, ModalHeader, Spinner } from "flowbite-react"
+import {
+  Button,
+  FileInput,
+  Modal,
+  ModalBody,
+  ModalFooter,
+  ModalHeader,
+  Spinner,
+} from "flowbite-react"
 import { FiCheck, FiX } from "react-icons/fi"
 import { useUser } from "../Hooks/useUser"
 import { toast } from "sonner"
@@ -32,7 +40,9 @@ export default function UploadModal(props: UploadModalProps) {
   const { accounts } = useData()
 
   const [accountId, setAccountId] = useState<string | undefined>(undefined)
-  const [accountSearch, setAccountSearch] = useState<string | undefined>(undefined)
+  const [accountSearch, setAccountSearch] = useState<string | undefined>(
+    undefined,
+  )
   const [file, setFile] = useState<File | null>(null)
   const [isUploading, setIsUploading] = useState(false)
 
@@ -53,11 +63,19 @@ export default function UploadModal(props: UploadModalProps) {
           await parseNationwide(file, userId, accountId, encrypt, decrypt)
           break
         case "t212": {
-          const t212Accounts = accounts?.filter((account) => account.bank.short_name == "t212")
-          const portfolioAccountId = t212Accounts?.find((a) => a.name === "Portfolio")?.id
-          const uninvestedAccountId = t212Accounts?.find((a) => a.name === "Uninvested Cash")?.id
+          const t212Accounts = accounts?.filter(
+            (account) => account.bank.short_name == "t212",
+          )
+          const portfolioAccountId = t212Accounts?.find(
+            (a) => a.name === "Portfolio",
+          )?.id
+          const uninvestedAccountId = t212Accounts?.find(
+            (a) => a.name === "Uninvested Cash",
+          )?.id
           if (!portfolioAccountId || !uninvestedAccountId) {
-            throw new Error("Trading 212 Portfolio and Uninvested Cash accounts are required.")
+            throw new Error(
+              "Trading 212 Portfolio and Uninvested Cash accounts are required.",
+            )
           }
           await parseTrading212(
             file,
@@ -65,7 +83,7 @@ export default function UploadModal(props: UploadModalProps) {
             portfolioAccountId,
             uninvestedAccountId,
             encrypt,
-            decrypt
+            decrypt,
           )
           break
         }
@@ -78,7 +96,9 @@ export default function UploadModal(props: UploadModalProps) {
           break
         }
         default:
-          throw new Error(`CSV import is not supported for ${account.bank.name}.`)
+          throw new Error(
+            `CSV import is not supported for ${account.bank.name}.`,
+          )
       }
 
       queryClient.invalidateQueries({
@@ -88,7 +108,9 @@ export default function UploadModal(props: UploadModalProps) {
         queryKey: UseGetUserByIdSummaryAccountsKeyFn({ path: { id: userId } }),
       })
       queryClient.invalidateQueries({
-        queryKey: UseGetUserByIdSummaryCategoriesKeyFn({ path: { id: userId } }),
+        queryKey: UseGetUserByIdSummaryCategoriesKeyFn({
+          path: { id: userId },
+        }),
       })
       queryClient.invalidateQueries({
         queryKey: UseGetUserByIdSummaryBalanceKeyFn({ path: { id: userId } }),
@@ -120,7 +142,9 @@ export default function UploadModal(props: UploadModalProps) {
             options={
               accounts
                 ?.filter((account) =>
-                  account.name.toLowerCase().includes(accountSearch?.toLowerCase() || "")
+                  account.name
+                    .toLowerCase()
+                    .includes(accountSearch?.toLowerCase() || ""),
                 )
                 .map((account) => ({
                   value: account.id,
@@ -133,11 +157,17 @@ export default function UploadModal(props: UploadModalProps) {
             placeholder="Select an account"
           />
 
-          <FileInput onChange={(e) => setFile(e.target.files ? e.target.files[0] : null)} />
+          <FileInput
+            onChange={(e) => setFile(e.target.files ? e.target.files[0] : null)}
+          />
         </form>
       </ModalBody>
       <ModalFooter>
-        <Button color="green" onClick={handleSubmit} disabled={!file || !accountId || isUploading}>
+        <Button
+          color="green"
+          onClick={handleSubmit}
+          disabled={!file || !accountId || isUploading}
+        >
           {isUploading ? (
             <>
               <Spinner size="sm" className="mr-2" /> Uploading

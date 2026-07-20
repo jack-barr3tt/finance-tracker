@@ -15,7 +15,7 @@ export async function parseMonzo(
   userId: string,
   accountId: string,
   encrypt: (text: string) => Promise<string>,
-  decrypt: (text: string) => Promise<string>
+  decrypt: (text: string) => Promise<string>,
 ): Promise<boolean> {
   const getAmount = (str: string): number => {
     const match = str.match(/-?[\d.,]+/)
@@ -23,7 +23,12 @@ export async function parseMonzo(
   }
 
   const getDescription = (data: MonzoRow): string => {
-    for (const value of [data.Name, data["Notes and #tags"], data.Description, data.Type]) {
+    for (const value of [
+      data.Name,
+      data["Notes and #tags"],
+      data.Description,
+      data.Type,
+    ]) {
       const trimmed = value?.trim()
       if (trimmed) return trimmed
     }
@@ -46,6 +51,6 @@ export async function parseMonzo(
         description: getDescription(data),
       }
     },
-    { header: true, skipEmptyLines: true }
+    { header: true, skipEmptyLines: true },
   )
 }

@@ -1,6 +1,16 @@
-import { Modal, ModalHeader, ModalBody, TextInput, ModalFooter, Button } from "flowbite-react"
+import {
+  Modal,
+  ModalHeader,
+  ModalBody,
+  TextInput,
+  ModalFooter,
+  Button,
+} from "flowbite-react"
 import { useCallback, useState } from "react"
-import { UseGetUserByIdCategoriesKeyFn, usePostUserByIdCategories } from "../../API/queries"
+import {
+  UseGetUserByIdCategoriesKeyFn,
+  usePostUserByIdCategories,
+} from "../../API/queries"
 import { useUser } from "../../Hooks/useUser"
 import { useNavigate } from "react-router-dom"
 import { useQueryClient } from "@tanstack/react-query"
@@ -14,7 +24,10 @@ export default function NewCategory() {
 
   const handleSubmit = useCallback(async () => {
     if (!categoryName) return
-    await createCategory({ path: { id: userId }, body: { name: await encrypt(categoryName) } })
+    await createCategory({
+      path: { id: userId },
+      body: { name: await encrypt(categoryName) },
+    })
     queryClient.invalidateQueries({
       queryKey: UseGetUserByIdCategoriesKeyFn({ path: { id: userId } }),
     })
@@ -23,7 +36,10 @@ export default function NewCategory() {
   }, [categoryName, createCategory, navigate, queryClient, userId, encrypt])
 
   return (
-    <Modal show={location.pathname.includes("settings/new-category")} onClose={() => navigate("/settings")}>
+    <Modal
+      show={location.pathname.includes("settings/new-category")}
+      onClose={() => navigate("/settings")}
+    >
       <ModalHeader>New Category</ModalHeader>
 
       <ModalBody>

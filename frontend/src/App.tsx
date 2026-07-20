@@ -14,7 +14,8 @@ client.setConfig({
 
 client.interceptors.request.use((config) => {
   const accessToken = Cookies.get("access_token")
-  if (accessToken) config.headers.append("Authorization", `Bearer ${accessToken}`)
+  if (accessToken)
+    config.headers.append("Authorization", `Bearer ${accessToken}`)
   return config
 })
 

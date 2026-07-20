@@ -22,7 +22,12 @@ import {
   useGetUserByIdSummaryCategories,
   useGetUserByIdSummaryCategoriesSpending,
 } from "../API/queries"
-import { decryptAccount, decryptBudgetTransaction, decryptCategory, decryptCategoryBudget } from "../Security/data"
+import {
+  decryptAccount,
+  decryptBudgetTransaction,
+  decryptCategory,
+  decryptCategoryBudget,
+} from "../Security/data"
 import { useAsyncMemo } from "./useAsyncMemo"
 import { useUser } from "./useUser"
 import { getChartColors } from "../utils"
@@ -97,7 +102,9 @@ function getInitialSummaryRange(): SummaryRange {
 export const DataProvider = ({ children }: { children: ReactNode }) => {
   const { userId, decrypt } = useUser()
 
-  const [summaryRange, setSummaryRange] = useState<SummaryRange>(() => getInitialSummaryRange())
+  const [summaryRange, setSummaryRange] = useState<SummaryRange>(() =>
+    getInitialSummaryRange(),
+  )
 
   const summaryDateQuery = useMemo(
     () => ({
@@ -115,25 +122,37 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     [summaryRange.interval, summaryDateQuery],
   )
 
-  const { data: encAccounts } = useGetUserByIdAccounts({ path: { id: userId } }, undefined, {
-    enabled: !!userId,
-  })
+  const { data: encAccounts } = useGetUserByIdAccounts(
+    { path: { id: userId } },
+    undefined,
+    {
+      enabled: !!userId,
+    },
+  )
   const accounts = useAsyncMemo(
     async () =>
-      (await Promise.all(encAccounts?.map((acc) => decryptAccount(acc, decrypt)) ?? [])).sort(
-        (a, b) => a.name.localeCompare(b.name),
-      ),
+      (
+        await Promise.all(
+          encAccounts?.map((acc) => decryptAccount(acc, decrypt)) ?? [],
+        )
+      ).sort((a, b) => a.name.localeCompare(b.name)),
     [encAccounts, decrypt],
   )
 
-  const { data: encCategories } = useGetUserByIdCategories({ path: { id: userId } }, undefined, {
-    enabled: !!userId,
-  })
+  const { data: encCategories } = useGetUserByIdCategories(
+    { path: { id: userId } },
+    undefined,
+    {
+      enabled: !!userId,
+    },
+  )
   const categories = useAsyncMemo(
     async () =>
-      (await Promise.all(encCategories?.map((cat) => decryptCategory(cat, decrypt)) ?? [])).sort(
-        (a, b) => a.name.localeCompare(b.name),
-      ),
+      (
+        await Promise.all(
+          encCategories?.map((cat) => decryptCategory(cat, decrypt)) ?? [],
+        )
+      ).sort((a, b) => a.name.localeCompare(b.name)),
     [encCategories, decrypt],
   )
 
@@ -148,9 +167,14 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     async () =>
       (
         await Promise.all(
-          encBudgetTransactions?.map((bt) => decryptBudgetTransaction(bt, decrypt)) ?? [],
+          encBudgetTransactions?.map((bt) =>
+            decryptBudgetTransaction(bt, decrypt),
+          ) ?? [],
         )
-      ).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()),
+      ).sort(
+        (a, b) =>
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+      ),
     [encBudgetTransactions, decrypt],
   )
 
@@ -165,9 +189,13 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     async () =>
       (
         await Promise.all(
-          encCategoryBudgets?.map((cb) => decryptCategoryBudget(cb, decrypt)) ?? [],
+          encCategoryBudgets?.map((cb) => decryptCategoryBudget(cb, decrypt)) ??
+            [],
         )
-      ).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()),
+      ).sort(
+        (a, b) =>
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+      ),
     [encCategoryBudgets, decrypt],
   )
 
@@ -253,13 +281,14 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     [encCategorySummaries, decrypt],
   )
 
-  const { data: encCategorySpendingSummary } = useGetUserByIdSummaryCategoriesSpending(
-    { path: { id: userId }, query: summaryBalanceQuery },
-    undefined,
-    {
-      enabled: !!userId,
-    },
-  )
+  const { data: encCategorySpendingSummary } =
+    useGetUserByIdSummaryCategoriesSpending(
+      { path: { id: userId }, query: summaryBalanceQuery },
+      undefined,
+      {
+        enabled: !!userId,
+      },
+    )
   const categorySpendingSummary = useAsyncMemo(async () => {
     if (!encCategorySpendingSummary) return null
     return {
@@ -279,11 +308,17 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
   }, [encCategorySpendingSummary, decrypt])
 
   const accountColorMap = useMemo(
-    () => getChartColors(accounts ? [...accounts.map((acc) => acc.id), "total"] : []),
+    () =>
+      getChartColors(
+        accounts ? [...accounts.map((acc) => acc.id), "total"] : [],
+      ),
     [accounts],
   )
   const categoryColorMap = useMemo(
-    () => getChartColors(categories ? [...categories.map((cat) => cat.id), "uncategorised"] : []),
+    () =>
+      getChartColors(
+        categories ? [...categories.map((cat) => cat.id), "uncategorised"] : [],
+      ),
     [categories],
   )
 

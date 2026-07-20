@@ -29,7 +29,7 @@ export default function EditAccount() {
 
   const accountId = useMemo(
     () => /account\/(.+)\/edit/.exec(location.pathname)?.[1] ?? "",
-    [location.pathname]
+    [location.pathname],
   )
   const { userId, decrypt, encrypt } = useUser()
   const queryClient = useQueryClient()
@@ -40,11 +40,11 @@ export default function EditAccount() {
     undefined,
     {
       enabled: !!userId && !!accountId,
-    }
+    },
   )
   const account = useAsyncMemo(
     async () => decryptAccount(encAccount, decrypt),
-    [encAccount, decrypt]
+    [encAccount, decrypt],
   )
 
   const { mutateAsync: editAccount } = usePatchUserByIdAccountsByAccountId()
@@ -94,7 +94,10 @@ export default function EditAccount() {
   ])
 
   return (
-    <Modal show={/settings\/account\/(.+)\/edit/.test(location.pathname)} onClose={() => navigate("/settings")}>
+    <Modal
+      show={/settings\/account\/(.+)\/edit/.test(location.pathname)}
+      onClose={() => navigate("/settings")}
+    >
       <ModalHeader>Edit Account</ModalHeader>
       <ModalBody theme={{ base: "overflow-visible" }}>
         <form className="flex flex-col gap-4">

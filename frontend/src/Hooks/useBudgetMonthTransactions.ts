@@ -1,6 +1,10 @@
 import { useQuery } from "@tanstack/react-query"
 import { endOfMonth, format, startOfMonth } from "date-fns"
-import { getUserByIdTransactions, Transaction, TransactionsResponse } from "../API/requests"
+import {
+  getUserByIdTransactions,
+  Transaction,
+  TransactionsResponse,
+} from "../API/requests"
 import { decryptTransaction } from "../Security/data"
 import { useUser } from "./useUser"
 
@@ -54,7 +58,9 @@ export function useBudgetMonthTransactions(month: Date) {
     queryKey: [BUDGET_MONTH_TRANSACTIONS_KEY, userId, monthKey],
     queryFn: async () => {
       const encTransactions = await fetchAllMonthTransactions(userId, month)
-      return Promise.all(encTransactions.map((t) => decryptTransaction(t, decrypt)))
+      return Promise.all(
+        encTransactions.map((t) => decryptTransaction(t, decrypt)),
+      )
     },
     enabled: !!userId,
   })

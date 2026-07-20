@@ -1,0 +1,18 @@
+when:
+  - event: pull_request
+
+steps:
+  - name: lint-frontend
+    image: node:22-alpine
+    commands:
+      - corepack enable
+      - cd frontend
+      - yarn install --frozen-lockfile
+      - yarn lint
+
+  - name: lint-backend
+    image: golangci/golangci-lint:v1.62-alpine
+    commands:
+      - cd backend
+      - golangci-lint run
+      - go test ./api/...

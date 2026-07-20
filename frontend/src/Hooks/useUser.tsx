@@ -1,11 +1,24 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, ReactNode, useCallback, useContext, useEffect, useState } from "react"
+import {
+  createContext,
+  ReactNode,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from "react"
 import Cookies from "js-cookie"
 import { Spinner } from "flowbite-react"
 import { useGetUserById, usePostLogin } from "../API/queries"
-import { decryptMasterKey, exportMasterKey, importMasterKey } from "../Security/keys"
+import {
+  decryptMasterKey,
+  exportMasterKey,
+  importMasterKey,
+} from "../Security/keys"
 
-export type DecryptFunction = <T extends string | null | undefined>(data: T) => Promise<T>
+export type DecryptFunction = <T extends string | null | undefined>(
+  data: T,
+) => Promise<T>
 
 const MASTER_KEY_JWK = "master_key_jwk"
 
@@ -74,7 +87,11 @@ export function UserProvider(props: { children: ReactNode }) {
         Cookies.set("access_token", data.token || "", {})
         Cookies.set("user_id", String(data.id || ""), {})
 
-        const masterKey = await decryptMasterKey(data.salt, data.master_key, password)
+        const masterKey = await decryptMasterKey(
+          data.salt,
+          data.master_key,
+          password,
+        )
         sessionStorage.setItem(MASTER_KEY_JWK, await exportMasterKey(masterKey))
         setKey(masterKey)
 
@@ -84,7 +101,7 @@ export function UserProvider(props: { children: ReactNode }) {
         return false
       }
     },
-    [loginReq]
+    [loginReq],
   )
 
   const decrypt = useCallback(
@@ -98,7 +115,7 @@ export function UserProvider(props: { children: ReactNode }) {
         .decrypt({ name: "AES-GCM", iv }, key, bytes.slice(12))
         .then((buf) => new TextDecoder().decode(buf) as T)
     },
-    [key]
+    [key],
   )
 
   const encrypt = useCallback(
@@ -107,7 +124,11 @@ export function UserProvider(props: { children: ReactNode }) {
       const iv = crypto.getRandomValues(new Uint8Array(12))
       const encodedData = new TextEncoder().encode(data)
 
-      const ciphertext = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, encodedData)
+      const ciphertext = await crypto.subtle.encrypt(
+        { name: "AES-GCM", iv },
+        key,
+        encodedData,
+      )
 
       const combined = new Uint8Array(iv.length + ciphertext.byteLength)
       combined.set(iv, 0)
@@ -115,7 +136,7 @@ export function UserProvider(props: { children: ReactNode }) {
 
       return btoa(String.fromCharCode(...combined))
     },
-    [key]
+    [key],
   )
 
   useEffect(() => {
@@ -175,5 +196,7 @@ export function UserProvider(props: { children: ReactNode }) {
     encrypt,
   }
 
-  return <UserContext.Provider value={value}>{props.children}</UserContext.Provider>
+  return (
+    <UserContext.Provider value={value}>{props.children}</UserContext.Provider>
+  )
 }

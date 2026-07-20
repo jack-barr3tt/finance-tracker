@@ -208,7 +208,11 @@ function shiftDateRange(range: SummaryRange, direction: -1 | 1): SummaryRange {
 
   const days = differenceInCalendarDays(endDate, startDate)
   const weeks = days / 7
-  if (Number.isInteger(weeks) && weeks > 0 && isSameDay(addWeeks(startDate, weeks), endDate)) {
+  if (
+    Number.isInteger(weeks) &&
+    weeks > 0 &&
+    isSameDay(addWeeks(startDate, weeks), endDate)
+  ) {
     return {
       ...range,
       startDate: addWeeks(startDate, weeks * direction),
@@ -240,7 +244,10 @@ export default function SummaryRangeFilter() {
   })
   const dismiss = useDismiss(context)
   const role = useRole(context)
-  const { getReferenceProps, getFloatingProps } = useInteractions([dismiss, role])
+  const { getReferenceProps, getFloatingProps } = useInteractions([
+    dismiss,
+    role,
+  ])
 
   const setReference = useCallback(
     (node: HTMLButtonElement | null) => {
@@ -251,7 +258,9 @@ export default function SummaryRangeFilter() {
 
   const rangeLabel = useMemo(() => {
     if (summaryRangeSelection !== "custom") {
-      const preset = SUMMARY_PRESETS.find((entry) => entry.value === summaryRangeSelection)
+      const preset = SUMMARY_PRESETS.find(
+        (entry) => entry.value === summaryRangeSelection,
+      )
       if (preset) return preset.title
     }
 
@@ -273,7 +282,9 @@ export default function SummaryRangeFilter() {
   const updateInterval = useCallback(
     (nextInterval: SetStateAction<string | undefined>) => {
       const interval =
-        typeof nextInterval === "function" ? nextInterval(summaryRange.interval) : nextInterval
+        typeof nextInterval === "function"
+          ? nextInterval(summaryRange.interval)
+          : nextInterval
       if (!interval) return
 
       updateCustomRange({ interval: interval as SummaryInterval })
@@ -381,11 +392,15 @@ export default function SummaryRangeFilter() {
               </div>
 
               <div className="flex w-32 flex-col gap-2 border-l border-gray-200 pl-4 dark:border-gray-700">
-                <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Presets</h3>
+                <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
+                  Presets
+                </h3>
                 {SUMMARY_PRESETS.map((preset) => (
                   <Button
                     key={preset.value}
-                    color={summaryRangeSelection === preset.value ? "blue" : "light"}
+                    color={
+                      summaryRangeSelection === preset.value ? "blue" : "light"
+                    }
                     onClick={() => selectPresetRange(preset)}
                   >
                     {preset.title}

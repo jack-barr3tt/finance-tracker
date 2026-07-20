@@ -1,4 +1,11 @@
-import { TableRow, TableCell, TextInput, Button, ThemeProvider, createTheme } from "flowbite-react"
+import {
+  TableRow,
+  TableCell,
+  TextInput,
+  Button,
+  ThemeProvider,
+  createTheme,
+} from "flowbite-react"
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { FiSave, FiX } from "react-icons/fi"
 import {
@@ -22,38 +29,50 @@ type EditBudgetTransactionRowProps = {
   isOutgoings?: boolean
 }
 
-export default function EditBudgetTransactionRow(props: EditBudgetTransactionRowProps) {
+export default function EditBudgetTransactionRow(
+  props: EditBudgetTransactionRowProps,
+) {
   const { budgetTransactionId, cancelCallback, isOutgoings = false } = props
 
   const { userId, decrypt, encrypt } = useUser()
   const queryClient = useQueryClient()
-  const { data: encCategories } = useGetUserByIdCategories({ path: { id: userId } })
+  const { data: encCategories } = useGetUserByIdCategories({
+    path: { id: userId },
+  })
   const categories = useAsyncMemo(
     async () =>
-      (await Promise.all(encCategories?.map((cat) => decryptCategory(cat, decrypt)) ?? [])).sort(
-        (a, b) => a.name.localeCompare(b.name)
-      ),
-    [decrypt, encCategories]
+      (
+        await Promise.all(
+          encCategories?.map((cat) => decryptCategory(cat, decrypt)) ?? [],
+        )
+      ).sort((a, b) => a.name.localeCompare(b.name)),
+    [decrypt, encCategories],
   )
 
-  const { mutateAsync: addBudgetTransaction } = usePostUserByIdBudgetTransactions()
+  const { mutateAsync: addBudgetTransaction } =
+    usePostUserByIdBudgetTransactions()
   const { mutateAsync: editBudgetTransaction } =
     usePatchUserByIdBudgetTransactionsByBudgetTransactionId()
-  const { data: budgetTransaction } = useGetUserByIdBudgetTransactionsByBudgetTransactionId(
-    {
-      path: { id: userId, budget_transaction_id: budgetTransactionId || "" },
-    },
-    undefined,
-    {
-      enabled: !!budgetTransactionId,
-    }
-  )
+  const { data: budgetTransaction } =
+    useGetUserByIdBudgetTransactionsByBudgetTransactionId(
+      {
+        path: { id: userId, budget_transaction_id: budgetTransactionId || "" },
+      },
+      undefined,
+      {
+        enabled: !!budgetTransactionId,
+      },
+    )
 
-  const [categorySearch, setCategorySearch] = useState<string | undefined>(undefined)
+  const [categorySearch, setCategorySearch] = useState<string | undefined>(
+    undefined,
+  )
 
   const [description, setDescription] = useState("")
   const [amount, setAmount] = useState("")
-  const [selectedCategory, setSelectedCategory] = useState<string | undefined>(undefined)
+  const [selectedCategory, setSelectedCategory] = useState<string | undefined>(
+    undefined,
+  )
   const [repeatUntil, setRepeatUntil] = useState<PeriodUnit>("month")
   const [repeatEvery, setRepeatEvery] = useState("")
   const [startsOn, setStartsOn] = useState(todayDateInputValue())
@@ -128,7 +147,8 @@ export default function EditBudgetTransactionRow(props: EditBudgetTransactionRow
   ])
 
   const handleEdit = useCallback(async () => {
-    if (!budgetTransactionId || !amount || !repeatEvery || !effectiveFrom) return
+    if (!budgetTransactionId || !amount || !repeatEvery || !effectiveFrom)
+      return
 
     const amountValue = parseFloat(amount)
     const finalAmount = isOutgoings ? -Math.abs(amountValue) : amountValue
@@ -189,12 +209,12 @@ export default function EditBudgetTransactionRow(props: EditBudgetTransactionRow
           },
         },
       }),
-    []
+    [],
   )
 
   const doneFn = useMemo(
     () => (budgetTransactionId ? handleEdit : handleAdd),
-    [handleAdd, handleEdit, budgetTransactionId]
+    [handleAdd, handleEdit, budgetTransactionId],
   )
 
   if (!categories) return null
@@ -209,7 +229,9 @@ export default function EditBudgetTransactionRow(props: EditBudgetTransactionRow
               .filter(
                 (category) =>
                   !categorySearch ||
-                  category.name.toLowerCase().includes(categorySearch.toLowerCase())
+                  category.name
+                    .toLowerCase()
+                    .includes(categorySearch.toLowerCase()),
               )
               .map((category) => ({
                 label: category.name,
@@ -299,7 +321,11 @@ export default function EditBudgetTransactionRow(props: EditBudgetTransactionRow
             <Button className="p-0 size-8" color="light" onClick={doneFn}>
               <FiSave />
             </Button>
-            <Button className="p-0 size-8" color="light" onClick={cancelCallback}>
+            <Button
+              className="p-0 size-8"
+              color="light"
+              onClick={cancelCallback}
+            >
               <FiX />
             </Button>
           </div>

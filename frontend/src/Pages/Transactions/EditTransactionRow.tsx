@@ -41,30 +41,43 @@ type EditTransactionRowProps = {
 }
 
 export default function EditTransactionRow(props: EditTransactionRowProps) {
-  const { transactionId, cancelCallback, defaultAccountId, defaultCategoryId, rowRef, ...rowProps } =
-    props
+  const {
+    transactionId,
+    cancelCallback,
+    defaultAccountId,
+    defaultCategoryId,
+    rowRef,
+    ...rowProps
+  } = props
 
   const { userId, decrypt, encrypt } = useUser()
   const queryClient = useQueryClient()
   const { data: encAccounts } = useGetUserByIdAccounts({ path: { id: userId } })
   const accounts = useAsyncMemo(
     async () =>
-      (await Promise.all(encAccounts?.map((acc) => decryptAccount(acc, decrypt)) ?? [])).sort(
-        (a, b) => a.name.localeCompare(b.name),
-      ),
+      (
+        await Promise.all(
+          encAccounts?.map((acc) => decryptAccount(acc, decrypt)) ?? [],
+        )
+      ).sort((a, b) => a.name.localeCompare(b.name)),
     [decrypt, encAccounts],
   )
-  const { data: encCategories } = useGetUserByIdCategories({ path: { id: userId } })
+  const { data: encCategories } = useGetUserByIdCategories({
+    path: { id: userId },
+  })
   const categories = useAsyncMemo(
     async () =>
-      (await Promise.all(encCategories?.map((cat) => decryptCategory(cat, decrypt)) ?? [])).sort(
-        (a, b) => a.name.localeCompare(b.name),
-      ),
+      (
+        await Promise.all(
+          encCategories?.map((cat) => decryptCategory(cat, decrypt)) ?? [],
+        )
+      ).sort((a, b) => a.name.localeCompare(b.name)),
     [decrypt, encCategories],
   )
 
   const { mutateAsync: addTransaction } = usePostUserByIdTransactions()
-  const { mutateAsync: editTransaction } = usePatchUserByIdTransactionsByTransactionId()
+  const { mutateAsync: editTransaction } =
+    usePatchUserByIdTransactionsByTransactionId()
   const { data: transaction } = useGetUserByIdTransactionsByTransactionId(
     {
       path: { id: userId, transaction_id: transactionId || "" },
@@ -75,8 +88,12 @@ export default function EditTransactionRow(props: EditTransactionRowProps) {
     },
   )
 
-  const [accountSearch, setAccountSearch] = useState<string | undefined>(undefined)
-  const [categorySearch, setCategorySearch] = useState<string | undefined>(undefined)
+  const [accountSearch, setAccountSearch] = useState<string | undefined>(
+    undefined,
+  )
+  const [categorySearch, setCategorySearch] = useState<string | undefined>(
+    undefined,
+  )
 
   const [date, setDate] = useState<Date | null>(null)
   const [description, setDescription] = useState("")
@@ -258,7 +275,9 @@ export default function EditTransactionRow(props: EditTransactionRowProps) {
               .filter(
                 (account) =>
                   !accountSearch ||
-                  account.name.toLowerCase().includes(accountSearch.toLowerCase()),
+                  account.name
+                    .toLowerCase()
+                    .includes(accountSearch.toLowerCase()),
               )
               .map((account) => ({
                 label: account.name,
@@ -276,7 +295,9 @@ export default function EditTransactionRow(props: EditTransactionRowProps) {
               .filter(
                 (category) =>
                   !categorySearch ||
-                  category.name.toLowerCase().includes(categorySearch.toLowerCase()),
+                  category.name
+                    .toLowerCase()
+                    .includes(categorySearch.toLowerCase()),
               )
               .map((category) => ({
                 label: category.name,
@@ -308,7 +329,11 @@ export default function EditTransactionRow(props: EditTransactionRowProps) {
             <Button className="p-0 size-8" color="light" onClick={doneFn}>
               <FiSave />
             </Button>
-            <Button className="p-0 size-8" color="light" onClick={cancelCallback}>
+            <Button
+              className="p-0 size-8"
+              color="light"
+              onClick={cancelCallback}
+            >
               <FiX />
             </Button>
           </div>

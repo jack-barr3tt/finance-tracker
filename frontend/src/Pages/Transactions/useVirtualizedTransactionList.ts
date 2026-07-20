@@ -1,5 +1,12 @@
 import { useVirtualizer, Virtualizer } from "@tanstack/react-virtual"
-import { RefObject, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react"
+import {
+  RefObject,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react"
 
 const ROW_HEIGHT_PX = 52
 
@@ -11,16 +18,26 @@ type UseVirtualizedTransactionListInput = {
   layoutKey: unknown
 }
 
-function getOffsetTop(element: HTMLElement, scrollContainer: HTMLElement): number {
+function getOffsetTop(
+  element: HTMLElement,
+  scrollContainer: HTMLElement,
+): number {
   let offsetTop = 0
-  for (let node: HTMLElement | null = element; node && node !== scrollContainer; node = node.offsetParent as HTMLElement | null) {
+  for (
+    let node: HTMLElement | null = element;
+    node && node !== scrollContainer;
+    node = node.offsetParent as HTMLElement | null
+  ) {
     offsetTop += node.offsetTop
   }
   return offsetTop
 }
 
-export function useVirtualizedTransactionList(input: UseVirtualizedTransactionListInput) {
-  const { scrollContainerRef, rowCount, enabled, remeasureKey, layoutKey } = input
+export function useVirtualizedTransactionList(
+  input: UseVirtualizedTransactionListInput,
+) {
+  const { scrollContainerRef, rowCount, enabled, remeasureKey, layoutKey } =
+    input
   const virtualListStartRef = useRef<HTMLTableRowElement>(null)
   const [scrollMargin, setScrollMargin] = useState(0)
 
@@ -57,10 +74,16 @@ export function useVirtualizedTransactionList(input: UseVirtualizedTransactionLi
 
   const virtualItems = virtualizer.getVirtualItems()
   const paddingTop =
-    virtualItems.length > 0 ? Math.max(0, virtualItems[0].start - scrollMargin) : 0
+    virtualItems.length > 0
+      ? Math.max(0, virtualItems[0].start - scrollMargin)
+      : 0
   const paddingBottom =
     virtualItems.length > 0
-      ? Math.max(0, virtualizer.getTotalSize() - virtualItems[virtualItems.length - 1].end)
+      ? Math.max(
+          0,
+          virtualizer.getTotalSize() -
+            virtualItems[virtualItems.length - 1].end,
+        )
       : 0
 
   return {

@@ -28,14 +28,24 @@ type NavBarProps = {
 }
 
 export default function NavBar(props: NavBarProps) {
-  const { isDesktopOpen, isMobileOpen, onCloseDesktop, onCloseMobile, onOpenShortcuts } = props
+  const {
+    isDesktopOpen,
+    isMobileOpen,
+    onCloseDesktop,
+    onCloseMobile,
+    onOpenShortcuts,
+  } = props
   const { userId } = useUser()
   const location = useLocation()
   const navigate = useNavigate()
   const { computedMode, toggleMode } = useThemeMode()
 
   if (!userId) return null
-  if (location.pathname.includes("login") || location.pathname.includes("signup")) return null
+  if (
+    location.pathname.includes("login") ||
+    location.pathname.includes("signup")
+  )
+    return null
 
   const isBudgetPlanning =
     location.pathname === "/budget/planning" || location.pathname === "/budget"
@@ -144,7 +154,9 @@ export default function NavBar(props: NavBarProps) {
   return (
     <>
       {isDesktopOpen && (
-        <div className="hidden h-full w-64 shrink-0 md:block">{renderSidebar(onCloseDesktop)}</div>
+        <div className="hidden h-full w-64 shrink-0 md:block">
+          {renderSidebar(onCloseDesktop)}
+        </div>
       )}
       <Drawer
         open={isMobileOpen}

@@ -17,14 +17,17 @@ export function bindLegendIsolate(chart: ECharts): () => void {
   const onLegendSelectChanged = (params: unknown) => {
     if (!isolateClick) return
 
-    const { name: clickedName, selected: after } = params as LegendSelectChangedParams
+    const { name: clickedName, selected: after } =
+      params as LegendSelectChangedParams
     const before = { ...after, [clickedName]: !after[clickedName] }
     const visibleBefore = Object.values(before).filter(Boolean).length
     const wasOnlyClickedVisible = visibleBefore === 1 && before[clickedName]
 
     const selected = wasOnlyClickedVisible
       ? Object.fromEntries(Object.keys(after).map((name) => [name, true]))
-      : Object.fromEntries(Object.keys(after).map((name) => [name, name === clickedName]))
+      : Object.fromEntries(
+          Object.keys(after).map((name) => [name, name === clickedName]),
+        )
 
     chart.setOption({
       legend: { selected },

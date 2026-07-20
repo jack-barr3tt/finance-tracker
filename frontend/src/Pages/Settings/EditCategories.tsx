@@ -35,26 +35,29 @@ export default function EditCategories() {
   const { userId, decrypt, encrypt } = useUser()
   const categoryId = useMemo(
     () => /category\/(.+)\/edit/.exec(location.pathname)?.[1] ?? "",
-    [location.pathname]
+    [location.pathname],
   )
   const { data: encCategory } = useGetUserByIdCategoriesByCategoryId(
     {
       path: { id: userId, category_id: categoryId },
     },
     undefined,
-    { enabled: !!categoryId }
+    { enabled: !!categoryId },
   )
   const { mutateAsync: editCategory } = usePatchUserByIdCategoriesByCategoryId()
-  const { mutateAsync: deleteRule } = useDeleteUserByIdCategoriesByCategoryIdRulesByRuleId()
+  const { mutateAsync: deleteRule } =
+    useDeleteUserByIdCategoriesByCategoryIdRulesByRuleId()
 
   const category = useAsyncMemo(
     async () => decryptCategory(encCategory, decrypt),
-    [decrypt, encCategory]
+    [decrypt, encCategory],
   )
 
   const [categoryName, setCategoryName] = useState<string>("")
   const [showAdd, setShowAdd] = useState(false)
-  const [editingRuleId, setEditingRuleId] = useState<string | undefined>(undefined)
+  const [editingRuleId, setEditingRuleId] = useState<string | undefined>(
+    undefined,
+  )
 
   useEffect(() => {
     if (category) {
@@ -104,11 +107,14 @@ export default function EditCategories() {
         }),
       })
     },
-    [categoryId, deleteRule, queryClient, userId]
+    [categoryId, deleteRule, queryClient, userId],
   )
 
   return (
-    <Modal show={/settings\/category\/(.+)\/edit/.test(location.pathname)} onClose={() => navigate("/settings")}>
+    <Modal
+      show={/settings\/category\/(.+)\/edit/.test(location.pathname)}
+      onClose={() => navigate("/settings")}
+    >
       <ModalHeader>Edit Category</ModalHeader>
 
       <ModalBody>
@@ -191,7 +197,7 @@ export default function EditCategories() {
                           </div>
                         </TableCell>
                       </TableRow>
-                    )
+                    ),
                   )
                 )}
                 {showAdd && (

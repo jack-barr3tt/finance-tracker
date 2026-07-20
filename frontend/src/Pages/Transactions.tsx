@@ -37,7 +37,10 @@ import { useHotkey } from "@tanstack/react-hotkeys"
 import { HOTKEYS_BY_ID } from "../Hotkeys/hotkeys"
 import { transactionMatchesSearch } from "../utils/transactionSearch"
 import { useScrollContainer } from "../Hooks/useScrollContainer"
-import { TRANSACTION_TABLE_COLUMN_COUNT, useTransactionTableColumnWidths } from "./Transactions/transactionTableColumns"
+import {
+  TRANSACTION_TABLE_COLUMN_COUNT,
+  useTransactionTableColumnWidths,
+} from "./Transactions/transactionTableColumns"
 import { useVirtualizedTransactionList } from "./Transactions/useVirtualizedTransactionList"
 import VirtualizedTransactionRows from "./Transactions/VirtualizedTransactionRows"
 
@@ -53,10 +56,15 @@ export default function Transactions() {
   const queryClient = useQueryClient()
   const scrollContainerRef = useScrollContainer()
 
-  const { mutateAsync: deleteTransaction } = useDeleteUserByIdTransactionsByTransactionId()
+  const { mutateAsync: deleteTransaction } =
+    useDeleteUserByIdTransactionsByTransactionId()
 
-  const [accountFilterId, setAccountFilterId] = useState<string | undefined>(undefined)
-  const [categoryFilterId, setCategoryFilterId] = useState<string | undefined>(undefined)
+  const [accountFilterId, setAccountFilterId] = useState<string | undefined>(
+    undefined,
+  )
+  const [categoryFilterId, setCategoryFilterId] = useState<string | undefined>(
+    undefined,
+  )
   const [searchQuery, setSearchQuery] = useState("")
   const isSearchActive = searchQuery.trim().length > 0
 
@@ -70,7 +78,13 @@ export default function Transactions() {
         ...(isSearchActive ? {} : summaryDateQuery),
       },
     }),
-    [userId, accountFilterId, categoryFilterId, summaryDateQuery, isSearchActive],
+    [
+      userId,
+      accountFilterId,
+      categoryFilterId,
+      summaryDateQuery,
+      isSearchActive,
+    ],
   )
 
   const {
@@ -103,13 +117,16 @@ export default function Transactions() {
   const visibleTransactions = useMemo(
     () =>
       isSearchActive
-        ? allTransactions.filter((t) => transactionMatchesSearch(t, searchQuery))
+        ? allTransactions.filter((t) =>
+            transactionMatchesSearch(t, searchQuery),
+          )
         : allTransactions,
     [allTransactions, isSearchActive, searchQuery],
   )
 
   useEffect(() => {
-    if (!isSearchActive || isLoading || isFetchingNextPage || !hasNextPage) return
+    if (!isSearchActive || isLoading || isFetchingNextPage || !hasNextPage)
+      return
     fetchNextPage()
   }, [
     isSearchActive,
@@ -130,7 +147,9 @@ export default function Transactions() {
 
   const [showAdd, setShowAdd] = useState(false)
   const [showUpload, setShowUpload] = useState(false)
-  const [editingTransactionId, setEditingTransactionId] = useState<string | undefined>(undefined)
+  const [editingTransactionId, setEditingTransactionId] = useState<
+    string | undefined
+  >(undefined)
   const searchInputRef = useRef<HTMLInputElement>(null)
   const tableRef = useRef<HTMLTableElement>(null)
 
@@ -170,7 +189,8 @@ export default function Transactions() {
       await deleteTransaction({
         path: { id: userId, transaction_id: transactionId },
       })
-      if (editingTransactionId === transactionId) setEditingTransactionId(undefined)
+      if (editingTransactionId === transactionId)
+        setEditingTransactionId(undefined)
       queryClient.invalidateQueries({
         queryKey: UseGetUserByIdTransactionsKeyFn({ path: { id: userId } }),
       })
@@ -183,7 +203,9 @@ export default function Transactions() {
         queryKey: UseGetUserByIdSummaryAccountsKeyFn({ path: { id: userId } }),
       })
       queryClient.invalidateQueries({
-        queryKey: UseGetUserByIdSummaryCategoriesKeyFn({ path: { id: userId } }),
+        queryKey: UseGetUserByIdSummaryCategoriesKeyFn({
+          path: { id: userId },
+        }),
       })
       queryClient.invalidateQueries({
         queryKey: UseGetUserByIdSummaryBalanceKeyFn({ path: { id: userId } }),
@@ -250,7 +272,10 @@ export default function Transactions() {
         >
           <colgroup>
             {columnWidths.map((width, index) => (
-              <col key={index} style={width ? { width: `${width}px` } : undefined} />
+              <col
+                key={index}
+                style={width ? { width: `${width}px` } : undefined}
+              />
             ))}
           </colgroup>
           <TableHead>
@@ -319,19 +344,29 @@ export default function Transactions() {
                 cancelCallback={() => setShowAdd(false)}
                 defaultAccountId={accountFilterId}
                 defaultCategoryId={
-                  categoryFilterId === "uncategorised" ? undefined : categoryFilterId
+                  categoryFilterId === "uncategorised"
+                    ? undefined
+                    : categoryFilterId
                 }
               />
             )}
             {allTransactions.length === 0 && !showAdd && !isLoading ? (
               <TableRow>
-                <TableCell colSpan={TRANSACTION_TABLE_COLUMN_COUNT} className="text-center">
+                <TableCell
+                  colSpan={TRANSACTION_TABLE_COLUMN_COUNT}
+                  className="text-center"
+                >
                   No transactions found
                 </TableCell>
               </TableRow>
-            ) : isSearchActive && visibleTransactions.length === 0 && !isSearchingOlder ? (
+            ) : isSearchActive &&
+              visibleTransactions.length === 0 &&
+              !isSearchingOlder ? (
               <TableRow>
-                <TableCell colSpan={TRANSACTION_TABLE_COLUMN_COUNT} className="text-center">
+                <TableCell
+                  colSpan={TRANSACTION_TABLE_COLUMN_COUNT}
+                  className="text-center"
+                >
                   No transactions match your search
                 </TableCell>
               </TableRow>
@@ -383,7 +418,8 @@ export default function Transactions() {
       {!isSearchActive && (
         <InView
           onChange={(inView) => {
-            if (!isLoading && !isFetchingNextPage && inView && hasNextPage) fetchNextPage()
+            if (!isLoading && !isFetchingNextPage && inView && hasNextPage)
+              fetchNextPage()
           }}
         />
       )}

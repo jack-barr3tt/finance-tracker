@@ -55,7 +55,7 @@ export default function NewAccount() {
               bank_id: bankId,
               name: "Portfolio",
               opened_at: (openedAt ?? new Date()).toISOString(),
-            }
+            },
           )
           break
         }
@@ -73,8 +73,8 @@ export default function NewAccount() {
         createAccount({
           path: { id: userId },
           body: { ...account, name: await encrypt(account.name) },
-        })
-      )
+        }),
+      ),
     )
     queryClient.invalidateQueries({
       queryKey: UseGetUserByIdAccountsKeyFn({ path: { id: userId } }),
@@ -84,7 +84,17 @@ export default function NewAccount() {
     setAccountName("")
     setOpenedAt(null)
     navigate("/settings")
-  }, [bankId, banks, queryClient, userId, navigate, openedAt, accountName, createAccount, encrypt])
+  }, [
+    bankId,
+    banks,
+    queryClient,
+    userId,
+    navigate,
+    openedAt,
+    accountName,
+    createAccount,
+    encrypt,
+  ])
 
   return (
     <Modal
@@ -108,7 +118,8 @@ export default function NewAccount() {
               banks
                 ?.filter(
                   (bank) =>
-                    !bankSearch || bank.name.toLowerCase().includes(bankSearch.toLowerCase())
+                    !bankSearch ||
+                    bank.name.toLowerCase().includes(bankSearch.toLowerCase()),
                 )
                 .map((bank) => ({
                   label: bank.name,

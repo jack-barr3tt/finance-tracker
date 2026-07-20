@@ -9,7 +9,9 @@ type FilterButtonProps<T extends string> = {
   onValueChange: Dispatch<SetStateAction<T | undefined>>
 }
 
-export default function FilterButton<T extends string>(props: FilterButtonProps<T>) {
+export default function FilterButton<T extends string>(
+  props: FilterButtonProps<T>,
+) {
   const { selected, options, onValueChange } = props
 
   return (

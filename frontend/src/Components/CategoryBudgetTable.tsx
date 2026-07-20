@@ -11,7 +11,10 @@ import { FiEdit, FiPlus, FiTrash } from "react-icons/fi"
 import EditCategoryBudgetRow from "../Pages/Budget/EditCategoryBudgetRow"
 import TableBodyWithButton from "./TableBodyWithButton"
 import { CategoryBudget } from "../API/requests"
-import { formatSegmentDateRange, isSegmentActiveToday } from "../budget/plannedAmount"
+import {
+  formatSegmentDateRange,
+  isSegmentActiveToday,
+} from "../budget/plannedAmount"
 import { formatCurrencyGBP, formatRepeat, toMonthlyAmount } from "../utils"
 
 type CategoryBudgetTableProps = {
@@ -119,12 +122,17 @@ export default function CategoryBudgetTable(props: CategoryBudgetTableProps) {
                         <Badge
                           style={{
                             backgroundColor:
-                              categoryColorMap[categoryBudget.category.id]?.fill,
-                            color: categoryColorMap[categoryBudget.category.id]?.text,
+                              categoryColorMap[categoryBudget.category.id]
+                                ?.fill,
+                            color:
+                              categoryColorMap[categoryBudget.category.id]
+                                ?.text,
                           }}
                           className="w-8 h-8 -mx-2 md:h-5 md:w-fit"
                         >
-                          <span className="hidden md:block">{categoryBudget.category.name}</span>
+                          <span className="hidden md:block">
+                            {categoryBudget.category.name}
+                          </span>
                         </Badge>
                       </div>
                     </TableCell>
@@ -132,10 +140,16 @@ export default function CategoryBudgetTable(props: CategoryBudgetTableProps) {
                       {formatCurrencyGBP(categoryBudget.amount)}
                     </TableCell>
                     <TableCell>
-                      {formatRepeat(categoryBudget.repeat_every, categoryBudget.repeat_until)}
+                      {formatRepeat(
+                        categoryBudget.repeat_every,
+                        categoryBudget.repeat_until,
+                      )}
                     </TableCell>
                     <TableCell>
-                      {formatSegmentDateRange(categoryBudget.starts_on, categoryBudget.ends_on)}
+                      {formatSegmentDateRange(
+                        categoryBudget.starts_on,
+                        categoryBudget.ends_on,
+                      )}
                     </TableCell>
                     <TableCell className="p-0 px-[18px] py-[10px]">
                       <div className="flex flex-row items-center justify-end invisible gap-2 group-hover/budgetrow:visible">
@@ -156,7 +170,7 @@ export default function CategoryBudgetTable(props: CategoryBudgetTableProps) {
                       </div>
                     </TableCell>
                   </TableRow>
-                )
+                ),
               )}
         </TableBodyWithButton>
       </Table>

@@ -3,7 +3,12 @@ import { format, parseISO } from "date-fns"
 import { Card, useThemeMode } from "flowbite-react"
 import { useMemo } from "react"
 import EChart from "../charts/EChart"
-import { getChartBaseOption, getLineChartAxesOption, getLineChartGridOption, getLineChartLegendOption } from "../charts/theme"
+import {
+  getChartBaseOption,
+  getLineChartAxesOption,
+  getLineChartGridOption,
+  getLineChartLegendOption,
+} from "../charts/theme"
 import { formatCurrencyGBP, getBrightColors } from "../utils"
 import { useData } from "../Hooks/useData"
 
@@ -19,7 +24,9 @@ export default function BalanceGraph() {
 
   const option = useMemo<EChartsOption>(() => {
     const dates =
-      balanceSummary?.total.map((item) => format(parseISO(item.date), "dd MMM yyyy")) || []
+      balanceSummary?.total.map((item) =>
+        format(parseISO(item.date), "dd MMM yyyy"),
+      ) || []
 
     const datasets = [
       {
@@ -30,7 +37,9 @@ export default function BalanceGraph() {
       ...(balanceSummary?.accounts.map((account, i) => ({
         label: account.account.name,
         data: account.balance.map((item) => item.balance),
-        borderColor: colorMap ? colorMap[account.account.id].border : lineBorders[i + 1],
+        borderColor: colorMap
+          ? colorMap[account.account.id].border
+          : lineBorders[i + 1],
       })) || []),
     ].sort((a, b) => a.label.localeCompare(b.label))
 
@@ -63,7 +72,8 @@ export default function BalanceGraph() {
         ...axesOption.yAxis,
         type: "value",
         axisLabel: {
-          ...(typeof axesOption.yAxis === "object" && !Array.isArray(axesOption.yAxis)
+          ...(typeof axesOption.yAxis === "object" &&
+          !Array.isArray(axesOption.yAxis)
             ? axesOption.yAxis.axisLabel
             : {}),
           formatter: (value: number) => formatCurrencyGBP(value),
@@ -87,7 +97,9 @@ export default function BalanceGraph() {
   return (
     <Card className="flex flex-col w-1/2 min-h-full">
       <div className="flex flex-col justify-between flex-1 gap-4">
-        <h1 className="w-full text-xl font-medium text-center">Balance over Time</h1>
+        <h1 className="w-full text-xl font-medium text-center">
+          Balance over Time
+        </h1>
         <div className="w-full h-96">
           <EChart option={option} />
         </div>

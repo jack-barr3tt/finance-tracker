@@ -1,4 +1,8 @@
-import type { EChartsOption, LegendComponentOption, PieSeriesOption } from "echarts"
+import type {
+  EChartsOption,
+  LegendComponentOption,
+  PieSeriesOption,
+} from "echarts"
 
 const LIGHT_TEXT = "#6B7280"
 const DARK_TEXT = "#9CA3AF"
@@ -33,7 +37,9 @@ export function getChartBaseOption(isDark: boolean): EChartsOption {
   }
 }
 
-export function getLineChartAxesOption(isDark: boolean): Pick<EChartsOption, "xAxis" | "yAxis"> {
+export function getLineChartAxesOption(
+  isDark: boolean,
+): Pick<EChartsOption, "xAxis" | "yAxis"> {
   const textColor = isDark ? DARK_TEXT : LIGHT_TEXT
   const axisColor = isDark ? DARK_AXIS : LIGHT_AXIS
 
@@ -78,11 +84,15 @@ export function getWrappedLegendOption(isDark: boolean): LegendComponentOption {
   }
 }
 
-export function getDoughnutLegendOption(isDark: boolean): LegendComponentOption {
+export function getDoughnutLegendOption(
+  isDark: boolean,
+): LegendComponentOption {
   return getWrappedLegendOption(isDark)
 }
 
-export function getLineChartLegendOption(isDark: boolean): LegendComponentOption {
+export function getLineChartLegendOption(
+  isDark: boolean,
+): LegendComponentOption {
   return getWrappedLegendOption(isDark)
 }
 

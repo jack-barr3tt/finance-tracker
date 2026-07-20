@@ -12,7 +12,10 @@ import { FiEdit, FiPlus, FiTrash } from "react-icons/fi"
 import EditBudgetTransactionRow from "../Pages/Budget/EditBudgetTransactionRow"
 import TableBodyWithButton from "./TableBodyWithButton"
 import { BudgetTransaction } from "../API/requests"
-import { formatSegmentDateRange, isSegmentActiveToday } from "../budget/plannedAmount"
+import {
+  formatSegmentDateRange,
+  isSegmentActiveToday,
+} from "../budget/plannedAmount"
 import { formatRepeat, toMonthlyAmount, formatCurrencyGBP } from "../utils"
 
 type BudgetTableProps = {
@@ -120,22 +123,30 @@ export default function BudgetTable(props: BudgetTableProps) {
                     isOutgoings={isOutgoings}
                   />
                 ) : (
-                  <TableRow key={budgetTransaction.id} className="group/budgetrow">
+                  <TableRow
+                    key={budgetTransaction.id}
+                    className="group/budgetrow"
+                  >
                     <TableCell theme={{ base: "max-sm:p-0" }}>
                       <div className="flex items-center">
                         <Badge
                           style={{
                             backgroundColor:
-                              categoryColorMap[budgetTransaction.category?.id || "uncategorised"]
-                                ?.fill,
+                              categoryColorMap[
+                                budgetTransaction.category?.id ||
+                                  "uncategorised"
+                              ]?.fill,
                             color:
-                              categoryColorMap[budgetTransaction.category?.id || "uncategorised"]
-                                ?.text,
+                              categoryColorMap[
+                                budgetTransaction.category?.id ||
+                                  "uncategorised"
+                              ]?.text,
                           }}
                           className="w-8 h-8 -mx-2 md:h-5 md:w-fit"
                         >
                           <span className="hidden md:block">
-                            {budgetTransaction.category?.name || "Uncategorised"}
+                            {budgetTransaction.category?.name ||
+                              "Uncategorised"}
                           </span>
                         </Badge>
                       </div>
@@ -143,10 +154,15 @@ export default function BudgetTable(props: BudgetTableProps) {
                     <TableCell>
                       {budgetTransaction.description ? (
                         <>
-                          <span className="hidden xl:block">{budgetTransaction.description}</span>
+                          <span className="hidden xl:block">
+                            {budgetTransaction.description}
+                          </span>
                           <span className="xl:hidden">
                             {budgetTransaction.description.length > 30 ? (
-                              <Tooltip content={budgetTransaction.description} placement="top">
+                              <Tooltip
+                                content={budgetTransaction.description}
+                                placement="top"
+                              >
                                 {budgetTransaction.description.slice(0, 30)}...
                               </Tooltip>
                             ) : (
@@ -155,7 +171,9 @@ export default function BudgetTable(props: BudgetTableProps) {
                           </span>
                         </>
                       ) : (
-                        <span className="italic text-gray-400">No description</span>
+                        <span className="italic text-gray-400">
+                          No description
+                        </span>
                       )}
                     </TableCell>
                     <TableCell>
@@ -166,10 +184,16 @@ export default function BudgetTable(props: BudgetTableProps) {
                       )}
                     </TableCell>
                     <TableCell>
-                      {formatRepeat(budgetTransaction.repeat_every, budgetTransaction.repeat_until)}
+                      {formatRepeat(
+                        budgetTransaction.repeat_every,
+                        budgetTransaction.repeat_until,
+                      )}
                     </TableCell>
                     <TableCell>
-                      {formatSegmentDateRange(budgetTransaction.starts_on, budgetTransaction.ends_on)}
+                      {formatSegmentDateRange(
+                        budgetTransaction.starts_on,
+                        budgetTransaction.ends_on,
+                      )}
                     </TableCell>
                     <TableCell className="p-0 px-[18px] py-[10px]">
                       <div className="flex flex-row items-center justify-end invisible gap-2 group-hover/budgetrow:visible">
@@ -190,7 +214,7 @@ export default function BudgetTable(props: BudgetTableProps) {
                       </div>
                     </TableCell>
                   </TableRow>
-                )
+                ),
               )}
         </TableBodyWithButton>
       </Table>

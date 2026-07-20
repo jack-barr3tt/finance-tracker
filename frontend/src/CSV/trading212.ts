@@ -46,7 +46,7 @@ export async function parseTrading212(
   portfolioAccountId: string,
   uninvestedAccountId: string,
   encrypt: (text: string) => Promise<string>,
-  decrypt: (text: string) => Promise<string>
+  decrypt: (text: string) => Promise<string>,
 ): Promise<boolean> {
   return parseCSV<Trading212Row>(
     file,
@@ -216,6 +216,6 @@ export async function parseTrading212(
           throw new Error(`Unsupported action: ${data.Action}`)
       }
     },
-    { header: true, skipEmptyLines: true }
+    { header: true, skipEmptyLines: true },
   )
 }

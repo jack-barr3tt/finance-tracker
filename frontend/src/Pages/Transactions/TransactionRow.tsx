@@ -19,7 +19,14 @@ type TransactionRowProps = {
 
 const TransactionRow = memo(
   forwardRef<HTMLTableRowElement, TransactionRowProps>(function TransactionRow(
-    { transaction, accountColorMap, categoryColorMap, onEdit, onDelete, ...rest },
+    {
+      transaction,
+      accountColorMap,
+      categoryColorMap,
+      onEdit,
+      onDelete,
+      ...rest
+    },
     ref,
   ) {
     return (
@@ -27,7 +34,10 @@ const TransactionRow = memo(
         <TableCell className={transactionTableCellClass.date}>
           {format(parseISO(transaction.date), "dd MMM yyyy")}
         </TableCell>
-        <TableCell theme={{ base: "max-sm:p-0" }} className={transactionTableCellClass.account}>
+        <TableCell
+          theme={{ base: "max-sm:p-0" }}
+          className={transactionTableCellClass.account}
+        >
           <div className="flex items-center">
             <Badge
               style={{
@@ -36,26 +46,38 @@ const TransactionRow = memo(
               }}
               className="w-8 h-8 -mx-2 md:h-5 md:w-fit"
             >
-              <span className="hidden md:block">{transaction.account.name}</span>
+              <span className="hidden md:block">
+                {transaction.account.name}
+              </span>
             </Badge>
           </div>
         </TableCell>
-        <TableCell theme={{ base: "max-sm:p-0" }} className={transactionTableCellClass.category}>
+        <TableCell
+          theme={{ base: "max-sm:p-0" }}
+          className={transactionTableCellClass.category}
+        >
           <div className="flex items-center">
             <Badge
               style={{
                 backgroundColor:
-                  categoryColorMap[transaction.category?.id || "uncategorised"]?.fill,
-                color: categoryColorMap[transaction.category?.id || "uncategorised"]?.text,
+                  categoryColorMap[transaction.category?.id || "uncategorised"]
+                    ?.fill,
+                color:
+                  categoryColorMap[transaction.category?.id || "uncategorised"]
+                    ?.text,
               }}
               className="w-8 h-8 -mx-2 md:h-5 md:w-fit"
             >
-              <span className="hidden md:block">{transaction.category?.name || "Uncategorised"}</span>
+              <span className="hidden md:block">
+                {transaction.category?.name || "Uncategorised"}
+              </span>
             </Badge>
           </div>
         </TableCell>
         <TableCell className={transactionTableCellClass.description}>
-          <span className="hidden xl:block truncate">{transaction.description}</span>
+          <span className="hidden xl:block truncate">
+            {transaction.description}
+          </span>
           <span className="xl:hidden truncate">
             {transaction.description.length > 30 ? (
               <Tooltip content={transaction.description} placement="top">
@@ -71,10 +93,18 @@ const TransactionRow = memo(
         </TableCell>
         <TableCell className={transactionTableCellClass.actions}>
           <div className="flex flex-row items-center justify-end invisible gap-2 group-hover/trnscrow:visible">
-            <Button className="p-0 size-8" color="light" onClick={() => onEdit(transaction.id)}>
+            <Button
+              className="p-0 size-8"
+              color="light"
+              onClick={() => onEdit(transaction.id)}
+            >
               <FiEdit />
             </Button>
-            <Button className="p-0 size-8" color="light" onClick={() => onDelete(transaction.id)}>
+            <Button
+              className="p-0 size-8"
+              color="light"
+              onClick={() => onDelete(transaction.id)}
+            >
               <FiTrash />
             </Button>
           </div>

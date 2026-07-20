@@ -1,9 +1,16 @@
-import { Account, BudgetTransaction, Category, CategoryBudget, CategoryRule, Transaction } from "../API/requests"
+import {
+  Account,
+  BudgetTransaction,
+  Category,
+  CategoryBudget,
+  CategoryRule,
+  Transaction,
+} from "../API/requests"
 import { DecryptFunction } from "../Hooks/useUser"
 
 export async function decryptCategoryRule<T extends CategoryRule | undefined>(
   rule: T,
-  decrypt: DecryptFunction
+  decrypt: DecryptFunction,
 ): Promise<T> {
   if (!rule) return undefined as T
 
@@ -23,20 +30,22 @@ export async function decryptCategoryRule<T extends CategoryRule | undefined>(
 
 export async function decryptCategory<T extends Category | undefined>(
   category: T,
-  decrypt: DecryptFunction
+  decrypt: DecryptFunction,
 ): Promise<T> {
   if (!category) return undefined as T
 
   return {
     ...category,
     name: await decrypt(category.name),
-    rules: await Promise.all(category.rules.map((rule) => decryptCategoryRule(rule, decrypt))),
+    rules: await Promise.all(
+      category.rules.map((rule) => decryptCategoryRule(rule, decrypt)),
+    ),
   }
 }
 
 export async function decryptTransaction<T extends Transaction | undefined>(
   transaction: T,
-  decrypt: DecryptFunction
+  decrypt: DecryptFunction,
 ): Promise<T> {
   if (!transaction) return undefined as T
 
@@ -56,7 +65,7 @@ export async function decryptTransaction<T extends Transaction | undefined>(
 
 export async function decryptAccount<T extends Account | undefined>(
   account: T,
-  decrypt: DecryptFunction
+  decrypt: DecryptFunction,
 ): Promise<T> {
   if (!account) return undefined as T
 
@@ -66,10 +75,9 @@ export async function decryptAccount<T extends Account | undefined>(
   }
 }
 
-export async function decryptBudgetTransaction<T extends BudgetTransaction | undefined>(
-  budgetTransaction: T,
-  decrypt: DecryptFunction
-): Promise<T> {
+export async function decryptBudgetTransaction<
+  T extends BudgetTransaction | undefined,
+>(budgetTransaction: T, decrypt: DecryptFunction): Promise<T> {
   if (!budgetTransaction) return undefined as T
 
   const [description, category] = await Promise.all([
@@ -84,10 +92,9 @@ export async function decryptBudgetTransaction<T extends BudgetTransaction | und
   }
 }
 
-export async function decryptCategoryBudget<T extends CategoryBudget | undefined>(
-  categoryBudget: T,
-  decrypt: DecryptFunction
-): Promise<T> {
+export async function decryptCategoryBudget<
+  T extends CategoryBudget | undefined,
+>(categoryBudget: T, decrypt: DecryptFunction): Promise<T> {
   if (!categoryBudget) return undefined as T
 
   return {

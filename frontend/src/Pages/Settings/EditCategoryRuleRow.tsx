@@ -28,10 +28,15 @@ export default function EditCategoryRuleRow(props: EditCategoryRuleRowProps) {
   const queryClient = useQueryClient()
   const { data: encAccounts } = useGetUserByIdAccounts({ path: { id: userId } })
   const accounts = useAsyncMemo(
-    async () => Promise.all(encAccounts?.map((acc) => decryptAccount(acc, decrypt)) ?? []),
-    [decrypt, encAccounts]
+    async () =>
+      Promise.all(
+        encAccounts?.map((acc) => decryptAccount(acc, decrypt)) ?? [],
+      ),
+    [decrypt, encAccounts],
   )
-  const [accountSearch, setAccountSearch] = useState<string | undefined>(undefined)
+  const [accountSearch, setAccountSearch] = useState<string | undefined>(
+    undefined,
+  )
   const [accountId, setAccountId] = useState<string | undefined>(undefined)
   const [rule, setRule] = useState<string>("")
   const [description, setDescription] = useState<string>("")
@@ -41,16 +46,18 @@ export default function EditCategoryRuleRow(props: EditCategoryRuleRowProps) {
       path: { id: userId, category_id: categoryId },
     },
     undefined,
-    { enabled: !!categoryId }
+    { enabled: !!categoryId },
   )
 
   const category = useAsyncMemo(
     async () => decryptCategory(encCategory, decrypt),
-    [decrypt, encCategory]
+    [decrypt, encCategory],
   )
 
-  const { mutateAsync: createRule } = usePostUserByIdCategoriesByCategoryIdRules()
-  const { mutateAsync: editRule } = usePatchUserByIdCategoriesByCategoryIdRulesByRuleId()
+  const { mutateAsync: createRule } =
+    usePostUserByIdCategoriesByCategoryIdRules()
+  const { mutateAsync: editRule } =
+    usePatchUserByIdCategoriesByCategoryIdRulesByRuleId()
 
   useEffect(() => {
     if (category) {
@@ -148,7 +155,9 @@ export default function EditCategoryRuleRow(props: EditCategoryRuleRowProps) {
         <SearchSelect
           options={(accounts ?? [])
             .filter((account) =>
-              account.name.toLowerCase().includes(accountSearch?.toLowerCase() ?? "")
+              account.name
+                .toLowerCase()
+                .includes(accountSearch?.toLowerCase() ?? ""),
             )
             .map((account) => ({
               value: account.id,
@@ -185,7 +194,11 @@ export default function EditCategoryRuleRow(props: EditCategoryRuleRowProps) {
           >
             <FiSave />
           </Button>
-          <Button color="dark" className="p-0 ml-2 size-8" onClick={() => cancelCallback?.()}>
+          <Button
+            color="dark"
+            className="p-0 ml-2 size-8"
+            onClick={() => cancelCallback?.()}
+          >
             <FiX />
           </Button>
         </div>

@@ -28,17 +28,19 @@ export default function BudgetPlanning() {
   const [showAddIncome, setShowAddIncome] = useState(false)
   const [showAddOutgoings, setShowAddOutgoings] = useState(false)
   const [showAddCategoryBudget, setShowAddCategoryBudget] = useState(false)
-  const [editingBudgetTransactionId, setEditingBudgetTransactionId] = useState<string | undefined>(
-    undefined,
-  )
-  const [editingCategoryBudgetId, setEditingCategoryBudgetId] = useState<string | undefined>(
-    undefined,
-  )
+  const [editingBudgetTransactionId, setEditingBudgetTransactionId] = useState<
+    string | undefined
+  >(undefined)
+  const [editingCategoryBudgetId, setEditingCategoryBudgetId] = useState<
+    string | undefined
+  >(undefined)
 
   const { income, outgoings } = useMemo(() => {
     if (!budgetTransactions) return { income: [], outgoings: [] }
     const incomeTransactions = budgetTransactions.filter((bt) => bt.amount > 0)
-    const outgoingTransactions = budgetTransactions.filter((bt) => bt.amount < 0)
+    const outgoingTransactions = budgetTransactions.filter(
+      (bt) => bt.amount < 0,
+    )
     return {
       income: incomeTransactions,
       outgoings: outgoingTransactions,
@@ -53,7 +55,9 @@ export default function BudgetPlanning() {
       if (editingBudgetTransactionId === budgetTransactionId)
         setEditingBudgetTransactionId(undefined)
       queryClient.invalidateQueries({
-        queryKey: UseGetUserByIdBudgetTransactionsKeyFn({ path: { id: userId } }),
+        queryKey: UseGetUserByIdBudgetTransactionsKeyFn({
+          path: { id: userId },
+        }),
       })
       queryClient.invalidateQueries({
         queryKey: UseGetUserByIdBudgetTransactionsByBudgetTransactionIdKeyFn({
@@ -69,7 +73,8 @@ export default function BudgetPlanning() {
       await deleteCategoryBudget({
         path: { id: userId, category_budget_id: categoryBudgetId },
       })
-      if (editingCategoryBudgetId === categoryBudgetId) setEditingCategoryBudgetId(undefined)
+      if (editingCategoryBudgetId === categoryBudgetId)
+        setEditingCategoryBudgetId(undefined)
       queryClient.invalidateQueries({
         queryKey: UseGetUserByIdCategoryBudgetsKeyFn({ path: { id: userId } }),
       })
@@ -134,8 +139,8 @@ export default function BudgetPlanning() {
               <h2 className="text-2xl font-medium">Category budgets</h2>
             </div>
             <p className="mb-2 text-sm text-gray-500 dark:text-gray-400 md:mb-4">
-              Set spending limits for variable costs in a category. These are shown in addition to
-              specific budget lines above.
+              Set spending limits for variable costs in a category. These are
+              shown in addition to specific budget lines above.
             </p>
             <CategoryBudgetTable
               categoryBudgets={categoryBudgets || []}

@@ -21,7 +21,13 @@ import { classifyBudgetSpending } from "../../budget/classifySpending"
 import { Category, Transaction } from "../../API/requests"
 import { formatCurrencyGBP } from "../../utils"
 
-function VarianceCell({ planned, actual }: { planned: number; actual: number }) {
+function VarianceCell({
+  planned,
+  actual,
+}: {
+  planned: number
+  actual: number
+}) {
   const delta = actual - planned
   if (planned === 0 && actual === 0) {
     return <span className="text-gray-400">—</span>
@@ -121,7 +127,10 @@ function ExpandChevron({
 
 function budgetLineTransactionRows(transactions: Transaction[]) {
   return transactions.map((transaction) => (
-    <TableRow key={transaction.id} className="text-sm text-gray-600 dark:text-gray-400">
+    <TableRow
+      key={transaction.id}
+      className="text-sm text-gray-600 dark:text-gray-400"
+    >
       <TableCell className="pl-8">
         <span className="text-gray-400">
           {format(parseISO(transaction.date), "d MMM")} —{" "}
@@ -138,7 +147,10 @@ function budgetLineTransactionRows(transactions: Transaction[]) {
 
 function categoryTransactionRows(transactions: Transaction[]) {
   return transactions.map((transaction) => (
-    <TableRow key={transaction.id} className="text-sm text-gray-600 dark:text-gray-400">
+    <TableRow
+      key={transaction.id}
+      className="text-sm text-gray-600 dark:text-gray-400"
+    >
       <TableCell className="pl-8">
         <span className="text-gray-400">
           {format(parseISO(transaction.date), "d MMM")} —{" "}
@@ -155,7 +167,9 @@ function categoryTransactionRows(transactions: Transaction[]) {
 export default function BudgetActual() {
   const { budgetTransactions, categoryBudgets, categoryColorMap } = useData()
   const [month, setMonth] = useState(() => startOfMonth(new Date()))
-  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(() => new Set())
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(
+    () => new Set(),
+  )
   const { transactions, isLoading } = useBudgetMonthTransactions(month)
 
   const toggleExpanded = useCallback((key: string) => {
@@ -172,7 +186,12 @@ export default function BudgetActual() {
 
   const classified = useMemo(() => {
     if (!transactions || !budgetTransactions || !categoryBudgets) return null
-    return classifyBudgetSpending(transactions, budgetTransactions, categoryBudgets, month)
+    return classifyBudgetSpending(
+      transactions,
+      budgetTransactions,
+      categoryBudgets,
+      month,
+    )
   }, [transactions, budgetTransactions, categoryBudgets, month])
 
   const summary = useMemo(() => {
@@ -216,21 +235,38 @@ export default function BudgetActual() {
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 Planned (matched to budget lines & categories)
               </p>
-              <p className="text-2xl font-semibold">{formatCurrencyGBP(summary.planned)}</p>
+              <p className="text-2xl font-semibold">
+                {formatCurrencyGBP(summary.planned)}
+              </p>
             </div>
             <div className="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
-              <p className="text-sm text-gray-500 dark:text-gray-400">Actual (matched)</p>
-              <p className="text-2xl font-semibold">{formatCurrencyGBP(summary.actual)}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Actual (matched)
+              </p>
+              <p className="text-2xl font-semibold">
+                {formatCurrencyGBP(summary.actual)}
+              </p>
               <VarianceCell planned={summary.planned} actual={summary.actual} />
             </div>
             <div className="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
-              <p className="text-sm text-gray-500 dark:text-gray-400">Unplanned spending</p>
-              <p className="text-2xl font-semibold">{formatCurrencyGBP(summary.unplanned)}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Unplanned spending
+              </p>
+              <p className="text-2xl font-semibold">
+                {formatCurrencyGBP(summary.unplanned)}
+              </p>
             </div>
             <div className="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
-              <p className="text-sm text-gray-500 dark:text-gray-400">Total actual (all spending)</p>
-              <p className="text-2xl font-semibold">{formatCurrencyGBP(summary.totalActual)}</p>
-              <VarianceCell planned={summary.planned} actual={summary.totalActual} />
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Total actual (all spending)
+              </p>
+              <p className="text-2xl font-semibold">
+                {formatCurrencyGBP(summary.totalActual)}
+              </p>
+              <VarianceCell
+                planned={summary.planned}
+                actual={summary.totalActual}
+              />
             </div>
           </div>
 
@@ -263,7 +299,10 @@ export default function BudgetActual() {
                       const expanded = expandedGroups.has(expandKey)
 
                       return [
-                        <TableRow key={group.description} className="bg-gray-50 dark:bg-gray-700">
+                        <TableRow
+                          key={group.description}
+                          className="bg-gray-50 dark:bg-gray-700"
+                        >
                           <TableCell>
                             <div className="flex items-center gap-1">
                               <ExpandChevron
@@ -271,7 +310,9 @@ export default function BudgetActual() {
                                 transactionCount={group.transactions.length}
                                 onToggle={() => toggleExpanded(expandKey)}
                               />
-                              <DescriptionCell description={group.description} />
+                              <DescriptionCell
+                                description={group.description}
+                              />
                             </div>
                           </TableCell>
                           <TableCell>
@@ -280,13 +321,22 @@ export default function BudgetActual() {
                               categoryColorMap={categoryColorMap}
                             />
                           </TableCell>
-                          <TableCell>{formatCurrencyGBP(group.planned)}</TableCell>
-                          <TableCell>{formatCurrencyGBP(group.actual)}</TableCell>
                           <TableCell>
-                            <VarianceCell planned={group.planned} actual={group.actual} />
+                            {formatCurrencyGBP(group.planned)}
+                          </TableCell>
+                          <TableCell>
+                            {formatCurrencyGBP(group.actual)}
+                          </TableCell>
+                          <TableCell>
+                            <VarianceCell
+                              planned={group.planned}
+                              actual={group.actual}
+                            />
                           </TableCell>
                         </TableRow>,
-                        ...(expanded ? budgetLineTransactionRows(group.transactions) : []),
+                        ...(expanded
+                          ? budgetLineTransactionRows(group.transactions)
+                          : []),
                       ]
                     })
                   )}
@@ -296,9 +346,12 @@ export default function BudgetActual() {
           </section>
 
           <section>
-            <h2 className="mb-2 text-2xl font-medium md:mb-4">Category budgets</h2>
+            <h2 className="mb-2 text-2xl font-medium md:mb-4">
+              Category budgets
+            </h2>
             <p className="mb-2 text-sm text-gray-500 dark:text-gray-400 md:mb-4">
-              Category spending not matched to a specific budget line description.
+              Category spending not matched to a specific budget line
+              description.
             </p>
             <div className="-mx-8 md:mx-0">
               <Table striped theme={tableTheme}>
@@ -340,13 +393,22 @@ export default function BudgetActual() {
                               />
                             </div>
                           </TableCell>
-                          <TableCell>{formatCurrencyGBP(group.planned)}</TableCell>
-                          <TableCell>{formatCurrencyGBP(group.actual)}</TableCell>
                           <TableCell>
-                            <VarianceCell planned={group.planned} actual={group.actual} />
+                            {formatCurrencyGBP(group.planned)}
+                          </TableCell>
+                          <TableCell>
+                            {formatCurrencyGBP(group.actual)}
+                          </TableCell>
+                          <TableCell>
+                            <VarianceCell
+                              planned={group.planned}
+                              actual={group.actual}
+                            />
                           </TableCell>
                         </TableRow>,
-                        ...(expanded ? categoryTransactionRows(group.transactions) : []),
+                        ...(expanded
+                          ? categoryTransactionRows(group.transactions)
+                          : []),
                       ]
                     })
                   )}
@@ -356,7 +418,9 @@ export default function BudgetActual() {
           </section>
 
           <section>
-            <h2 className="mb-2 text-2xl font-medium md:mb-4">Unplanned spending</h2>
+            <h2 className="mb-2 text-2xl font-medium md:mb-4">
+              Unplanned spending
+            </h2>
             <p className="mb-2 text-sm text-gray-500 dark:text-gray-400 md:mb-4">
               Transactions with no matching budget line or category budget.
             </p>
@@ -381,12 +445,15 @@ export default function BudgetActual() {
                     classified.unplanned.transactions
                       .sort(
                         (a, b) =>
-                          parseISO(b.date).getTime() - parseISO(a.date).getTime(),
+                          parseISO(b.date).getTime() -
+                          parseISO(a.date).getTime(),
                       )
                       .map((transaction) => (
                         <TableRow key={transaction.id}>
                           <TableCell>
-                            <DescriptionCell description={transaction.description} />
+                            <DescriptionCell
+                              description={transaction.description}
+                            />
                           </TableCell>
                           <TableCell>
                             <CategoryBadge
@@ -397,7 +464,9 @@ export default function BudgetActual() {
                           <TableCell>
                             {format(parseISO(transaction.date), "d MMM yyyy")}
                           </TableCell>
-                          <TableCell>{formatCurrencyGBP(Math.abs(transaction.amount))}</TableCell>
+                          <TableCell>
+                            {formatCurrencyGBP(Math.abs(transaction.amount))}
+                          </TableCell>
                         </TableRow>
                       ))
                   )}

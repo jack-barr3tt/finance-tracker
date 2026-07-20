@@ -12,7 +12,8 @@ export default function ApplyRules() {
 
   const { categories } = useData()
 
-  const { mutateAsync: editTransaction } = usePatchUserByIdTransactionsByTransactionId()
+  const { mutateAsync: editTransaction } =
+    usePatchUserByIdTransactionsByTransactionId()
 
   const applyRules = useCallback(async () => {
     const { data: encTransactions } = await getUserByIdTransactions({
@@ -21,7 +22,9 @@ export default function ApplyRules() {
     })
 
     const transactions = await Promise.all(
-      encTransactions?.transactions.map((t) => decryptTransaction(t, decrypt)) || []
+      encTransactions?.transactions.map((t) =>
+        decryptTransaction(t, decrypt),
+      ) || [],
     )
 
     for (const transaction of transactions) {
@@ -35,7 +38,9 @@ export default function ApplyRules() {
             await editTransaction({
               path: { id: userId, transaction_id: transaction.id },
               body: {
-                description: await encrypt(rule.description || transaction.description),
+                description: await encrypt(
+                  rule.description || transaction.description,
+                ),
                 category_id: category.id,
                 account_id: transaction.account.id,
                 date: transaction.date,

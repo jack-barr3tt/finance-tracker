@@ -17,14 +17,17 @@ export async function parseBarclaycard(
   userId: string,
   accountId: string,
   encrypt: (text: string) => Promise<string>,
-  decrypt: (text: string) => Promise<string>
+  decrypt: (text: string) => Promise<string>,
 ): Promise<boolean> {
   const getAmount = (str: string): number => {
     const match = str.match(/-?[\d.,]+/)
     return match ? parseFloat(match[0].replace(/,/g, "")) : 0
   }
 
-  const newFile = await prependToFile(file, "Date,Description,Type,Name,Category,In,Out")
+  const newFile = await prependToFile(
+    file,
+    "Date,Description,Type,Name,Category,In,Out",
+  )
 
   return parseCSV<BarclaycardRow>(
     newFile,
@@ -37,6 +40,6 @@ export async function parseBarclaycard(
       amount: -(getAmount(data.In) + getAmount(data.Out)),
       description: data.Description,
     }),
-    { header: true, skipEmptyLines: true }
+    { header: true, skipEmptyLines: true },
   )
 }
