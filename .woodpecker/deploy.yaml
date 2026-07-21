@@ -72,21 +72,4 @@ steps:
         from_secret: deploy_path
     commands:
       - apk add --no-cache openssh-client tar
-      - |
-        test -n "$$SSH_KEY" || (echo "missing secret: deploy_ssh_key" && exit 1)
-        test -n "$$DEPLOY_HOST" || (echo "missing secret: deploy_host" && exit 1)
-        test -n "$$DEPLOY_USER" || (echo "missing secret: deploy_user" && exit 1)
-        test -n "$$DEPLOY_PATH" || (echo "missing secret: deploy_path" && exit 1)
-      - mkdir -p ~/.ssh && chmod 700 ~/.ssh
-      - printf '%s\n' "$$SSH_KEY" > ~/.ssh/id_ed25519 && chmod 600 ~/.ssh/id_ed25519
-      - ssh-keyscan -H "$$DEPLOY_HOST" >> ~/.ssh/known_hosts
-      - ssh "$$DEPLOY_USER@$$DEPLOY_HOST" "mkdir -p '$$DEPLOY_PATH/incoming'"
-      - scp release.tar.gz "$$DEPLOY_USER@$$DEPLOY_HOST:$$DEPLOY_PATH/incoming/"
-      - |
-        ssh "$$DEPLOY_USER@$$DEPLOY_HOST" "
-          set -euo pipefail
-          cd '$$DEPLOY_PATH/incoming'
-          tar -xzf release.tar.gz
-          DEPLOY_PATH='$$DEPLOY_PATH' ./deploy.sh
-          rm -f release.tar.gz
-        "
+      - sh scripts/ci-deploy.sh
