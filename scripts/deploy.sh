@@ -13,5 +13,3 @@ mkdir -p "${WEB_ROOT}"
 rsync -a --delete "${SCRIPT_DIR}/dist/" "${WEB_ROOT}/"
 
 sudo systemctl restart "${SERVICE_NAME}"
-sudo nginx -t
-sudo systemctl reload nginx
