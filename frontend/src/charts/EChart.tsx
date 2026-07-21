@@ -6,6 +6,8 @@ import echarts from "./echartsCore"
 import { bindLegendIsolate } from "./legendIsolate"
 import { applyLegendLayout, getLegendLayoutKey } from "./legendLayout"
 
+const AUTO_SIZE = { width: "auto", height: "auto" } as const
+
 type EChartProps = {
   option: EChartsOption
   className?: string
@@ -13,6 +15,7 @@ type EChartProps = {
 
 export default function EChart({ option, className }: EChartProps) {
   const chartRef = useRef<ECharts | null>(null)
+  const containerRef = useRef<HTMLDivElement | null>(null)
   const layoutKeyRef = useRef("")
   const unbindLegendRef = useRef<(() => void) | null>(null)
 
@@ -45,6 +48,30 @@ export default function EChart({ option, className }: EChartProps) {
     [scheduleLegendLayout],
   )
 
+  // echarts-for-react pins pixel size on init; resize when the wrapper changes
+  useEffect(() => {
+    const container = containerRef.current
+    if (!container || typeof ResizeObserver === "undefined") return
+
+    let frame = 0
+    const observer = new ResizeObserver(() => {
+      cancelAnimationFrame(frame)
+      frame = requestAnimationFrame(() => {
+        const chart = chartRef.current
+        if (!chart) return
+        chart.resize()
+        layoutKeyRef.current = ""
+        scheduleLegendLayout(chart)
+      })
+    })
+
+    observer.observe(container)
+    return () => {
+      cancelAnimationFrame(frame)
+      observer.disconnect()
+    }
+  }, [scheduleLegendLayout])
+
   const onEvents = useMemo(
     () => ({
       finished: () => {
@@ -55,15 +82,18 @@ export default function EChart({ option, className }: EChartProps) {
   )
 
   return (
-    <ReactECharts
-      className={className}
-      echarts={echarts}
-      option={option}
-      notMerge={true}
-      lazyUpdate={true}
-      onChartReady={onChartReady}
-      onEvents={onEvents}
-      style={{ height: "100%", width: "100%" }}
-    />
+    <div ref={containerRef} className="w-full h-full">
+      <ReactECharts
+        className={className}
+        echarts={echarts}
+        option={option}
+        notMerge={true}
+        lazyUpdate={true}
+        opts={AUTO_SIZE}
+        onChartReady={onChartReady}
+        onEvents={onEvents}
+        style={{ height: "100%", width: "100%" }}
+      />
+    </div>
   )
 }
