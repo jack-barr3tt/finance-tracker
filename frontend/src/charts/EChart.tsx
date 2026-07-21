@@ -48,10 +48,7 @@ export default function EChart({ option, className }: EChartProps) {
     [scheduleLegendLayout],
   )
 
-  // echarts-for-react bakes fixed pixel width/height on init and skips the first
-  // size-sensor callback, so container changes (sidebar, grid, etc.) often leave
-  // the canvas stale until a hover forces a redraw. Keep sizing auto and resize
-  // from our own observer on a wrapper that ECharts does not pin to pixels.
+  // echarts-for-react pins pixel size on init; resize when the wrapper changes
   useEffect(() => {
     const container = containerRef.current
     if (!container || typeof ResizeObserver === "undefined") return
@@ -85,7 +82,7 @@ export default function EChart({ option, className }: EChartProps) {
   )
 
   return (
-    <div ref={containerRef} className="h-full w-full">
+    <div ref={containerRef} className="w-full h-full">
       <ReactECharts
         className={className}
         echarts={echarts}
