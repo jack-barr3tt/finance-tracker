@@ -1,99 +1,133 @@
-import type { EChartsOption } from "echarts"
-import type { ECharts } from "echarts"
+import type { ECharts, EChartsOption } from "echarts"
 import ReactECharts from "echarts-for-react"
-import { useCallback, useEffect, useMemo, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import echarts from "./echartsCore"
 import { bindLegendIsolate } from "./legendIsolate"
 import { applyLegendLayout, getLegendLayoutKey } from "./legendLayout"
 
-const AUTO_SIZE = { width: "auto", height: "auto" } as const
+const CHART_STYLE = { height: "100%", width: "100%" } as const
+
+type Size = { width: number; height: number }
 
 type EChartProps = {
   option: EChartsOption
   className?: string
 }
 
+function getSize(el: HTMLElement): Size | null {
+  const width = Math.round(el.clientWidth)
+  const height = Math.round(el.clientHeight)
+  if (width === 0 || height === 0) return null
+  return { width, height }
+}
+
 export default function EChart({ option, className }: EChartProps) {
+  const containerRef = useRef<HTMLDivElement>(null)
   const chartRef = useRef<ECharts | null>(null)
-  const containerRef = useRef<HTMLDivElement | null>(null)
+  const lastSizeRef = useRef<Size | null>(null)
   const layoutKeyRef = useRef("")
-  const unbindLegendRef = useRef<(() => void) | null>(null)
+  const readyRef = useRef(false)
+  const cleanupRef = useRef<(() => void) | null>(null)
 
-  useEffect(() => {
-    layoutKeyRef.current = ""
-  }, [option])
+  const [size, setSize] = useState<Size | null>(null)
+  const [ready, setReady] = useState(false)
 
-  useEffect(() => {
-    return () => {
-      unbindLegendRef.current?.()
+  function markReady() {
+    if (readyRef.current) return
+    readyRef.current = true
+    setReady(true)
+  }
+
+  function syncLegend(chart: ECharts) {
+    const key = getLegendLayoutKey(chart)
+    if (layoutKeyRef.current === key) {
+      markReady()
+      return
     }
-  }, [])
-
-  const scheduleLegendLayout = useCallback((chart: ECharts) => {
-    const layoutKey = getLegendLayoutKey(chart)
-    if (layoutKeyRef.current === layoutKey) return
 
     if (applyLegendLayout(chart)) {
-      layoutKeyRef.current = layoutKey
+      layoutKeyRef.current = getLegendLayoutKey(chart)
+      markReady()
+      return
     }
-  }, [])
 
-  const onChartReady = useCallback(
-    (chart: ECharts) => {
-      chartRef.current = chart
-      unbindLegendRef.current?.()
-      unbindLegendRef.current = bindLegendIsolate(chart)
-      scheduleLegendLayout(chart)
-    },
-    [scheduleLegendLayout],
-  )
+    requestAnimationFrame(() => {
+      applyLegendLayout(chart)
+      layoutKeyRef.current = getLegendLayoutKey(chart)
+      markReady()
+    })
+  }
 
-  // echarts-for-react pins pixel size on init; resize when the wrapper changes
   useEffect(() => {
     const container = containerRef.current
-    if (!container || typeof ResizeObserver === "undefined") return
+    if (!container) return
 
-    let frame = 0
     const observer = new ResizeObserver(() => {
-      cancelAnimationFrame(frame)
-      frame = requestAnimationFrame(() => {
-        const chart = chartRef.current
-        if (!chart) return
-        chart.resize()
-        layoutKeyRef.current = ""
-        scheduleLegendLayout(chart)
-      })
+      const next = getSize(container)
+      if (!next) return
+
+      setSize((current) => current ?? next)
+
+      const chart = chartRef.current
+      const prev = lastSizeRef.current
+      if (!chart) return
+      if (prev && prev.width === next.width && prev.height === next.height) {
+        return
+      }
+
+      lastSizeRef.current = next
+      chart.resize(next)
+      layoutKeyRef.current = ""
+      syncLegend(chart)
     })
 
     observer.observe(container)
     return () => {
-      cancelAnimationFrame(frame)
       observer.disconnect()
+      cleanupRef.current?.()
     }
-  }, [scheduleLegendLayout])
+  }, [])
 
-  const onEvents = useMemo(
-    () => ({
-      finished: () => {
-        if (chartRef.current) scheduleLegendLayout(chartRef.current)
-      },
-    }),
-    [scheduleLegendLayout],
-  )
+  useEffect(() => {
+    layoutKeyRef.current = ""
+    if (chartRef.current) syncLegend(chartRef.current)
+  }, [option])
 
   return (
-    <div ref={containerRef} className="w-full h-full">
-      <ReactECharts
-        className={className}
-        echarts={echarts}
-        option={option}
-        notMerge={true}
-        lazyUpdate={true}
-        opts={AUTO_SIZE}
-        onChartReady={onChartReady}
-        onEvents={onEvents}
-        style={{ height: "100%", width: "100%" }}
-      />
+    <div
+      ref={containerRef}
+      className="w-full h-full"
+      style={{ opacity: ready ? 1 : 0 }}
+    >
+      {size && (
+        <ReactECharts
+          className={className}
+          echarts={echarts}
+          option={option}
+          notMerge
+          autoResize={false}
+          opts={size}
+          style={CHART_STYLE}
+          onChartReady={(chart) => {
+            chartRef.current = chart
+            lastSizeRef.current = size
+
+            const unbindLegend = bindLegendIsolate(chart)
+            const onFinished = () => {
+              if (!readyRef.current) syncLegend(chart)
+            }
+            chart.on("finished", onFinished)
+
+            cleanupRef.current?.()
+            cleanupRef.current = () => {
+              chart.off("finished", onFinished)
+              unbindLegend()
+            }
+
+            syncLegend(chart)
+          }}
+        />
+      )}
     </div>
   )
 }
