@@ -13,12 +13,12 @@ import {
 } from "flowbite-react"
 import { useLocation, useNavigate } from "react-router-dom"
 import {
-  useDeleteUserByIdCategoriesByCategoryIdRulesByRuleId,
-  useGetUserByIdCategoriesByCategoryId,
-  UseGetUserByIdCategoriesByCategoryIdKeyFn,
-  UseGetUserByIdCategoriesKeyFn,
-  usePatchUserByIdCategoriesByCategoryId,
-} from "../../API/queries"
+  getGetUserIdCategoriesCategoryIdQueryKey,
+  getGetUserIdCategoriesQueryKey,
+  useDeleteUserIdCategoriesCategoryIdRulesRuleId,
+  useGetUserIdCategoriesCategoryId,
+  usePatchUserIdCategoriesCategoryId,
+} from "../../API"
 import { useUser } from "../../Hooks/useUser"
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { useQueryClient } from "@tanstack/react-query"
@@ -37,16 +37,14 @@ export default function EditCategories() {
     () => /category\/(.+)\/edit/.exec(location.pathname)?.[1] ?? "",
     [location.pathname],
   )
-  const { data: encCategory } = useGetUserByIdCategoriesByCategoryId(
-    {
-      path: { id: userId, category_id: categoryId },
-    },
-    undefined,
-    { enabled: !!categoryId },
+  const { data: encCategory } = useGetUserIdCategoriesCategoryId(
+    userId,
+    categoryId,
+    { query: { enabled: !!categoryId } },
   )
-  const { mutateAsync: editCategory } = usePatchUserByIdCategoriesByCategoryId()
+  const { mutateAsync: editCategory } = usePatchUserIdCategoriesCategoryId()
   const { mutateAsync: deleteRule } =
-    useDeleteUserByIdCategoriesByCategoryIdRulesByRuleId()
+    useDeleteUserIdCategoriesCategoryIdRulesRuleId()
 
   const category = useAsyncMemo(
     async () => decryptCategory(encCategory, decrypt),
@@ -68,16 +66,15 @@ export default function EditCategories() {
   const handleSubmit = useCallback(async () => {
     if (categoryName.trim() != category?.name) {
       await editCategory({
-        path: { id: userId, category_id: categoryId },
-        body: { name: await encrypt(categoryName) },
+        id: userId,
+        categoryId,
+        data: { name: await encrypt(categoryName) },
       })
       queryClient.invalidateQueries({
-        queryKey: UseGetUserByIdCategoriesByCategoryIdKeyFn({
-          path: { id: userId, category_id: categoryId },
-        }),
+        queryKey: getGetUserIdCategoriesCategoryIdQueryKey(userId, categoryId),
       })
       queryClient.invalidateQueries({
-        queryKey: UseGetUserByIdCategoriesKeyFn({ path: { id: userId } }),
+        queryKey: getGetUserIdCategoriesQueryKey(userId),
       })
     }
 
@@ -95,16 +92,12 @@ export default function EditCategories() {
 
   const handleDelete = useCallback(
     async (ruleId: string) => {
-      await deleteRule({
-        path: { id: userId, category_id: categoryId, rule_id: ruleId },
+      await deleteRule({ id: userId, categoryId, ruleId })
+      queryClient.invalidateQueries({
+        queryKey: getGetUserIdCategoriesQueryKey(userId),
       })
       queryClient.invalidateQueries({
-        queryKey: UseGetUserByIdCategoriesKeyFn({ path: { id: userId } }),
-      })
-      queryClient.invalidateQueries({
-        queryKey: UseGetUserByIdCategoriesByCategoryIdKeyFn({
-          path: { id: userId, category_id: categoryId },
-        }),
+        queryKey: getGetUserIdCategoriesCategoryIdQueryKey(userId, categoryId),
       })
     },
     [categoryId, deleteRule, queryClient, userId],

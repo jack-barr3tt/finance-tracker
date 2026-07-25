@@ -34,7 +34,7 @@ import {
   subYears,
 } from "date-fns"
 import { FiChevronLeft, FiChevronRight } from "react-icons/fi"
-import { SummaryInterval, TimePeriod } from "../API/requests"
+import { SummaryInterval, TimePeriod } from "../API"
 import { SummaryRange, useData } from "../Hooks/useData"
 import CalendarDatePicker from "./CalendarDatePicker"
 import SearchSelect from "./SearchSelect"

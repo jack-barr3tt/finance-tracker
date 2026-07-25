@@ -9,18 +9,19 @@ import {
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { FiSave, FiX } from "react-icons/fi"
 import {
-  useGetUserByIdCategories,
-  useGetUserByIdCategoryBudgetsByCategoryBudgetId,
-  UseGetUserByIdCategoryBudgetsKeyFn,
-  usePatchUserByIdCategoryBudgetsByCategoryBudgetId,
-  usePostUserByIdCategoryBudgets,
-} from "../../API/queries"
+  CategoryBudget,
+  PeriodUnit,
+  getGetUserIdCategoryBudgetsQueryKey,
+  useGetUserIdCategoryBudgetsCategoryBudgetId,
+  useGetUserIdCategories,
+  usePatchUserIdCategoryBudgetsCategoryBudgetId,
+  usePostUserIdCategoryBudgets,
+} from "../../API"
 import { useUser } from "../../Hooks/useUser"
 import SearchSelect from "../../Components/SearchSelect"
 import { useQueryClient } from "@tanstack/react-query"
 import { useAsyncMemo } from "../../Hooks/useAsyncMemo"
 import { decryptCategory, decryptCategoryBudget } from "../../Security/data"
-import { CategoryBudget, PeriodUnit } from "../../API/requests"
 import {
   isSegmentActiveToday,
   todayDateInputValue,
@@ -39,9 +40,7 @@ export default function EditCategoryBudgetRow(
 
   const { userId, decrypt } = useUser()
   const queryClient = useQueryClient()
-  const { data: encCategories } = useGetUserByIdCategories({
-    path: { id: userId },
-  })
+  const { data: encCategories } = useGetUserIdCategories(userId)
   const categories = useAsyncMemo(
     async () =>
       (
@@ -52,19 +51,16 @@ export default function EditCategoryBudgetRow(
     [decrypt, encCategories],
   )
 
-  const { mutateAsync: addCategoryBudget } = usePostUserByIdCategoryBudgets()
+  const { mutateAsync: addCategoryBudget } = usePostUserIdCategoryBudgets()
   const { mutateAsync: editCategoryBudget } =
-    usePatchUserByIdCategoryBudgetsByCategoryBudgetId()
-  const { data: categoryBudget } =
-    useGetUserByIdCategoryBudgetsByCategoryBudgetId(
-      {
-        path: { id: userId, category_budget_id: categoryBudgetId || "" },
-      },
-      undefined,
-      {
-        enabled: !!categoryBudgetId,
-      },
-    )
+    usePatchUserIdCategoryBudgetsCategoryBudgetId()
+  const { data: categoryBudget } = useGetUserIdCategoryBudgetsCategoryBudgetId(
+    userId,
+    categoryBudgetId || "",
+    {
+      query: { enabled: !!categoryBudgetId },
+    },
+  )
 
   const [categorySearch, setCategorySearch] = useState<string | undefined>(
     undefined,
@@ -123,7 +119,8 @@ export default function EditCategoryBudgetRow(
     if (!selectedCategory || !amount || !repeatEvery || !startsOn) return
 
     await addCategoryBudget({
-      body: {
+      id: userId,
+      data: {
         category_id: selectedCategory,
         amount: parseFloat(amount),
         repeat_until: repeatUntil,
@@ -131,10 +128,9 @@ export default function EditCategoryBudgetRow(
         starts_on: startsOn,
         ends_on: endsOn || undefined,
       },
-      path: { id: userId },
     })
     queryClient.invalidateQueries({
-      queryKey: UseGetUserByIdCategoryBudgetsKeyFn({ path: { id: userId } }),
+      queryKey: getGetUserIdCategoryBudgetsQueryKey(userId),
     })
     resetForm()
     cancelCallback?.()
@@ -156,7 +152,9 @@ export default function EditCategoryBudgetRow(
     if (!categoryBudgetId || !amount || !repeatEvery || !effectiveFrom) return
 
     await editCategoryBudget({
-      body: {
+      id: userId,
+      categoryBudgetId,
+      data: {
         category_id: selectedCategory,
         amount: parseFloat(amount),
         repeat_until: repeatUntil,
@@ -164,10 +162,9 @@ export default function EditCategoryBudgetRow(
         effective_from: effectiveFrom,
         ends_on: endsOn || undefined,
       },
-      path: { id: userId, category_budget_id: categoryBudgetId },
     })
     queryClient.invalidateQueries({
-      queryKey: UseGetUserByIdCategoryBudgetsKeyFn({ path: { id: userId } }),
+      queryKey: getGetUserIdCategoryBudgetsQueryKey(userId),
     })
     resetForm()
     cancelCallback?.()

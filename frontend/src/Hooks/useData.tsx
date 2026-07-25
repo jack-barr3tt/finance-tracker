@@ -10,18 +10,16 @@ import {
   CategorySpendingSummary,
   CategorySummary,
   SummaryInterval,
-} from "../API/requests"
+  useGetUserIdAccounts,
+  useGetUserIdBudgetTransactions,
+  useGetUserIdCategoryBudgets,
+  useGetUserIdCategories,
+  useGetUserIdSummaryAccounts,
+  useGetUserIdSummaryBalance,
+  useGetUserIdSummaryCategories,
+  useGetUserIdSummaryCategoriesSpending,
+} from "../API"
 import { format, subYears } from "date-fns"
-import {
-  useGetUserByIdAccounts,
-  useGetUserByIdBudgetTransactions,
-  useGetUserByIdCategoryBudgets,
-  useGetUserByIdCategories,
-  useGetUserByIdSummaryAccounts,
-  useGetUserByIdSummaryBalance,
-  useGetUserByIdSummaryCategories,
-  useGetUserByIdSummaryCategoriesSpending,
-} from "../API/queries"
 import {
   decryptAccount,
   decryptBudgetTransaction,
@@ -122,13 +120,9 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     [summaryRange.interval, summaryDateQuery],
   )
 
-  const { data: encAccounts } = useGetUserByIdAccounts(
-    { path: { id: userId } },
-    undefined,
-    {
-      enabled: !!userId,
-    },
-  )
+  const { data: encAccounts } = useGetUserIdAccounts(userId, {
+    query: { enabled: !!userId },
+  })
   const accounts = useAsyncMemo(
     async () =>
       (
@@ -139,13 +133,9 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     [encAccounts, decrypt],
   )
 
-  const { data: encCategories } = useGetUserByIdCategories(
-    { path: { id: userId } },
-    undefined,
-    {
-      enabled: !!userId,
-    },
-  )
+  const { data: encCategories } = useGetUserIdCategories(userId, {
+    query: { enabled: !!userId },
+  })
   const categories = useAsyncMemo(
     async () =>
       (
@@ -156,11 +146,10 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     [encCategories, decrypt],
   )
 
-  const { data: encBudgetTransactions } = useGetUserByIdBudgetTransactions(
-    { path: { id: userId } },
-    undefined,
+  const { data: encBudgetTransactions } = useGetUserIdBudgetTransactions(
+    userId,
     {
-      enabled: !!userId,
+      query: { enabled: !!userId },
     },
   )
   const budgetTransactions = useAsyncMemo(
@@ -178,13 +167,9 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     [encBudgetTransactions, decrypt],
   )
 
-  const { data: encCategoryBudgets } = useGetUserByIdCategoryBudgets(
-    { path: { id: userId } },
-    undefined,
-    {
-      enabled: !!userId,
-    },
-  )
+  const { data: encCategoryBudgets } = useGetUserIdCategoryBudgets(userId, {
+    query: { enabled: !!userId },
+  })
   const categoryBudgets = useAsyncMemo(
     async () =>
       (
@@ -199,15 +184,9 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     [encCategoryBudgets, decrypt],
   )
 
-  const { data: encAccountSummaries } = useGetUserByIdSummaryAccounts(
-    {
-      path: { id: userId },
-    },
-    undefined,
-    {
-      enabled: !!userId,
-    },
-  )
+  const { data: encAccountSummaries } = useGetUserIdSummaryAccounts(userId, {
+    query: { enabled: !!userId },
+  })
   const accountSummary = useAsyncMemo(
     async () =>
       encAccountSummaries
@@ -227,14 +206,11 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     [encAccountSummaries, decrypt],
   )
 
-  const { data: encBalanceSummary } = useGetUserByIdSummaryBalance(
+  const { data: encBalanceSummary } = useGetUserIdSummaryBalance(
+    userId,
+    summaryBalanceQuery,
     {
-      path: { id: userId },
-      query: summaryBalanceQuery,
-    },
-    undefined,
-    {
-      enabled: !!userId,
+      query: { enabled: !!userId },
     },
   )
   const balanceSummary = useAsyncMemo(async () => {
@@ -250,11 +226,11 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [encBalanceSummary, decrypt])
 
-  const { data: encCategorySummaries } = useGetUserByIdSummaryCategories(
-    { path: { id: userId }, query: summaryDateQuery },
-    undefined,
+  const { data: encCategorySummaries } = useGetUserIdSummaryCategories(
+    userId,
+    summaryDateQuery,
     {
-      enabled: !!userId,
+      query: { enabled: !!userId },
     },
   )
   const categorySummaries = useAsyncMemo(
@@ -282,13 +258,9 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
   )
 
   const { data: encCategorySpendingSummary } =
-    useGetUserByIdSummaryCategoriesSpending(
-      { path: { id: userId }, query: summaryBalanceQuery },
-      undefined,
-      {
-        enabled: !!userId,
-      },
-    )
+    useGetUserIdSummaryCategoriesSpending(userId, summaryBalanceQuery, {
+      query: { enabled: !!userId },
+    })
   const categorySpendingSummary = useAsyncMemo(async () => {
     if (!encCategorySpendingSummary) return null
     return {

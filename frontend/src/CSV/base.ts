@@ -1,12 +1,12 @@
 import { format } from "date-fns"
 import Papa from "papaparse"
 import {
-  getUserByIdCategories,
-  postUserByIdTransactionsBulk,
-  postUserByIdTransactionsBulkDelete,
-  postUserByIdTransactionsBulkFinalise,
+  getUserIdCategories,
+  postUserIdTransactionsBulk,
+  postUserIdTransactionsBulkDelete,
+  postUserIdTransactionsBulkFinalise,
   TransactionCreateRequest,
-} from "../API/requests"
+} from "../API"
 import { formatError } from "../utils/formatError"
 import { getImportFailureMessage } from "./importErrors"
 
@@ -35,124 +35,110 @@ export function parseCSV<T>(
 ): Promise<boolean> {
   return new Promise((resolve, reject) => {
     hashFile(file).then((hash) => {
-      getUserByIdCategories({ path: { id: userId } }).then(
-        ({ data: categories }) => {
-          Promise.all(
-            (categories ?? []).map(async (category) => ({
-              ...category,
-              rules: await Promise.all(
-                category.rules.map(async (rule) => ({
-                  ...rule,
-                  rule: rule.rule ? await decrypt(rule.rule) : "",
-                  description: rule.description
-                    ? await decrypt(rule.description)
-                    : "",
-                })),
-              ),
-            })),
-          ).then((categories) => {
-            const requests: Promise<unknown>[] = []
+      getUserIdCategories(userId).then((categories) => {
+        Promise.all(
+          (categories ?? []).map(async (category) => ({
+            ...category,
+            rules: await Promise.all(
+              category.rules.map(async (rule) => ({
+                ...rule,
+                rule: rule.rule ? await decrypt(rule.rule) : "",
+                description: rule.description
+                  ? await decrypt(rule.description)
+                  : "",
+              })),
+            ),
+          })),
+        ).then((categories) => {
+          const requests: Promise<unknown>[] = []
 
-            const applyRule = (
-              description: string,
-              accountId: string,
-            ): { description: string; category_id: string | undefined } => {
-              for (const category of categories || []) {
-                for (const rule of category.rules) {
-                  if (rule.account.id != accountId) continue
+          const applyRule = (
+            description: string,
+            accountId: string,
+          ): { description: string; category_id: string | undefined } => {
+            for (const category of categories || []) {
+              for (const rule of category.rules) {
+                if (rule.account.id != accountId) continue
 
-                  const regex = new RegExp(rule.rule, "g")
+                const regex = new RegExp(rule.rule, "g")
 
-                  if (regex.test(description)) {
-                    return {
-                      description: rule.description || description,
-                      category_id: category.id,
-                    }
+                if (regex.test(description)) {
+                  return {
+                    description: rule.description || description,
+                    category_id: category.id,
                   }
                 }
               }
-
-              return { description, category_id: undefined }
             }
 
-            new Promise((resolveParse, rejectParse) => {
-              Papa.parse(file, {
-                chunk: async (results: { data: T[] }) => {
-                  requests.push(
-                    (async () =>
-                      postUserByIdTransactionsBulk({
-                        path: { id: userId },
-                        body: {
-                          hash,
-                          transactions: (await Promise.all(
-                            results.data
-                              .map((row) => {
-                                const data = handler(row)
-                                const list = Array.isArray(data) ? data : [data]
+            return { description, category_id: undefined }
+          }
 
-                                return list.map(async (data) => {
-                                  const { description, category_id } =
-                                    applyRule(
-                                      data.description,
-                                      data.account_id || accountId,
-                                    )
-                                  return {
-                                    date: format(data.date, "yyyy-MM-dd"),
-                                    amount: data.amount,
-                                    account_id: data.account_id || accountId,
-                                    description: await encrypt(description),
-                                    category_id,
-                                  }
-                                })
-                              })
-                              .flat(),
-                          )) as TransactionCreateRequest[],
-                        },
-                      }))(),
-                  )
-                },
-                complete: resolveParse,
-                error: rejectParse,
-                ...config,
-              })
-            })
-              .then(() =>
-                Promise.allSettled(requests).then(async (results) => {
-                  if (results.length === 0) {
-                    throw new Error("No transactions to process")
-                  }
-
-                  if (results.some((result) => result.status === "rejected")) {
-                    const failureMessage = getImportFailureMessage(results)
-                    await postUserByIdTransactionsBulkDelete({
-                      path: { id: userId },
-                      body: {
-                        hash,
-                        cancel: true,
-                      },
-                    }).catch(() => undefined)
-                    throw new Error(failureMessage)
-                  }
-
-                  await postUserByIdTransactionsBulkFinalise({
-                    path: { id: userId },
-                    body: {
+          new Promise((resolveParse, rejectParse) => {
+            Papa.parse(file, {
+              chunk: async (results: { data: T[] }) => {
+                requests.push(
+                  (async () =>
+                    postUserIdTransactionsBulk(userId, {
                       hash,
-                    },
-                  })
-                }),
-              )
-              .then(() => resolve(true))
-              .catch((error) =>
-                reject(
-                  new Error(
-                    formatError(error, "Failed to import transactions."),
-                  ),
-                ),
-              )
+                      transactions: (await Promise.all(
+                        results.data
+                          .map((row) => {
+                            const data = handler(row)
+                            const list = Array.isArray(data) ? data : [data]
+
+                            return list.map(async (data) => {
+                              const { description, category_id } = applyRule(
+                                data.description,
+                                data.account_id || accountId,
+                              )
+                              return {
+                                date: format(data.date, "yyyy-MM-dd"),
+                                amount: data.amount,
+                                account_id: data.account_id || accountId,
+                                description: await encrypt(description),
+                                category_id,
+                              }
+                            })
+                          })
+                          .flat(),
+                      )) as TransactionCreateRequest[],
+                    }))(),
+                )
+              },
+              complete: resolveParse,
+              error: rejectParse,
+              ...config,
+            })
           })
-        },
-      )
+            .then(() =>
+              Promise.allSettled(requests).then(async (results) => {
+                if (results.length === 0) {
+                  throw new Error("No transactions to process")
+                }
+
+                if (results.some((result) => result.status === "rejected")) {
+                  const failureMessage = getImportFailureMessage(results)
+                  await postUserIdTransactionsBulkDelete(userId, {
+                    hash,
+                    cancel: true,
+                  }).catch(() => undefined)
+                  throw new Error(failureMessage)
+                }
+
+                await postUserIdTransactionsBulkFinalise(userId, {
+                  hash,
+                })
+              }),
+            )
+            .then(() => resolve(true))
+            .catch((error) =>
+              reject(
+                new Error(formatError(error, "Failed to import transactions.")),
+              ),
+            )
+        })
+      })
     })
   })
 }

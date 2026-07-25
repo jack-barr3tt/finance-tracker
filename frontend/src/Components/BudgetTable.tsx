@@ -11,7 +11,7 @@ import {
 import { FiEdit, FiPlus, FiTrash } from "react-icons/fi"
 import EditBudgetTransactionRow from "../Pages/Budget/EditBudgetTransactionRow"
 import TableBodyWithButton from "./TableBodyWithButton"
-import { BudgetTransaction } from "../API/requests"
+import { BudgetTransaction } from "../API"
 import {
   formatSegmentDateRange,
   isSegmentActiveToday,

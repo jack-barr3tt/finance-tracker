@@ -1,4 +1,4 @@
-import { PeriodUnit } from "../API/requests"
+import { PeriodUnit } from "../API"
 import {
   addDays,
   addMonths,

@@ -1,9 +1,9 @@
 import { useUser } from "../../Hooks/useUser"
 import {
-  useDeleteUserByIdCategoriesByCategoryId,
-  useGetUserByIdCategories,
-  UseGetUserByIdCategoriesKeyFn,
-} from "../../API/queries"
+  getGetUserIdCategoriesQueryKey,
+  useDeleteUserIdCategoriesCategoryId,
+  useGetUserIdCategories,
+} from "../../API"
 import { Card, Button } from "flowbite-react"
 import { FiTrash, FiPlus, FiEdit } from "react-icons/fi"
 import { useCallback } from "react"
@@ -15,13 +15,9 @@ import { decryptCategory } from "../../Security/data"
 export default function ViewCategories() {
   const { userId, decrypt } = useUser()
   const queryClient = useQueryClient()
-  const { data: encryptedCategories } = useGetUserByIdCategories(
-    { path: { id: userId } },
-    undefined,
-    {
-      enabled: !!userId,
-    },
-  )
+  const { data: encryptedCategories } = useGetUserIdCategories(userId, {
+    query: { enabled: !!userId },
+  })
 
   const categories = useAsyncMemo(
     async () =>
@@ -34,15 +30,14 @@ export default function ViewCategories() {
     [decrypt, encryptedCategories],
   )
 
-  const { mutateAsync: deleteCategory } =
-    useDeleteUserByIdCategoriesByCategoryId()
+  const { mutateAsync: deleteCategory } = useDeleteUserIdCategoriesCategoryId()
   const navigate = useNavigate()
 
   const handleDeleteCategory = useCallback(
     async (categoryId: string) => {
-      await deleteCategory({ path: { id: userId, category_id: categoryId } })
+      await deleteCategory({ id: userId, categoryId })
       queryClient.invalidateQueries({
-        queryKey: UseGetUserByIdCategoriesKeyFn({ path: { id: userId } }),
+        queryKey: getGetUserIdCategoriesQueryKey(userId),
       })
     },
     [deleteCategory, queryClient, userId],

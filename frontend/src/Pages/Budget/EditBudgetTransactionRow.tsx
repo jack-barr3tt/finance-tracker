@@ -9,18 +9,18 @@ import {
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { FiSave, FiX } from "react-icons/fi"
 import {
-  useGetUserByIdCategories,
-  useGetUserByIdBudgetTransactionsByBudgetTransactionId,
-  UseGetUserByIdBudgetTransactionsKeyFn,
-  usePatchUserByIdBudgetTransactionsByBudgetTransactionId,
-  usePostUserByIdBudgetTransactions,
-} from "../../API/queries"
+  PeriodUnit,
+  getGetUserIdBudgetTransactionsQueryKey,
+  useGetUserIdBudgetTransactionsBudgetTransactionId,
+  useGetUserIdCategories,
+  usePatchUserIdBudgetTransactionsBudgetTransactionId,
+  usePostUserIdBudgetTransactions,
+} from "../../API"
 import { useUser } from "../../Hooks/useUser"
 import SearchSelect from "../../Components/SearchSelect"
 import { useQueryClient } from "@tanstack/react-query"
 import { useAsyncMemo } from "../../Hooks/useAsyncMemo"
 import { decryptCategory } from "../../Security/data"
-import { PeriodUnit } from "../../API/requests"
 import { todayDateInputValue } from "../../budget/plannedAmount"
 
 type EditBudgetTransactionRowProps = {
@@ -36,9 +36,7 @@ export default function EditBudgetTransactionRow(
 
   const { userId, decrypt, encrypt } = useUser()
   const queryClient = useQueryClient()
-  const { data: encCategories } = useGetUserByIdCategories({
-    path: { id: userId },
-  })
+  const { data: encCategories } = useGetUserIdCategories(userId)
   const categories = useAsyncMemo(
     async () =>
       (
@@ -50,17 +48,15 @@ export default function EditBudgetTransactionRow(
   )
 
   const { mutateAsync: addBudgetTransaction } =
-    usePostUserByIdBudgetTransactions()
+    usePostUserIdBudgetTransactions()
   const { mutateAsync: editBudgetTransaction } =
-    usePatchUserByIdBudgetTransactionsByBudgetTransactionId()
+    usePatchUserIdBudgetTransactionsBudgetTransactionId()
   const { data: budgetTransaction } =
-    useGetUserByIdBudgetTransactionsByBudgetTransactionId(
+    useGetUserIdBudgetTransactionsBudgetTransactionId(
+      userId,
+      budgetTransactionId || "",
       {
-        path: { id: userId, budget_transaction_id: budgetTransactionId || "" },
-      },
-      undefined,
-      {
-        enabled: !!budgetTransactionId,
+        query: { enabled: !!budgetTransactionId },
       },
     )
 
@@ -113,7 +109,8 @@ export default function EditBudgetTransactionRow(
     const finalAmount = isOutgoings ? -Math.abs(amountValue) : amountValue
 
     await addBudgetTransaction({
-      body: {
+      id: userId,
+      data: {
         category_id: selectedCategory,
         description: await encrypt(description),
         amount: finalAmount,
@@ -122,10 +119,9 @@ export default function EditBudgetTransactionRow(
         starts_on: startsOn,
         ends_on: endsOn || undefined,
       },
-      path: { id: userId },
     })
     queryClient.invalidateQueries({
-      queryKey: UseGetUserByIdBudgetTransactionsKeyFn({ path: { id: userId } }),
+      queryKey: getGetUserIdBudgetTransactionsQueryKey(userId),
     })
     resetForm()
     cancelCallback?.()
@@ -154,7 +150,9 @@ export default function EditBudgetTransactionRow(
     const finalAmount = isOutgoings ? -Math.abs(amountValue) : amountValue
 
     await editBudgetTransaction({
-      body: {
+      id: userId,
+      budgetTransactionId,
+      data: {
         category_id: selectedCategory,
         description: await encrypt(description),
         amount: finalAmount,
@@ -163,10 +161,9 @@ export default function EditBudgetTransactionRow(
         effective_from: effectiveFrom,
         ends_on: endsOn || undefined,
       },
-      path: { id: userId, budget_transaction_id: budgetTransactionId },
     })
     queryClient.invalidateQueries({
-      queryKey: UseGetUserByIdBudgetTransactionsKeyFn({ path: { id: userId } }),
+      queryKey: getGetUserIdBudgetTransactionsQueryKey(userId),
     })
     resetForm()
     cancelCallback?.()

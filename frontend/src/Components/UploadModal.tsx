@@ -11,11 +11,11 @@ import { FiCheck, FiX } from "react-icons/fi"
 import { useUser } from "../Hooks/useUser"
 import { toast } from "sonner"
 import {
-  UseGetUserByIdSummaryAccountsKeyFn,
-  UseGetUserByIdSummaryBalanceKeyFn,
-  UseGetUserByIdSummaryCategoriesKeyFn,
-  UseGetUserByIdTransactionsKeyFn,
-} from "../API/queries"
+  getGetUserIdSummaryAccountsQueryKey,
+  getGetUserIdSummaryBalanceQueryKey,
+  getGetUserIdSummaryCategoriesQueryKey,
+  getGetUserIdTransactionsInfiniteQueryKey,
+} from "../API"
 import SearchSelect from "./SearchSelect"
 import { useCallback, useState } from "react"
 import { parseNationwide } from "../CSV/nationwide"
@@ -102,18 +102,16 @@ export default function UploadModal(props: UploadModalProps) {
       }
 
       queryClient.invalidateQueries({
-        queryKey: UseGetUserByIdTransactionsKeyFn({ path: { id: userId } }),
+        queryKey: getGetUserIdTransactionsInfiniteQueryKey(userId),
       })
       queryClient.invalidateQueries({
-        queryKey: UseGetUserByIdSummaryAccountsKeyFn({ path: { id: userId } }),
+        queryKey: getGetUserIdSummaryAccountsQueryKey(userId),
       })
       queryClient.invalidateQueries({
-        queryKey: UseGetUserByIdSummaryCategoriesKeyFn({
-          path: { id: userId },
-        }),
+        queryKey: getGetUserIdSummaryCategoriesQueryKey(userId),
       })
       queryClient.invalidateQueries({
-        queryKey: UseGetUserByIdSummaryBalanceKeyFn({ path: { id: userId } }),
+        queryKey: getGetUserIdSummaryBalanceQueryKey(userId),
       })
       onClose()
     } catch (error) {

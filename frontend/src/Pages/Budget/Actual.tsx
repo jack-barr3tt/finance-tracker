@@ -18,7 +18,7 @@ import BudgetMonthPicker from "../../Components/BudgetMonthPicker"
 import { useData } from "../../Hooks/useData"
 import { useBudgetMonthTransactions } from "../../Hooks/useBudgetMonthTransactions"
 import { classifyBudgetSpending } from "../../budget/classifySpending"
-import { Category, Transaction } from "../../API/requests"
+import { Category, Transaction } from "../../API"
 import { formatCurrencyGBP } from "../../utils"
 
 function VarianceCell({
