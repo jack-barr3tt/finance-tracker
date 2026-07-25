@@ -4,10 +4,10 @@ import { useCallback } from "react"
 import { FiTrash, FiPlus, FiEdit } from "react-icons/fi"
 import { useNavigate } from "react-router-dom"
 import {
-  useGetUserByIdAccounts,
-  useDeleteUserByIdAccountsByAccountId,
-  UseGetUserByIdAccountsKeyFn,
-} from "../../API/queries"
+  getGetUserIdAccountsQueryKey,
+  useDeleteUserIdAccountsAccountId,
+  useGetUserIdAccounts,
+} from "../../API"
 import { useUser } from "../../Hooks/useUser"
 import { useAsyncMemo } from "../../Hooks/useAsyncMemo"
 import { decryptAccount } from "../../Security/data"
@@ -15,13 +15,9 @@ import { decryptAccount } from "../../Security/data"
 export default function ViewAccounts() {
   const { userId, decrypt } = useUser()
   const queryClient = useQueryClient()
-  const { data: encAccounts } = useGetUserByIdAccounts(
-    { path: { id: userId } },
-    undefined,
-    {
-      enabled: !!userId,
-    },
-  )
+  const { data: encAccounts } = useGetUserIdAccounts(userId, {
+    query: { enabled: !!userId },
+  })
   const accounts = useAsyncMemo(
     async () =>
       (
@@ -29,18 +25,18 @@ export default function ViewAccounts() {
           encAccounts?.map((acc) => decryptAccount(acc, decrypt)) ?? [],
         )
       ).sort((a, b) => a.name.localeCompare(b.name)),
-    [encAccounts],
+    [encAccounts, decrypt],
   )
 
-  const { mutateAsync: deleteAccount } = useDeleteUserByIdAccountsByAccountId()
+  const { mutateAsync: deleteAccount } = useDeleteUserIdAccountsAccountId()
 
   const navigate = useNavigate()
 
   const handleDeleteAccount = useCallback(
     async (accountId: string) => {
-      await deleteAccount({ path: { id: userId, account_id: accountId } })
+      await deleteAccount({ id: userId, accountId })
       queryClient.invalidateQueries({
-        queryKey: UseGetUserByIdAccountsKeyFn({ path: { id: userId } }),
+        queryKey: getGetUserIdAccountsQueryKey(userId),
       })
     },
     [deleteAccount, queryClient, userId],

@@ -1,13 +1,13 @@
 import { HR } from "flowbite-react"
 import { useUser } from "../../Hooks/useUser"
 import {
-  useDeleteUserByIdBudgetTransactionsByBudgetTransactionId,
-  useDeleteUserByIdCategoryBudgetsByCategoryBudgetId,
-  UseGetUserByIdBudgetTransactionsKeyFn,
-  UseGetUserByIdBudgetTransactionsByBudgetTransactionIdKeyFn,
-  UseGetUserByIdCategoryBudgetsKeyFn,
-  UseGetUserByIdCategoryBudgetsByCategoryBudgetIdKeyFn,
-} from "../../API/queries"
+  getGetUserIdBudgetTransactionsBudgetTransactionIdQueryKey,
+  getGetUserIdBudgetTransactionsQueryKey,
+  getGetUserIdCategoryBudgetsCategoryBudgetIdQueryKey,
+  getGetUserIdCategoryBudgetsQueryKey,
+  useDeleteUserIdBudgetTransactionsBudgetTransactionId,
+  useDeleteUserIdCategoryBudgetsCategoryBudgetId,
+} from "../../API"
 import { useCallback, useMemo, useState } from "react"
 import { useQueryClient } from "@tanstack/react-query"
 import { useData } from "../../Hooks/useData"
@@ -21,9 +21,9 @@ export default function BudgetPlanning() {
   const queryClient = useQueryClient()
 
   const { mutateAsync: deleteBudgetTransaction } =
-    useDeleteUserByIdBudgetTransactionsByBudgetTransactionId()
+    useDeleteUserIdBudgetTransactionsBudgetTransactionId()
   const { mutateAsync: deleteCategoryBudget } =
-    useDeleteUserByIdCategoryBudgetsByCategoryBudgetId()
+    useDeleteUserIdCategoryBudgetsCategoryBudgetId()
 
   const [showAddIncome, setShowAddIncome] = useState(false)
   const [showAddOutgoings, setShowAddOutgoings] = useState(false)
@@ -49,20 +49,17 @@ export default function BudgetPlanning() {
 
   const handleDelete = useCallback(
     async (budgetTransactionId: string) => {
-      await deleteBudgetTransaction({
-        path: { id: userId, budget_transaction_id: budgetTransactionId },
-      })
+      await deleteBudgetTransaction({ id: userId, budgetTransactionId })
       if (editingBudgetTransactionId === budgetTransactionId)
         setEditingBudgetTransactionId(undefined)
       queryClient.invalidateQueries({
-        queryKey: UseGetUserByIdBudgetTransactionsKeyFn({
-          path: { id: userId },
-        }),
+        queryKey: getGetUserIdBudgetTransactionsQueryKey(userId),
       })
       queryClient.invalidateQueries({
-        queryKey: UseGetUserByIdBudgetTransactionsByBudgetTransactionIdKeyFn({
-          path: { id: userId, budget_transaction_id: budgetTransactionId },
-        }),
+        queryKey: getGetUserIdBudgetTransactionsBudgetTransactionIdQueryKey(
+          userId,
+          budgetTransactionId,
+        ),
       })
     },
     [deleteBudgetTransaction, userId, editingBudgetTransactionId, queryClient],
@@ -70,18 +67,17 @@ export default function BudgetPlanning() {
 
   const handleDeleteCategoryBudget = useCallback(
     async (categoryBudgetId: string) => {
-      await deleteCategoryBudget({
-        path: { id: userId, category_budget_id: categoryBudgetId },
-      })
+      await deleteCategoryBudget({ id: userId, categoryBudgetId })
       if (editingCategoryBudgetId === categoryBudgetId)
         setEditingCategoryBudgetId(undefined)
       queryClient.invalidateQueries({
-        queryKey: UseGetUserByIdCategoryBudgetsKeyFn({ path: { id: userId } }),
+        queryKey: getGetUserIdCategoryBudgetsQueryKey(userId),
       })
       queryClient.invalidateQueries({
-        queryKey: UseGetUserByIdCategoryBudgetsByCategoryBudgetIdKeyFn({
-          path: { id: userId, category_budget_id: categoryBudgetId },
-        }),
+        queryKey: getGetUserIdCategoryBudgetsCategoryBudgetIdQueryKey(
+          userId,
+          categoryBudgetId,
+        ),
       })
     },
     [deleteCategoryBudget, userId, editingCategoryBudgetId, queryClient],

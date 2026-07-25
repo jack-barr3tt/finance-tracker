@@ -5,7 +5,7 @@ import {
   CategoryBudget,
   CategoryRule,
   Transaction,
-} from "../API/requests"
+} from "../API"
 import { DecryptFunction } from "../Hooks/useUser"
 
 export async function decryptCategoryRule<T extends CategoryRule | undefined>(

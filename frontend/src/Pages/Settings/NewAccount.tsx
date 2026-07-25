@@ -10,15 +10,15 @@ import {
 } from "flowbite-react"
 import { useLocation, useNavigate } from "react-router-dom"
 import {
+  AccountCreateRequest,
+  getGetUserIdAccountsQueryKey,
   useGetBanks,
-  UseGetUserByIdAccountsKeyFn,
-  usePostUserByIdAccounts,
-} from "../../API/queries"
+  usePostUserIdAccounts,
+} from "../../API"
 import SearchSelect from "../../Components/SearchSelect"
 import { useCallback, useState } from "react"
 import { useUser } from "../../Hooks/useUser"
 import { useQueryClient } from "@tanstack/react-query"
-import { AccountCreateRequest } from "../../API/requests"
 
 export default function NewAccount() {
   const location = useLocation()
@@ -27,7 +27,7 @@ export default function NewAccount() {
   const { userId, encrypt } = useUser()
 
   const { data: banks } = useGetBanks()
-  const { mutateAsync: createAccount } = usePostUserByIdAccounts()
+  const { mutateAsync: createAccount } = usePostUserIdAccounts()
 
   const [bankSearch, setBankSearch] = useState<string | undefined>(undefined)
   const [bankId, setBankId] = useState<string | undefined>(undefined)
@@ -71,13 +71,13 @@ export default function NewAccount() {
     await Promise.all(
       accountsToCreate.map(async (account) =>
         createAccount({
-          path: { id: userId },
-          body: { ...account, name: await encrypt(account.name) },
+          id: userId,
+          data: { ...account, name: await encrypt(account.name) },
         }),
       ),
     )
     queryClient.invalidateQueries({
-      queryKey: UseGetUserByIdAccountsKeyFn({ path: { id: userId } }),
+      queryKey: getGetUserIdAccountsQueryKey(userId),
     })
     setBankSearch(undefined)
     setBankId(undefined)

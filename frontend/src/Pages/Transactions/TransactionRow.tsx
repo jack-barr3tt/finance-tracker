@@ -2,7 +2,7 @@ import { Badge, Button, TableCell, TableRow, Tooltip } from "flowbite-react"
 import { format, parseISO } from "date-fns"
 import { forwardRef, memo } from "react"
 import { FiEdit, FiTrash } from "react-icons/fi"
-import { Transaction } from "../../API/requests"
+import { Transaction } from "../../API"
 import { formatCurrencyGBP } from "../../utils"
 import { transactionTableCellClass } from "./transactionTableColumns"
 

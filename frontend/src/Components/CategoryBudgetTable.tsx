@@ -10,7 +10,7 @@ import {
 import { FiEdit, FiPlus, FiTrash } from "react-icons/fi"
 import EditCategoryBudgetRow from "../Pages/Budget/EditCategoryBudgetRow"
 import TableBodyWithButton from "./TableBodyWithButton"
-import { CategoryBudget } from "../API/requests"
+import { CategoryBudget } from "../API"
 import {
   formatSegmentDateRange,
   isSegmentActiveToday,

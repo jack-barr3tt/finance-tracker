@@ -1,10 +1,10 @@
 import { useQuery } from "@tanstack/react-query"
 import { endOfMonth, format, startOfMonth } from "date-fns"
 import {
-  getUserByIdTransactions,
+  getUserIdTransactions,
   Transaction,
   TransactionsResponse,
-} from "../API/requests"
+} from "../API"
 import { decryptTransaction } from "../Security/data"
 import { useUser } from "./useUser"
 
@@ -16,16 +16,13 @@ async function fetchTransactionPage(
   endDate: string,
   cursor: string,
 ): Promise<TransactionsResponse> {
-  const response = await getUserByIdTransactions({
-    path: { id: userId },
-    query: {
-      start_date: startDate,
-      end_date: endDate,
-      cursor,
-      limit: 100,
-    },
+  const data = await getUserIdTransactions(userId, {
+    start_date: startDate,
+    end_date: endDate,
+    cursor,
+    limit: 100,
   })
-  return response.data ?? { transactions: [] }
+  return data ?? { transactions: [] }
 }
 
 async function fetchAllMonthTransactions(

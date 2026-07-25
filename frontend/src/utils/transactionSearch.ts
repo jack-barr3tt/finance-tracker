@@ -1,4 +1,4 @@
-import { Transaction } from "../API/requests"
+import { Transaction } from "../API"
 import { formatCurrencyGBP } from "../utils"
 
 export function transactionMatchesSearch(

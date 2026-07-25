@@ -3,8 +3,10 @@ import { FiRefreshCw } from "react-icons/fi"
 import { useUser } from "../Hooks/useUser"
 import { decryptTransaction } from "../Security/data"
 import { useCallback } from "react"
-import { usePatchUserByIdTransactionsByTransactionId } from "../API/queries"
-import { getUserByIdTransactions } from "../API/requests"
+import {
+  getUserIdTransactions,
+  usePatchUserIdTransactionsTransactionId,
+} from "../API"
 import { useData } from "../Hooks/useData"
 
 export default function ApplyRules() {
@@ -13,12 +15,12 @@ export default function ApplyRules() {
   const { categories } = useData()
 
   const { mutateAsync: editTransaction } =
-    usePatchUserByIdTransactionsByTransactionId()
+    usePatchUserIdTransactionsTransactionId()
 
   const applyRules = useCallback(async () => {
-    const { data: encTransactions } = await getUserByIdTransactions({
-      path: { id: userId },
-      query: { category_id: "uncategorised", limit: Number.MAX_SAFE_INTEGER },
+    const encTransactions = await getUserIdTransactions(userId, {
+      category_id: "uncategorised",
+      limit: Number.MAX_SAFE_INTEGER,
     })
 
     const transactions = await Promise.all(
@@ -36,8 +38,9 @@ export default function ApplyRules() {
 
           if (regex.test(transaction.description)) {
             await editTransaction({
-              path: { id: userId, transaction_id: transaction.id },
-              body: {
+              id: userId,
+              transactionId: transaction.id,
+              data: {
                 description: await encrypt(
                   rule.description || transaction.description,
                 ),

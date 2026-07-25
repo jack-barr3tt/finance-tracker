@@ -5,7 +5,7 @@ import {
   layoutNextRichInlineLineRange,
   prepareRichInline,
 } from "@chenglou/pretext/rich-inline"
-import { Account, Category, Transaction } from "../../API/requests"
+import { Account, Category, Transaction } from "../../API"
 import { formatCurrencyGBP } from "../../utils"
 
 export const TRANSACTION_TABLE_COLUMN_COUNT = 6

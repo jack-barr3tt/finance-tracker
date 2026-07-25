@@ -1,7 +1,7 @@
 import { TableCell, TableRow } from "flowbite-react"
 import { VirtualItem } from "@tanstack/react-virtual"
 import { RefObject } from "react"
-import { Transaction } from "../../API/requests"
+import { Transaction } from "../../API"
 import EditTransactionRow from "./EditTransactionRow"
 import TransactionRow from "./TransactionRow"
 import {

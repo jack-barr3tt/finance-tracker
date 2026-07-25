@@ -10,13 +10,14 @@ import {
 } from "flowbite-react"
 import { useUser } from "../Hooks/useUser"
 import {
-  useDeleteUserByIdTransactionsByTransactionId,
-  UseGetUserByIdSummaryAccountsKeyFn,
-  UseGetUserByIdSummaryBalanceKeyFn,
-  UseGetUserByIdSummaryCategoriesKeyFn,
-  UseGetUserByIdTransactionsByTransactionIdKeyFn,
-  UseGetUserByIdTransactionsKeyFn,
-} from "../API/queries"
+  getGetUserIdSummaryAccountsQueryKey,
+  getGetUserIdSummaryBalanceQueryKey,
+  getGetUserIdSummaryCategoriesQueryKey,
+  getGetUserIdTransactionsInfiniteQueryKey,
+  getGetUserIdTransactionsTransactionIdQueryKey,
+  useDeleteUserIdTransactionsTransactionId,
+  useGetUserIdTransactionsInfinite,
+} from "../API"
 import { FiPlus, FiSearch, FiUpload } from "react-icons/fi"
 import EditTransactionRow from "./Transactions/EditTransactionRow"
 import TableBodyWithButton from "../Components/TableBodyWithButton"
@@ -26,7 +27,6 @@ import { useQueryClient } from "@tanstack/react-query"
 import BalanceGraph from "../Components/BalanceGraph"
 import CategoryPie from "../Components/CategoryPie"
 import UploadModal from "../Components/UploadModal"
-import { useGetUserByIdTransactionsInfinite } from "../API/queries/infiniteQueries"
 import { InView } from "react-intersection-observer"
 import FilterButton from "../Components/FilterButton"
 import { useAsyncMemo } from "../Hooks/useAsyncMemo"
@@ -57,7 +57,7 @@ export default function Transactions() {
   const scrollContainerRef = useScrollContainer()
 
   const { mutateAsync: deleteTransaction } =
-    useDeleteUserByIdTransactionsByTransactionId()
+    useDeleteUserIdTransactionsTransactionId()
 
   const [accountFilterId, setAccountFilterId] = useState<string | undefined>(
     undefined,
@@ -68,23 +68,14 @@ export default function Transactions() {
   const [searchQuery, setSearchQuery] = useState("")
   const isSearchActive = searchQuery.trim().length > 0
 
-  const transactionListOptions = useMemo(
+  const transactionListParams = useMemo(
     () => ({
-      path: { id: userId },
-      query: {
-        limit: 50,
-        account_id: accountFilterId,
-        category_id: categoryFilterId,
-        ...(isSearchActive ? {} : summaryDateQuery),
-      },
+      limit: 50,
+      account_id: accountFilterId,
+      category_id: categoryFilterId,
+      ...(isSearchActive ? {} : summaryDateQuery),
     }),
-    [
-      userId,
-      accountFilterId,
-      categoryFilterId,
-      summaryDateQuery,
-      isSearchActive,
-    ],
+    [accountFilterId, categoryFilterId, summaryDateQuery, isSearchActive],
   )
 
   const {
@@ -93,7 +84,13 @@ export default function Transactions() {
     isFetchingNextPage,
     hasNextPage,
     fetchNextPage,
-  } = useGetUserByIdTransactionsInfinite(transactionListOptions)
+  } = useGetUserIdTransactionsInfinite(userId, transactionListParams, {
+    query: {
+      enabled: !!userId,
+      initialPageParam: "0",
+      getNextPageParam: (lastPage) => lastPage.cursor ?? undefined,
+    },
+  })
 
   const transactions = useAsyncMemo(
     async () => ({
@@ -187,28 +184,28 @@ export default function Transactions() {
   const handleDelete = useCallback(
     async (transactionId: string) => {
       await deleteTransaction({
-        path: { id: userId, transaction_id: transactionId },
+        id: userId,
+        transactionId,
       })
       if (editingTransactionId === transactionId)
         setEditingTransactionId(undefined)
       queryClient.invalidateQueries({
-        queryKey: UseGetUserByIdTransactionsKeyFn({ path: { id: userId } }),
+        queryKey: getGetUserIdTransactionsInfiniteQueryKey(userId),
       })
       queryClient.invalidateQueries({
-        queryKey: UseGetUserByIdTransactionsByTransactionIdKeyFn({
-          path: { id: userId, transaction_id: transactionId },
-        }),
+        queryKey: getGetUserIdTransactionsTransactionIdQueryKey(
+          userId,
+          transactionId,
+        ),
       })
       queryClient.invalidateQueries({
-        queryKey: UseGetUserByIdSummaryAccountsKeyFn({ path: { id: userId } }),
+        queryKey: getGetUserIdSummaryAccountsQueryKey(userId),
       })
       queryClient.invalidateQueries({
-        queryKey: UseGetUserByIdSummaryCategoriesKeyFn({
-          path: { id: userId },
-        }),
+        queryKey: getGetUserIdSummaryCategoriesQueryKey(userId),
       })
       queryClient.invalidateQueries({
-        queryKey: UseGetUserByIdSummaryBalanceKeyFn({ path: { id: userId } }),
+        queryKey: getGetUserIdSummaryBalanceQueryKey(userId),
       })
     },
     [deleteTransaction, userId, editingTransactionId, queryClient],

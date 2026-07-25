@@ -16,7 +16,7 @@ import {
 import { formatCurrencyGBP, getBrightColors } from "../utils"
 import { useData } from "../Hooks/useData"
 import { useUser } from "../Hooks/useUser"
-import { useGetUserByIdSummaryTotals } from "../API/queries"
+import { useGetUserIdSummaryTotals } from "../API"
 
 type ChartView = "pie" | "line"
 
@@ -31,16 +31,9 @@ export default function CategoryPie() {
     categoryColorMap: colorMap,
     summaryDateQuery,
   } = useData()
-  const { data: totals } = useGetUserByIdSummaryTotals(
-    {
-      path: { id: userId },
-      query: summaryDateQuery,
-    },
-    undefined,
-    {
-      enabled: !!userId,
-    },
-  )
+  const { data: totals } = useGetUserIdSummaryTotals(userId, summaryDateQuery, {
+    query: { enabled: !!userId },
+  })
 
   const spendingCategoryIds = useMemo(
     () =>

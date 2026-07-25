@@ -10,17 +10,17 @@ import { format, parseISO } from "date-fns"
 import { Ref, useCallback, useEffect, useMemo, useState } from "react"
 import { FiSave, FiX } from "react-icons/fi"
 import {
-  useGetUserByIdAccounts,
-  useGetUserByIdCategories,
-  UseGetUserByIdSummaryAccountsKeyFn,
-  UseGetUserByIdSummaryBalanceKeyFn,
-  UseGetUserByIdSummaryCategoriesKeyFn,
-  useGetUserByIdTransactionsByTransactionId,
-  UseGetUserByIdTransactionsByTransactionIdKeyFn,
-  UseGetUserByIdTransactionsKeyFn,
-  usePatchUserByIdTransactionsByTransactionId,
-  usePostUserByIdTransactions,
-} from "../../API/queries"
+  getGetUserIdSummaryAccountsQueryKey,
+  getGetUserIdSummaryBalanceQueryKey,
+  getGetUserIdSummaryCategoriesQueryKey,
+  getGetUserIdTransactionsInfiniteQueryKey,
+  getGetUserIdTransactionsTransactionIdQueryKey,
+  useGetUserIdAccounts,
+  useGetUserIdCategories,
+  useGetUserIdTransactionsTransactionId,
+  usePatchUserIdTransactionsTransactionId,
+  usePostUserIdTransactions,
+} from "../../API"
 import { useUser } from "../../Hooks/useUser"
 import SearchSelect from "../../Components/SearchSelect"
 import CalendarDatePicker from "../../Components/CalendarDatePicker"
@@ -52,7 +52,7 @@ export default function EditTransactionRow(props: EditTransactionRowProps) {
 
   const { userId, decrypt, encrypt } = useUser()
   const queryClient = useQueryClient()
-  const { data: encAccounts } = useGetUserByIdAccounts({ path: { id: userId } })
+  const { data: encAccounts } = useGetUserIdAccounts(userId)
   const accounts = useAsyncMemo(
     async () =>
       (
@@ -62,9 +62,7 @@ export default function EditTransactionRow(props: EditTransactionRowProps) {
       ).sort((a, b) => a.name.localeCompare(b.name)),
     [decrypt, encAccounts],
   )
-  const { data: encCategories } = useGetUserByIdCategories({
-    path: { id: userId },
-  })
+  const { data: encCategories } = useGetUserIdCategories(userId)
   const categories = useAsyncMemo(
     async () =>
       (
@@ -75,16 +73,14 @@ export default function EditTransactionRow(props: EditTransactionRowProps) {
     [decrypt, encCategories],
   )
 
-  const { mutateAsync: addTransaction } = usePostUserByIdTransactions()
+  const { mutateAsync: addTransaction } = usePostUserIdTransactions()
   const { mutateAsync: editTransaction } =
-    usePatchUserByIdTransactionsByTransactionId()
-  const { data: transaction } = useGetUserByIdTransactionsByTransactionId(
+    usePatchUserIdTransactionsTransactionId()
+  const { data: transaction } = useGetUserIdTransactionsTransactionId(
+    userId,
+    transactionId || "",
     {
-      path: { id: userId, transaction_id: transactionId || "" },
-    },
-    undefined,
-    {
-      enabled: !!transactionId,
+      query: { enabled: !!transactionId },
     },
   )
 
@@ -134,26 +130,26 @@ export default function EditTransactionRow(props: EditTransactionRowProps) {
     if (!date || !selectedAccount || !selectedCategory || !amount) return
 
     await addTransaction({
-      body: {
+      id: userId,
+      data: {
         account_id: selectedAccount,
         category_id: selectedCategory,
         description: await encrypt(description),
         amount: parseFloat(amount),
         date: format(date, "yyyy-MM-dd"),
       },
-      path: { id: userId },
     })
     queryClient.invalidateQueries({
-      queryKey: UseGetUserByIdTransactionsKeyFn({ path: { id: userId } }),
+      queryKey: getGetUserIdTransactionsInfiniteQueryKey(userId),
     })
     queryClient.invalidateQueries({
-      queryKey: UseGetUserByIdSummaryAccountsKeyFn({ path: { id: userId } }),
+      queryKey: getGetUserIdSummaryAccountsQueryKey(userId),
     })
     queryClient.invalidateQueries({
-      queryKey: UseGetUserByIdSummaryCategoriesKeyFn({ path: { id: userId } }),
+      queryKey: getGetUserIdSummaryCategoriesQueryKey(userId),
     })
     queryClient.invalidateQueries({
-      queryKey: UseGetUserByIdSummaryBalanceKeyFn({ path: { id: userId } }),
+      queryKey: getGetUserIdSummaryBalanceQueryKey(userId),
     })
     // Reset the form fields
     setDate(null)
@@ -182,31 +178,33 @@ export default function EditTransactionRow(props: EditTransactionRowProps) {
   const handleEdit = useCallback(async () => {
     if (!transactionId || !date || !selectedAccount || !amount) return
     await editTransaction({
-      body: {
+      id: userId,
+      transactionId,
+      data: {
         account_id: selectedAccount,
         category_id: selectedCategory,
         description: await encrypt(description),
         amount: parseFloat(amount),
         date: format(date, "yyyy-MM-dd"),
       },
-      path: { id: userId, transaction_id: transactionId },
     })
     queryClient.invalidateQueries({
-      queryKey: UseGetUserByIdTransactionsKeyFn({ path: { id: userId } }),
+      queryKey: getGetUserIdTransactionsInfiniteQueryKey(userId),
     })
     queryClient.invalidateQueries({
-      queryKey: UseGetUserByIdTransactionsByTransactionIdKeyFn({
-        path: { id: userId, transaction_id: transactionId },
-      }),
+      queryKey: getGetUserIdTransactionsTransactionIdQueryKey(
+        userId,
+        transactionId,
+      ),
     })
     queryClient.invalidateQueries({
-      queryKey: UseGetUserByIdSummaryAccountsKeyFn({ path: { id: userId } }),
+      queryKey: getGetUserIdSummaryAccountsQueryKey(userId),
     })
     queryClient.invalidateQueries({
-      queryKey: UseGetUserByIdSummaryCategoriesKeyFn({ path: { id: userId } }),
+      queryKey: getGetUserIdSummaryCategoriesQueryKey(userId),
     })
     queryClient.invalidateQueries({
-      queryKey: UseGetUserByIdSummaryBalanceKeyFn({ path: { id: userId } }),
+      queryKey: getGetUserIdSummaryBalanceQueryKey(userId),
     })
     // Reset the form fields
     setDate(null)

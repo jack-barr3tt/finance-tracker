@@ -2,7 +2,7 @@ import type { EChartsOption } from "echarts"
 import Color from "color"
 import { Card, useThemeMode } from "flowbite-react"
 import { useMemo } from "react"
-import { BudgetTransaction, CategoryBudget } from "../API/requests"
+import { BudgetTransaction, CategoryBudget } from "../API"
 import EChart from "../charts/EChart"
 import {
   getChartBaseOption,

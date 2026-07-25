@@ -1,7 +1,7 @@
 import { FormEvent, useCallback, useState } from "react"
 import { useUser } from "../Hooks/useUser"
 import { Link, Navigate, useNavigate } from "react-router-dom"
-import { usePostSignup } from "../API/queries"
+import { usePostSignup } from "../API"
 import { Button, TextInput } from "flowbite-react"
 import { FiArrowRight } from "react-icons/fi"
 import { generateKeySalt } from "../Security/keys"
@@ -31,7 +31,7 @@ export default function SignUp() {
 
       try {
         await signUp({
-          body: {
+          data: {
             email,
             password: password,
             salt,

@@ -9,7 +9,7 @@ import {
 } from "react"
 import Cookies from "js-cookie"
 import { Spinner } from "flowbite-react"
-import { useGetUserById, usePostLogin } from "../API/queries"
+import { useGetUserId, usePostLogin } from "../API"
 import {
   decryptMasterKey,
   exportMasterKey,
@@ -56,8 +56,8 @@ export function UserProvider(props: { children: ReactNode }) {
   const [isSessionReady, setIsSessionReady] = useState(false)
 
   const { mutateAsync: loginReq } = usePostLogin()
-  const { isError } = useGetUserById({ path: { id: userId } }, undefined, {
-    enabled: !!userId && isSessionReady,
+  const { isError } = useGetUserId(userId, {
+    query: { enabled: !!userId && isSessionReady },
   })
 
   const logout = useCallback(() => {
@@ -71,8 +71,8 @@ export function UserProvider(props: { children: ReactNode }) {
   const login = useCallback(
     async (email: string, password: string) => {
       try {
-        const { data } = await loginReq({
-          body: {
+        const data = await loginReq({
+          data: {
             email,
             password,
           },

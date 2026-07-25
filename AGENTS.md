@@ -9,7 +9,7 @@ This project is a personal finance tracker with a Go/Fiber backend and a Vite Re
 - When changing Flowbite component styling, update the app-level Flowbite theme provider instead of applying local one-off theme overrides.
 - Use existing React Query/generated API hooks from `frontend/src/API` rather than adding ad hoc fetch calls.
 - Keep component state local when it only drives presentation; lift state only when another component or API boundary needs it.
-- Avoid editing generated files in `frontend/src/API` directly. Change `backend/schema/openapi.yaml` and rerun frontend codegen instead.
+- Avoid editing generated files in `frontend/src/API/index.ts` directly. Change `backend/schema/openapi.yaml` and rerun frontend codegen instead.
 - Use `yarn` in `frontend` to match the existing lockfile.
 - When changing UI behavior or layout, verify the result in the browser using the Cursor browser tool (`cursor-ide-browser` MCP). Navigate to the running dev server (typically `http://localhost:5173`), take snapshots or screenshots, and interact with the page to confirm the change works and looks right. Prefer this over guessing from code alone, especially for redirects, modals, filters, and other visual or interaction-heavy changes.
 
@@ -28,7 +28,8 @@ This project is a personal finance tracker with a Go/Fiber backend and a Vite Re
 ## Generated Code
 
 - Backend OpenAPI generation lives behind `backend/tools/tools.go`.
-- Frontend API generation uses the `codegen` script in `frontend/package.json`.
+- Frontend API generation uses Orval (`orval.config.ts`) and the `codegen` script in `frontend/package.json`.
+- Generated API client: single file `frontend/src/API/index.ts`. Hand-written fetch mutator: `frontend/src/lib/api-mutator.ts`.
 - Generated files should be reviewed for expected contract changes, but source fixes should usually happen in the schema or generator inputs.
 
 ### Regenerating API code
@@ -45,7 +46,7 @@ zsh -lic 'cd frontend && yarn codegen'
 
 **Why `zsh -lic`?** This project uses GVM for Go. Cursor's default agent shell does not load `~/.zshrc`, so plain `go generate` / `go run` can fail silently (exit code 1, no output) because the expected Go toolchain is not on `PATH`. A login interactive zsh loads GVM and the commands succeed. If codegen fails with no output, try the commands above in your own terminal first.
 
-Do **not** edit `backend/api/gen.go` or files under `frontend/src/API/` by hand — always change the OpenAPI schema and regenerate.
+Do **not** edit `backend/api/gen.go` or `frontend/src/API/index.ts` by hand — always change the OpenAPI schema and regenerate.
 
 ## Validation
 

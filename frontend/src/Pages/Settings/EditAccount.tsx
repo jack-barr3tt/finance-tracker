@@ -12,11 +12,11 @@ import { useCallback, useEffect, useMemo, useState } from "react"
 import { FiSave, FiX } from "react-icons/fi"
 import { useLocation, useNavigate } from "react-router-dom"
 import {
-  useGetUserByIdAccountsByAccountId,
-  UseGetUserByIdAccountsByAccountIdKeyFn,
-  UseGetUserByIdAccountsKeyFn,
-  usePatchUserByIdAccountsByAccountId,
-} from "../../API/queries"
+  getGetUserIdAccountsAccountIdQueryKey,
+  getGetUserIdAccountsQueryKey,
+  useGetUserIdAccountsAccountId,
+  usePatchUserIdAccountsAccountId,
+} from "../../API"
 import { useUser } from "../../Hooks/useUser"
 import { useQueryClient } from "@tanstack/react-query"
 import { parseISO } from "date-fns"
@@ -33,13 +33,11 @@ export default function EditAccount() {
   )
   const { userId, decrypt, encrypt } = useUser()
   const queryClient = useQueryClient()
-  const { data: encAccount } = useGetUserByIdAccountsByAccountId(
+  const { data: encAccount } = useGetUserIdAccountsAccountId(
+    userId,
+    accountId,
     {
-      path: { account_id: accountId, id: userId },
-    },
-    undefined,
-    {
-      enabled: !!userId && !!accountId,
+      query: { enabled: !!userId && !!accountId },
     },
   )
   const account = useAsyncMemo(
@@ -47,7 +45,7 @@ export default function EditAccount() {
     [encAccount, decrypt],
   )
 
-  const { mutateAsync: editAccount } = usePatchUserByIdAccountsByAccountId()
+  const { mutateAsync: editAccount } = usePatchUserIdAccountsAccountId()
 
   const [accountName, setAccountName] = useState("")
   const [openedAt, setOpenedAt] = useState<Date | null>(new Date())
@@ -64,20 +62,19 @@ export default function EditAccount() {
   const handleSave = useCallback(async () => {
     if (!account) return
     await editAccount({
-      path: { account_id: accountId, id: userId },
-      body: {
+      id: userId,
+      accountId,
+      data: {
         name: await encrypt(accountName),
         opened_at: openedAt?.toISOString(),
         closed_at: closedAt?.toISOString(),
       },
     })
     queryClient.invalidateQueries({
-      queryKey: UseGetUserByIdAccountsKeyFn({ path: { id: userId } }),
+      queryKey: getGetUserIdAccountsQueryKey(userId),
     })
     queryClient.invalidateQueries({
-      queryKey: UseGetUserByIdAccountsByAccountIdKeyFn({
-        path: { id: userId, account_id: accountId },
-      }),
+      queryKey: getGetUserIdAccountsAccountIdQueryKey(userId, accountId),
     })
     navigate("/settings")
   }, [

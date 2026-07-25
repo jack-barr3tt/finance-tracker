@@ -3,13 +3,13 @@ import { FiSave, FiX } from "react-icons/fi"
 import SearchSelect from "../../Components/SearchSelect"
 import { useCallback, useEffect, useState } from "react"
 import {
-  useGetUserByIdAccounts,
-  useGetUserByIdCategoriesByCategoryId,
-  UseGetUserByIdCategoriesByCategoryIdKeyFn,
-  UseGetUserByIdCategoriesKeyFn,
-  usePatchUserByIdCategoriesByCategoryIdRulesByRuleId,
-  usePostUserByIdCategoriesByCategoryIdRules,
-} from "../../API/queries"
+  getGetUserIdCategoriesCategoryIdQueryKey,
+  getGetUserIdCategoriesQueryKey,
+  useGetUserIdAccounts,
+  useGetUserIdCategoriesCategoryId,
+  usePatchUserIdCategoriesCategoryIdRulesRuleId,
+  usePostUserIdCategoriesCategoryIdRules,
+} from "../../API"
 import { useUser } from "../../Hooks/useUser"
 import { useQueryClient } from "@tanstack/react-query"
 import { useAsyncMemo } from "../../Hooks/useAsyncMemo"
@@ -26,7 +26,7 @@ export default function EditCategoryRuleRow(props: EditCategoryRuleRowProps) {
 
   const { userId, encrypt, decrypt } = useUser()
   const queryClient = useQueryClient()
-  const { data: encAccounts } = useGetUserByIdAccounts({ path: { id: userId } })
+  const { data: encAccounts } = useGetUserIdAccounts(userId)
   const accounts = useAsyncMemo(
     async () =>
       Promise.all(
@@ -41,12 +41,10 @@ export default function EditCategoryRuleRow(props: EditCategoryRuleRowProps) {
   const [rule, setRule] = useState<string>("")
   const [description, setDescription] = useState<string>("")
 
-  const { data: encCategory } = useGetUserByIdCategoriesByCategoryId(
-    {
-      path: { id: userId, category_id: categoryId },
-    },
-    undefined,
-    { enabled: !!categoryId },
+  const { data: encCategory } = useGetUserIdCategoriesCategoryId(
+    userId,
+    categoryId,
+    { query: { enabled: !!categoryId } },
   )
 
   const category = useAsyncMemo(
@@ -54,10 +52,9 @@ export default function EditCategoryRuleRow(props: EditCategoryRuleRowProps) {
     [decrypt, encCategory],
   )
 
-  const { mutateAsync: createRule } =
-    usePostUserByIdCategoriesByCategoryIdRules()
+  const { mutateAsync: createRule } = usePostUserIdCategoriesCategoryIdRules()
   const { mutateAsync: editRule } =
-    usePatchUserByIdCategoriesByCategoryIdRulesByRuleId()
+    usePatchUserIdCategoriesCategoryIdRulesRuleId()
 
   useEffect(() => {
     if (category) {
@@ -73,20 +70,19 @@ export default function EditCategoryRuleRow(props: EditCategoryRuleRowProps) {
   const handleCreate = useCallback(async () => {
     if (accountId && rule) {
       await createRule({
-        path: { id: userId, category_id: categoryId },
-        body: {
+        id: userId,
+        categoryId,
+        data: {
           account_id: accountId,
           rule: await encrypt(rule),
           description: await encrypt(description),
         },
       })
       queryClient.invalidateQueries({
-        queryKey: UseGetUserByIdCategoriesKeyFn({ path: { id: userId } }),
+        queryKey: getGetUserIdCategoriesQueryKey(userId),
       })
       queryClient.invalidateQueries({
-        queryKey: UseGetUserByIdCategoriesByCategoryIdKeyFn({
-          path: { id: userId, category_id: categoryId },
-        }),
+        queryKey: getGetUserIdCategoriesCategoryIdQueryKey(userId, categoryId),
       })
       setAccountId(undefined)
       setRule("")
@@ -108,28 +104,20 @@ export default function EditCategoryRuleRow(props: EditCategoryRuleRowProps) {
   const handleEdit = useCallback(async () => {
     if (ruleId && accountId && rule) {
       await editRule({
-        path: { id: userId, category_id: categoryId, rule_id: ruleId },
-        body: {
+        id: userId,
+        categoryId,
+        ruleId,
+        data: {
           account_id: accountId,
           rule: await encrypt(rule),
           description: await encrypt(description),
         },
       })
       queryClient.invalidateQueries({
-        queryKey: UseGetUserByIdCategoriesKeyFn({ path: { id: userId } }),
+        queryKey: getGetUserIdCategoriesQueryKey(userId),
       })
       queryClient.invalidateQueries({
-        queryKey: UseGetUserByIdCategoriesByCategoryIdKeyFn({
-          path: { id: userId, category_id: categoryId },
-        }),
-      })
-      queryClient.invalidateQueries({
-        queryKey: UseGetUserByIdCategoriesKeyFn({ path: { id: userId } }),
-      })
-      queryClient.invalidateQueries({
-        queryKey: UseGetUserByIdCategoriesByCategoryIdKeyFn({
-          path: { id: userId, category_id: categoryId },
-        }),
+        queryKey: getGetUserIdCategoriesCategoryIdQueryKey(userId, categoryId),
       })
       setAccountId(undefined)
       setRule("")
