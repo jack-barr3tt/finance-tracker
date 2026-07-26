@@ -23,44 +23,56 @@ steps:
       - golangci-lint run
       - go test ./api/...
 
-  - name: build-frontend
-    image: node:22-alpine
+  - name: build
+    image: docker:27-cli
     depends_on:
       - lint-frontend
+      - lint-backend
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
     environment:
+      REGISTRY: ghcr.io/jack-barr3tt
+      REGISTRY_USER:
+        from_secret: registry_user
+      REGISTRY_TOKEN:
+        from_secret: registry_token
       VITE_BACKEND_URL:
         from_secret: vite_backend_url
+      IMAGE_TAG: ${CI_COMMIT_SHA}
     commands:
-      - corepack enable
-      - cd frontend
-      - yarn install --frozen-lockfile
-      - yarn build
-
-  - name: build-backend
-    image: golang:1.23-alpine
-    depends_on:
-      - lint-backend
-    commands:
-      - cd backend
-      - CGO_ENABLED=0 go build -o finance-tracker .
-
-  - name: package
-    image: alpine:3.20
-    depends_on:
-      - build-frontend
-      - build-backend
-    commands:
-      - mkdir -p release/dist
-      - cp backend/finance-tracker release/
-      - cp -r frontend/dist/. release/dist/
-      - cp scripts/deploy.sh release/
-      - chmod +x release/deploy.sh
-      - tar -czf release.tar.gz -C release .
+      - echo "$REGISTRY_TOKEN" | docker login ghcr.io -u "$REGISTRY_USER" --password-stdin
+      - |
+        docker build -f deploy/Dockerfile.backend \
+          -t "$REGISTRY/finance-tracker-api:$IMAGE_TAG" \
+          -t "$REGISTRY/finance-tracker-api:latest" \
+          .
+      - |
+        docker build -f deploy/Dockerfile.frontend \
+          --build-arg "VITE_BACKEND_URL=http://localhost:8080" \
+          --build-arg "VITE_ENABLE_SIGNUP=true" \
+          -t "$REGISTRY/finance-tracker-frontend:latest" \
+          .
+      - |
+        docker build -f deploy/Dockerfile.frontend \
+          --build-arg "VITE_BACKEND_URL=$VITE_BACKEND_URL" \
+          -t "$REGISTRY/finance-tracker-frontend:$IMAGE_TAG" \
+          .
+      - |
+        docker build -f deploy/Dockerfile.db \
+          -t "$REGISTRY/finance-tracker-db:$IMAGE_TAG" \
+          -t "$REGISTRY/finance-tracker-db:latest" \
+          .
+      - docker push "$REGISTRY/finance-tracker-api:$IMAGE_TAG"
+      - docker push "$REGISTRY/finance-tracker-api:latest"
+      - docker push "$REGISTRY/finance-tracker-frontend:$IMAGE_TAG"
+      - docker push "$REGISTRY/finance-tracker-frontend:latest"
+      - docker push "$REGISTRY/finance-tracker-db:$IMAGE_TAG"
+      - docker push "$REGISTRY/finance-tracker-db:latest"
 
   - name: deploy
     image: alpine:3.20
     depends_on:
-      - package
+      - build
     environment:
       SSH_KEY:
         from_secret: deploy_ssh_key
@@ -70,6 +82,7 @@ steps:
         from_secret: deploy_user
       DEPLOY_PATH:
         from_secret: deploy_path
+      IMAGE_TAG: ${CI_COMMIT_SHA}
     commands:
       - apk add --no-cache openssh-client tar
       - sh scripts/ci-deploy.sh
