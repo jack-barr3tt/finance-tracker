@@ -377,9 +377,11 @@ export default function Transactions() {
 
       <HR />
 
-      <div className="grid grid-cols-1 gap-8 md:grid-cols-2 *:w-full md:gap-4">
-        <CategoryPie />
-        <BalanceGraph />
+      <div className="@container w-full">
+        <div className="grid grid-cols-1 gap-8 *:w-full @4xl:grid-cols-2 @4xl:gap-4">
+          <CategoryPie />
+          <BalanceGraph />
+        </div>
       </div>
 
       <HR />
