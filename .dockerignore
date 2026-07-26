@@ -1,0 +1,6 @@
+.git
+.env
+**/.env
+frontend/node_modules
+backend/.env
+**/.air.toml

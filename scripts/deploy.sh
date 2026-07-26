@@ -1,15 +1,12 @@
-#!/usr/bin/env bash
-# Runs on Woodpecker after a merge to main.
-set -euo pipefail
+#!/bin/sh
+set -eu
 
 DEPLOY_PATH="${DEPLOY_PATH:?DEPLOY_PATH is required}"
-WEB_ROOT="${DEPLOY_PATH}/frontend/dist"
-SERVICE_NAME="${SERVICE_NAME:-finance-tracker}"
+IMAGE_TAG="${IMAGE_TAG:?IMAGE_TAG is required}"
+REGISTRY="${REGISTRY:-ghcr.io/jack-barr3tt}"
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+export REGISTRY IMAGE_TAG
 
-install -m 755 "${SCRIPT_DIR}/finance-tracker" "${DEPLOY_PATH}/finance-tracker"
-mkdir -p "${WEB_ROOT}"
-rsync -a --delete "${SCRIPT_DIR}/dist/" "${WEB_ROOT}/"
-
-sudo systemctl restart "${SERVICE_NAME}"
+cd "$DEPLOY_PATH"
+docker compose -f deploy/docker-compose.yml pull
+docker compose -f deploy/docker-compose.yml up -d

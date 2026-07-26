@@ -1,3 +1,7 @@
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+CREATE EXTENSION IF NOT EXISTS btree_gist;
+
 CREATE TYPE period_unit AS ENUM ('day', 'week', 'month', 'year');
 CREATE TABLE IF NOT EXISTS "user" (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -10,7 +14,7 @@ CREATE TABLE IF NOT EXISTS "user" (
 CREATE TABLE IF NOT EXISTS "bank" (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   name VARCHAR(100) NOT NULL,
-  short_name VARCHAR(50) NOT NULL,
+  short_name VARCHAR(50) NOT NULL UNIQUE,
   fixed_products BOOLEAN DEFAULT FALSE,
   csv_import_enabled BOOLEAN DEFAULT TRUE,
   api_import_enabled BOOLEAN DEFAULT FALSE
@@ -79,7 +83,6 @@ CREATE TABLE IF NOT EXISTS "category_budget" (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   deleted_at TIMESTAMP
 );
-CREATE EXTENSION IF NOT EXISTS btree_gist;
 ALTER TABLE category_budget
 ADD CONSTRAINT category_budget_no_overlap EXCLUDE USING gist (
   category_id WITH =,

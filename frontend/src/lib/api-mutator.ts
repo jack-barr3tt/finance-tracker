@@ -22,7 +22,7 @@ const getBody = async <T>(response: Response): Promise<T> => {
 }
 
 const buildUrl = (url: string, params?: Record<string, unknown>) => {
-  const baseUrl = import.meta.env.VITE_BACKEND_URL
+  const baseUrl = import.meta.env.VITE_BACKEND_URL || window.location.origin
   const requestUrl = new URL(url, baseUrl)
 
   if (params) {

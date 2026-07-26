@@ -1,0 +1,17 @@
+services:
+  api:
+    image: ${REGISTRY}/finance-tracker-api:${IMAGE_TAG}
+    network_mode: host
+    env_file:
+      - .env
+    volumes:
+      - .env:/app/.env:ro
+    restart: unless-stopped
+
+  frontend:
+    image: ${REGISTRY}/finance-tracker-frontend:${IMAGE_TAG}
+    ports:
+      - "127.0.0.1:3002:80"
+    depends_on:
+      - api
+    restart: unless-stopped
