@@ -55,6 +55,7 @@ import { useVirtualizedTransactionCardList } from "./Transactions/useVirtualized
 import VirtualizedTransactionRows from "./Transactions/VirtualizedTransactionRows"
 import VirtualizedTransactionCards from "./Transactions/VirtualizedTransactionCards"
 import TransactionEditModal from "./Transactions/TransactionEditModal"
+import TransactionSearchOverlay from "./Transactions/TransactionSearchOverlay"
 
 export default function Transactions() {
   const isDesktop = useMediaQuery("(min-width: 768px)")
@@ -183,6 +184,7 @@ export default function Transactions() {
 
   const [showAdd, setShowAdd] = useState(false)
   const [showUpload, setShowUpload] = useState(false)
+  const [showSearchOverlay, setShowSearchOverlay] = useState(false)
   const [editingTransactionId, setEditingTransactionId] = useState<
     string | undefined
   >(undefined)
@@ -285,7 +287,10 @@ export default function Transactions() {
 
   useHotkey(
     HOTKEYS_BY_ID.focusTransactionSearch.combo,
-    () => searchInputRef.current?.focus(),
+    () => {
+      if (isDesktop) searchInputRef.current?.focus()
+      else setShowSearchOverlay(true)
+    },
     { preventDefault: true },
   )
 
@@ -346,6 +351,15 @@ export default function Transactions() {
         onCancel={() => setDeleteConfirmId(undefined)}
       />
 
+      {!isDesktop && (
+        <TransactionSearchOverlay
+          show={showSearchOverlay}
+          onClose={() => setShowSearchOverlay(false)}
+          searchQuery={searchQuery}
+          onSearchQueryChange={setSearchQuery}
+        />
+      )}
+
       {!isDesktop && (showAdd || editingTransactionId) && (
         <TransactionEditModal
           show
@@ -373,22 +387,41 @@ export default function Transactions() {
         <div className="flex items-center gap-2">
           <TextInput
             ref={searchInputRef}
-            className="w-44 sm:w-52"
+            className="hidden w-44 sm:w-52 md:block"
             icon={FiSearch}
             placeholder="Search..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
-          {!isDesktop && (
+          <div className="flex items-center gap-2 md:hidden">
             <Button
-              className="p-0 size-8"
+              className="size-8 p-0"
+              color={isSearchActive ? "blue" : "light"}
+              aria-label="Search transactions"
+              onClick={() => setShowSearchOverlay(true)}
+            >
+              <FiSearch />
+            </Button>
+            <Button
+              className="size-8 p-0"
               color="light"
+              aria-label="Add transaction"
               onClick={() => setShowAdd(true)}
             >
               <FiPlus />
             </Button>
-          )}
-          <Button onClick={() => setShowUpload(true)}>
+            <Button
+              className="size-8 p-0"
+              aria-label="Import transactions"
+              onClick={() => setShowUpload(true)}
+            >
+              <FiUpload />
+            </Button>
+          </div>
+          <Button
+            className="hidden md:inline-flex"
+            onClick={() => setShowUpload(true)}
+          >
             <FiUpload className="mr-2" />
             Import
           </Button>
