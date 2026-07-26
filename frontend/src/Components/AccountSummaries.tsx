@@ -7,7 +7,6 @@ export default function AccountSummaries() {
 
   return (
     <>
-      <h2 className="text-2xl font-medium">Accounts</h2>
       {accountSummary?.accounts.length === 0 ? (
         <p className="text-gray-500">No accounts found</p>
       ) : (
