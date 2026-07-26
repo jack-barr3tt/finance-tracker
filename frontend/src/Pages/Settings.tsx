@@ -1,4 +1,3 @@
-import { HR } from "flowbite-react"
 import NewAccount from "./Settings/NewAccount"
 import ViewAccounts from "./Settings/ViewAccounts"
 import ViewCategories from "./Settings/ViewCategories"
@@ -6,18 +5,15 @@ import NewCategory from "./Settings/NewCategory"
 import EditCategories from "./Settings/EditCategories"
 import EditAccount from "./Settings/EditAccount"
 import ApplyRules from "../Components/ApplyRules"
+import Page from "../Components/Page"
 
 export default function Settings() {
   return (
-    <div className="flex flex-col gap-2 px-4 pb-8 md:gap-4 md:pb-16 md:px-16">
+    <Page title="Settings">
       <NewAccount />
       <NewCategory />
       <EditCategories />
       <EditAccount />
-
-      <h2 className="text-2xl font-medium">Settings</h2>
-
-      <HR className="my-4" />
 
       <h3 className="text-xl font-medium">Accounts</h3>
       <ViewAccounts />
@@ -27,6 +23,6 @@ export default function Settings() {
         <ApplyRules />
       </div>
       <ViewCategories />
-    </div>
+    </Page>
   )
 }

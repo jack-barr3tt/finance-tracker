@@ -40,6 +40,8 @@ import FilterButton from "../Components/FilterButton"
 import { useAsyncMemo } from "../Hooks/useAsyncMemo"
 import { decryptTransaction } from "../Security/data"
 import AccountSummaries from "../Components/AccountSummaries"
+import Page from "../Components/Page"
+import SummaryRangeFilter from "../Components/SummaryRangeFilter"
 import { useData } from "../Hooks/useData"
 import { useHotkey } from "@tanstack/react-hotkeys"
 import { HOTKEYS_BY_ID } from "../Hotkeys/hotkeys"
@@ -341,7 +343,7 @@ export default function Transactions() {
   ])
 
   return (
-    <div className="flex flex-col gap-2 px-4 pb-8 md:gap-4 md:pb-16 md:px-16">
+    <Page title="Transactions" headerActions={<SummaryRangeFilter />}>
       <UploadModal show={showUpload} onClose={() => setShowUpload(false)} />
       <ConfirmDeleteModal
         show={!!deleteConfirmId}
@@ -382,8 +384,7 @@ export default function Transactions() {
 
       <HR />
 
-      <div className="flex flex-row items-center justify-between mb-2 md:mb-0">
-        <h2 className="text-2xl font-medium">Transactions</h2>
+      <div className="mb-2 flex flex-row items-center justify-end md:mb-0">
         <div className="flex items-center gap-2">
           <TextInput
             ref={searchInputRef}
@@ -630,6 +631,6 @@ export default function Transactions() {
           }}
         />
       )}
-    </div>
+    </Page>
   )
 }

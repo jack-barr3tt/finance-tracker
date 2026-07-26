@@ -1,6 +1,5 @@
 import {
   Button,
-  HR,
   Spinner,
   Table,
   TableBody,
@@ -13,6 +12,7 @@ import { format, parseISO, startOfMonth } from "date-fns"
 import { useCallback, useMemo, useState } from "react"
 import { FiChevronDown, FiChevronRight } from "react-icons/fi"
 import BudgetMonthPicker from "../../Components/BudgetMonthPicker"
+import Page from "../../Components/Page"
 import ColoredBadge from "../../Components/ColoredBadge"
 import TruncatedText from "../../Components/TruncatedText"
 import { useData } from "../../Hooks/useData"
@@ -166,14 +166,12 @@ export default function BudgetActual() {
   )
 
   return (
-    <div className="flex flex-col gap-2 px-4 pb-8 md:gap-4 md:px-16 md:pb-16">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-3xl font-bold">Budget actual</h1>
+    <Page
+      title="Budget actual"
+      headerActions={
         <BudgetMonthPicker month={month} onMonthChange={setMonth} />
-      </div>
-
-      <HR />
-
+      }
+    >
       {isLoading && (
         <div className="flex justify-center py-16">
           <Spinner size="xl" />
@@ -496,6 +494,6 @@ export default function BudgetActual() {
           </section>
         </>
       )}
-    </div>
+    </Page>
   )
 }

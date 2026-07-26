@@ -8,6 +8,11 @@ import { DataProvider } from "./Hooks/useData"
 const queryClient = new QueryClient()
 
 const theme = createTheme({
+  hr: {
+    root: {
+      base: "my-4 h-px border-0 bg-gray-200 md:my-8 dark:bg-gray-700",
+    },
+  },
   navbar: {
     root: {
       rounded: {
