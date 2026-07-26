@@ -108,6 +108,7 @@ export function getLineChartGridOption(): EChartsOption["grid"] {
 export function getDoughnutSeriesOption(): PieSeriesOption {
   return {
     type: "pie",
+    center: ["50%", "45%"],
     radius: ["38%", "70%"],
     itemStyle: {
       borderWidth: 2,

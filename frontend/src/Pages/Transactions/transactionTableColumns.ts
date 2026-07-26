@@ -36,8 +36,7 @@ const ACTION_BUTTON_GAP = 8 // Tailwind gap-2
 const ACTION_CELL_PADDING_X = 36 // px-[18px] on each side
 
 const layout = {
-  actions:
-    ACTION_BUTTON_SIZE * 2 + ACTION_BUTTON_GAP + ACTION_CELL_PADDING_X,
+  actions: ACTION_BUTTON_SIZE * 2 + ACTION_BUTTON_GAP + ACTION_CELL_PADDING_X,
   badgeExtra: 20,
   filter: 28,
   compactBadge: 48,
