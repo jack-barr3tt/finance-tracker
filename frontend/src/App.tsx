@@ -20,6 +20,16 @@ const theme = createTheme({
       blue: "border border-transparent bg-blue-700 text-white hover:bg-blue-800 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800",
     },
   },
+  textInput: {
+    field: {
+      input: {
+        sizes: {
+          sm: "p-2 text-base sm:text-xs",
+          md: "p-2.5 text-base md:text-sm",
+        },
+      },
+    },
+  },
 })
 
 function App() {
