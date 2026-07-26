@@ -18,8 +18,8 @@ export default function Settings() {
       <h3 className="text-xl font-medium">Accounts</h3>
       <ViewAccounts />
 
-      <div className="flex items-center gap-4">
-        <h3 className="mt-4 text-xl font-medium md:mt-0">Categories</h3>
+      <div className="mt-4 flex items-center justify-between md:mt-0">
+        <h3 className="text-xl font-medium">Categories</h3>
         <ApplyRules />
       </div>
       <ViewCategories />
