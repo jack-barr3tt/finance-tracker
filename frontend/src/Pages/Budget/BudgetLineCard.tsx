@@ -37,7 +37,19 @@ export default function BudgetLineCard({
   return (
     <DataCard onClick={hasTransactions ? onToggle : () => {}}>
       <div className="flex flex-col gap-3">
-        <div className="flex items-start gap-2">
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0 flex-1">
+            <p className="font-medium text-gray-900 dark:text-white">
+              <TruncatedText text={description} maxLength={60} />
+            </p>
+            <div className="mt-2">
+              <ColoredBadge
+                label={category?.name ?? "Uncategorised"}
+                colorMap={categoryColorMap}
+                colorKey={category?.id ?? "uncategorised"}
+              />
+            </div>
+          </div>
           {hasTransactions ? (
             <Button
               className="size-8 shrink-0 p-0"
@@ -51,21 +63,7 @@ export default function BudgetLineCard({
             >
               {expanded ? <FiChevronDown /> : <FiChevronRight />}
             </Button>
-          ) : (
-            <span className="inline-block w-8 shrink-0" />
-          )}
-          <div className="min-w-0 flex-1">
-            <p className="font-medium text-gray-900 dark:text-white">
-              <TruncatedText text={description} maxLength={60} />
-            </p>
-            <div className="mt-2">
-              <ColoredBadge
-                label={category?.name ?? "Uncategorised"}
-                colorMap={categoryColorMap}
-                colorKey={category?.id ?? "uncategorised"}
-              />
-            </div>
-          </div>
+          ) : null}
         </div>
 
         <div className="grid grid-cols-3 gap-2 text-sm">

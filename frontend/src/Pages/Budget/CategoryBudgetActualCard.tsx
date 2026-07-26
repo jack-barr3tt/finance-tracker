@@ -35,7 +35,14 @@ export default function CategoryBudgetActualCard({
   return (
     <DataCard onClick={hasTransactions ? onToggle : () => {}}>
       <div className="flex flex-col gap-3">
-        <div className="flex items-start gap-2">
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0 flex-1">
+            <ColoredBadge
+              label={categoryBudget.category.name}
+              colorMap={categoryColorMap}
+              colorKey={categoryBudget.category.id}
+            />
+          </div>
           {hasTransactions ? (
             <Button
               className="size-8 shrink-0 p-0"
@@ -49,16 +56,7 @@ export default function CategoryBudgetActualCard({
             >
               {expanded ? <FiChevronDown /> : <FiChevronRight />}
             </Button>
-          ) : (
-            <span className="inline-block w-8 shrink-0" />
-          )}
-          <div className="min-w-0 flex-1">
-            <ColoredBadge
-              label={categoryBudget.category.name}
-              colorMap={categoryColorMap}
-              colorKey={categoryBudget.category.id}
-            />
-          </div>
+          ) : null}
         </div>
 
         <div className="grid grid-cols-3 gap-2 text-sm">
