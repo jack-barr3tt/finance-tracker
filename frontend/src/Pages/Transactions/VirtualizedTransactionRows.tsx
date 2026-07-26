@@ -1,6 +1,6 @@
 import { TableCell, TableRow } from "flowbite-react"
 import { VirtualItem } from "@tanstack/react-virtual"
-import { RefObject } from "react"
+import { MouseEvent, RefObject } from "react"
 import { Transaction } from "../../API"
 import EditTransactionRow from "./EditTransactionRow"
 import TransactionRow from "./TransactionRow"
@@ -24,7 +24,10 @@ type VirtualizedTransactionRowsProps = {
   accountColorMap: Record<string, ColorPair>
   categoryColorMap: Record<string, ColorPair>
   onEdit: (transactionId: string) => void
-  onDelete: (transactionId: string) => void
+  onDelete: (
+    transactionId: string,
+    event: MouseEvent<HTMLButtonElement>,
+  ) => void
   onCancelEdit: () => void
 }
 

@@ -214,7 +214,7 @@ export default function BudgetActual() {
   }, [classified])
 
   return (
-    <div className="flex flex-col gap-2 px-8 pb-8 md:gap-4 md:px-16 md:pb-16">
+    <div className="flex flex-col gap-2 px-4 pb-8 md:gap-4 md:px-16 md:pb-16">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-3xl font-bold">Budget actual</h1>
         <BudgetMonthPicker month={month} onMonthChange={setMonth} />
@@ -275,7 +275,7 @@ export default function BudgetActual() {
             <p className="mb-2 text-sm text-gray-500 dark:text-gray-400 md:mb-4">
               Spending matched to outgoing budget lines by description.
             </p>
-            <div className="-mx-8 md:mx-0">
+            <div className="-mx-4 md:mx-0">
               <Table striped theme={tableTheme}>
                 <TableHead>
                   <TableRow>
@@ -353,7 +353,7 @@ export default function BudgetActual() {
               Category spending not matched to a specific budget line
               description.
             </p>
-            <div className="-mx-8 md:mx-0">
+            <div className="-mx-4 md:mx-0">
               <Table striped theme={tableTheme}>
                 <TableHead>
                   <TableRow>
@@ -424,7 +424,7 @@ export default function BudgetActual() {
             <p className="mb-2 text-sm text-gray-500 dark:text-gray-400 md:mb-4">
               Transactions with no matching budget line or category budget.
             </p>
-            <div className="-mx-8 md:mx-0">
+            <div className="-mx-4 md:mx-0">
               <Table striped theme={tableTheme}>
                 <TableHead>
                   <TableRow>

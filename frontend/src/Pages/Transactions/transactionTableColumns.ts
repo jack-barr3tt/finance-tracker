@@ -161,18 +161,24 @@ type UseTransactionTableColumnWidthsInput = {
   accounts: Account[] | null
   categories: Category[] | null
   transactions: Transaction[]
+  enabled?: boolean
 }
 
 export function useTransactionTableColumnWidths(
   input: UseTransactionTableColumnWidthsInput,
 ) {
-  const { tableRef, accounts, categories, transactions } = input
+  const { tableRef, accounts, categories, transactions, enabled = true } = input
   const [measurement, setMeasurement] = useState<{
     fonts: TableFonts
     compactBadges: boolean
   } | null>(null)
 
   useLayoutEffect(() => {
+    if (!enabled) {
+      setMeasurement(null)
+      return
+    }
+
     const table = tableRef.current
     if (!table) return
 
@@ -192,7 +198,7 @@ export function useTransactionTableColumnWidths(
       mediaQuery.removeEventListener("change", update)
       observer.disconnect()
     }
-  }, [tableRef, transactions.length])
+  }, [tableRef, transactions.length, enabled])
 
   return useMemo(() => {
     const widths = measurement

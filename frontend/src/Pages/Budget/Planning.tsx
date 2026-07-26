@@ -84,7 +84,7 @@ export default function BudgetPlanning() {
   )
 
   return (
-    <div className="flex flex-col gap-2 px-8 pb-8 md:gap-4 md:px-16 md:pb-16">
+    <div className="flex flex-col gap-2 px-4 pb-8 md:gap-4 md:px-16 md:pb-16">
       <h1 className="text-3xl font-bold">Budget planning</h1>
 
       <HR />

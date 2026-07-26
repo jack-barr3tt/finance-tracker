@@ -109,7 +109,7 @@ function AppRoutes() {
                 </Button>
               )}
               {showSummaryRangeFilter && (
-                <div className="flex justify-end px-8 pb-4 md:px-16">
+                <div className="flex justify-end px-4 pb-4 md:px-16">
                   <SummaryRangeFilter />
                 </div>
               )}

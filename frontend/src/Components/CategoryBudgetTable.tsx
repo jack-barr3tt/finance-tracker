@@ -52,7 +52,7 @@ export default function CategoryBudgetTable(props: CategoryBudgetTableProps) {
     })
 
   return (
-    <div className="-mx-8 md:mx-0">
+    <div className="-mx-4 md:mx-0">
       <Table
         striped
         theme={{
