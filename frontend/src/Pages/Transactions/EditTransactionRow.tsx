@@ -324,11 +324,15 @@ export default function EditTransactionRow(props: EditTransactionRowProps) {
         </TableCell>
         <TableCell className={transactionTableCellClass.actions}>
           <div className="flex flex-row items-center justify-end gap-2">
-            <Button className="p-0 size-8" color="light" onClick={doneFn}>
+            <Button
+              className="p-0 shrink-0 size-8"
+              color="light"
+              onClick={doneFn}
+            >
               <FiSave />
             </Button>
             <Button
-              className="p-0 size-8"
+              className="p-0 shrink-0 size-8"
               color="light"
               onClick={cancelCallback}
             >

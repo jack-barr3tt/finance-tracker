@@ -94,14 +94,14 @@ const TransactionRow = memo(
         <TableCell className={transactionTableCellClass.actions}>
           <div className="flex flex-row items-center justify-end invisible gap-2 group-hover/trnscrow:visible">
             <Button
-              className="p-0 size-8"
+              className="p-0 shrink-0 size-8"
               color="light"
               onClick={() => onEdit(transaction.id)}
             >
               <FiEdit />
             </Button>
             <Button
-              className="p-0 size-8"
+              className="p-0 shrink-0 size-8"
               color="light"
               onClick={() => onDelete(transaction.id)}
             >
