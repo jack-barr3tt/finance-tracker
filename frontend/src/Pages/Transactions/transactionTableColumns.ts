@@ -10,6 +10,8 @@ import { formatCurrencyGBP } from "../../utils"
 
 export const TRANSACTION_TABLE_COLUMN_COUNT = 6
 
+const MD_MEDIA_QUERY = "(min-width: 768px)"
+
 export function needsStripeOffsetRow(input: {
   startIndex: number
   showAdd: boolean
@@ -29,10 +31,12 @@ export const transactionTableCellClass = {
   actions: "p-0 px-[18px] py-[10px]",
 } as const
 
-const MD_MEDIA_QUERY = "(min-width: 768px)"
+const ACTION_BUTTON_SIZE = 32 // Tailwind size-8
+const ACTION_BUTTON_GAP = 8 // Tailwind gap-2
+const ACTION_CELL_PADDING_X = 36 // px-[18px] on each side
 
 const layout = {
-  actions: 84,
+  actions: ACTION_BUTTON_SIZE * 2 + ACTION_BUTTON_GAP + ACTION_CELL_PADDING_X,
   badgeExtra: 20,
   filter: 28,
   compactBadge: 48,
@@ -157,18 +161,24 @@ type UseTransactionTableColumnWidthsInput = {
   accounts: Account[] | null
   categories: Category[] | null
   transactions: Transaction[]
+  enabled?: boolean
 }
 
 export function useTransactionTableColumnWidths(
   input: UseTransactionTableColumnWidthsInput,
 ) {
-  const { tableRef, accounts, categories, transactions } = input
+  const { tableRef, accounts, categories, transactions, enabled = true } = input
   const [measurement, setMeasurement] = useState<{
     fonts: TableFonts
     compactBadges: boolean
   } | null>(null)
 
   useLayoutEffect(() => {
+    if (!enabled) {
+      setMeasurement(null)
+      return
+    }
+
     const table = tableRef.current
     if (!table) return
 
@@ -188,7 +198,7 @@ export function useTransactionTableColumnWidths(
       mediaQuery.removeEventListener("change", update)
       observer.disconnect()
     }
-  }, [tableRef, transactions.length])
+  }, [tableRef, transactions.length, enabled])
 
   return useMemo(() => {
     const widths = measurement

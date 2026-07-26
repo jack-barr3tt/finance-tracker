@@ -1,7 +1,5 @@
 import {
-  Badge,
   Button,
-  HR,
   Spinner,
   Table,
   TableBody,
@@ -9,81 +7,24 @@ import {
   TableHead,
   TableHeadCell,
   TableRow,
-  Tooltip,
 } from "flowbite-react"
 import { format, parseISO, startOfMonth } from "date-fns"
 import { useCallback, useMemo, useState } from "react"
 import { FiChevronDown, FiChevronRight } from "react-icons/fi"
 import BudgetMonthPicker from "../../Components/BudgetMonthPicker"
+import Page from "../../Components/Page"
+import ColoredBadge from "../../Components/ColoredBadge"
+import TruncatedText from "../../Components/TruncatedText"
 import { useData } from "../../Hooks/useData"
 import { useBudgetMonthTransactions } from "../../Hooks/useBudgetMonthTransactions"
+import { useMediaQuery } from "../../Hooks/useMediaQuery"
 import { classifyBudgetSpending } from "../../budget/classifySpending"
-import { Category, Transaction } from "../../API"
+import { Transaction } from "../../API"
 import { formatCurrencyGBP } from "../../utils"
-
-function VarianceCell({
-  planned,
-  actual,
-}: {
-  planned: number
-  actual: number
-}) {
-  const delta = actual - planned
-  if (planned === 0 && actual === 0) {
-    return <span className="text-gray-400">—</span>
-  }
-
-  const colorClass =
-    delta > 0
-      ? "text-red-600 dark:text-red-400"
-      : delta < 0
-        ? "text-green-600 dark:text-green-400"
-        : "text-gray-500 dark:text-gray-400"
-
-  return (
-    <span className={colorClass}>
-      {delta > 0 ? "+" : ""}
-      {formatCurrencyGBP(delta)}
-    </span>
-  )
-}
-
-function CategoryBadge({
-  category,
-  categoryColorMap,
-}: {
-  category?: Category
-  categoryColorMap: Record<string, { fill: string; text: string }>
-}) {
-  const categoryId = category?.id ?? "uncategorised"
-  const colors = categoryColorMap[categoryId]
-
-  return (
-    <Badge
-      style={{
-        backgroundColor: colors?.fill,
-        color: colors?.text,
-      }}
-      className="h-5 w-fit"
-    >
-      {category?.name ?? "Uncategorised"}
-    </Badge>
-  )
-}
-
-function DescriptionCell({ description }: { description: string }) {
-  if (!description) {
-    return <span className="italic text-gray-400">No description</span>
-  }
-
-  if (description.length <= 30) return <span>{description}</span>
-
-  return (
-    <Tooltip content={description} placement="top">
-      <span>{description.slice(0, 30)}...</span>
-    </Tooltip>
-  )
-}
+import BudgetLineCard from "./BudgetLineCard"
+import CategoryBudgetActualCard from "./CategoryBudgetActualCard"
+import UnplannedTransactionCard from "./UnplannedTransactionCard"
+import { VarianceCell } from "./ActualDisplay"
 
 const tableTheme = {
   root: {
@@ -135,7 +76,7 @@ function budgetLineTransactionRows(transactions: Transaction[]) {
         <span className="text-gray-400">
           {format(parseISO(transaction.date), "d MMM")} —{" "}
         </span>
-        <DescriptionCell description={transaction.description} />
+        <TruncatedText text={transaction.description} />
       </TableCell>
       <TableCell />
       <TableCell />
@@ -155,7 +96,7 @@ function categoryTransactionRows(transactions: Transaction[]) {
         <span className="text-gray-400">
           {format(parseISO(transaction.date), "d MMM")} —{" "}
         </span>
-        <DescriptionCell description={transaction.description} />
+        <TruncatedText text={transaction.description} />
       </TableCell>
       <TableCell />
       <TableCell>{formatCurrencyGBP(Math.abs(transaction.amount))}</TableCell>
@@ -165,6 +106,7 @@ function categoryTransactionRows(transactions: Transaction[]) {
 }
 
 export default function BudgetActual() {
+  const isDesktop = useMediaQuery("(min-width: 768px)")
   const { budgetTransactions, categoryBudgets, categoryColorMap } = useData()
   const [month, setMonth] = useState(() => startOfMonth(new Date()))
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(
@@ -213,15 +155,23 @@ export default function BudgetActual() {
     return { planned, actual, unplanned, totalActual }
   }, [classified])
 
+  const sortedUnplanned = useMemo(
+    () =>
+      classified?.unplanned.transactions
+        .slice()
+        .sort(
+          (a, b) => parseISO(b.date).getTime() - parseISO(a.date).getTime(),
+        ) ?? [],
+    [classified],
+  )
+
   return (
-    <div className="flex flex-col gap-2 px-8 pb-8 md:gap-4 md:px-16 md:pb-16">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-3xl font-bold">Budget actual</h1>
+    <Page
+      title="Budget actual"
+      headerActions={
         <BudgetMonthPicker month={month} onMonthChange={setMonth} />
-      </div>
-
-      <HR />
-
+      }
+    >
       {isLoading && (
         <div className="flex justify-center py-16">
           <Spinner size="xl" />
@@ -275,74 +225,100 @@ export default function BudgetActual() {
             <p className="mb-2 text-sm text-gray-500 dark:text-gray-400 md:mb-4">
               Spending matched to outgoing budget lines by description.
             </p>
-            <div className="-mx-8 md:mx-0">
-              <Table striped theme={tableTheme}>
-                <TableHead>
-                  <TableRow>
-                    <TableHeadCell>Description</TableHeadCell>
-                    <TableHeadCell>Category</TableHeadCell>
-                    <TableHeadCell>Planned</TableHeadCell>
-                    <TableHeadCell>Actual</TableHeadCell>
-                    <TableHeadCell>Variance</TableHeadCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {classified.budgetLines.length === 0 ? (
+            {isDesktop ? (
+              <div className="-mx-4 md:mx-0">
+                <Table striped theme={tableTheme}>
+                  <TableHead>
                     <TableRow>
-                      <TableCell colSpan={5} className="text-center">
-                        No budget lines due or matched this month
-                      </TableCell>
+                      <TableHeadCell>Description</TableHeadCell>
+                      <TableHeadCell>Category</TableHeadCell>
+                      <TableHeadCell>Planned</TableHeadCell>
+                      <TableHeadCell>Actual</TableHeadCell>
+                      <TableHeadCell>Variance</TableHeadCell>
                     </TableRow>
-                  ) : (
-                    classified.budgetLines.flatMap((group) => {
-                      const expandKey = `line:${group.description}`
-                      const expanded = expandedGroups.has(expandKey)
+                  </TableHead>
+                  <TableBody>
+                    {classified.budgetLines.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={5} className="text-center">
+                          No budget lines due or matched this month
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      classified.budgetLines.flatMap((group) => {
+                        const expandKey = `line:${group.description}`
+                        const expanded = expandedGroups.has(expandKey)
 
-                      return [
-                        <TableRow
-                          key={group.description}
-                          className="bg-gray-50 dark:bg-gray-700"
-                        >
-                          <TableCell>
-                            <div className="flex items-center gap-1">
-                              <ExpandChevron
-                                expanded={expanded}
-                                transactionCount={group.transactions.length}
-                                onToggle={() => toggleExpanded(expandKey)}
+                        return [
+                          <TableRow
+                            key={group.description}
+                            className="bg-gray-50 dark:bg-gray-700"
+                          >
+                            <TableCell>
+                              <div className="flex items-center gap-1">
+                                <ExpandChevron
+                                  expanded={expanded}
+                                  transactionCount={group.transactions.length}
+                                  onToggle={() => toggleExpanded(expandKey)}
+                                />
+                                <TruncatedText text={group.description} />
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <ColoredBadge
+                                label={group.category?.name ?? "Uncategorised"}
+                                colorMap={categoryColorMap}
+                                colorKey={group.category?.id ?? "uncategorised"}
                               />
-                              <DescriptionCell
-                                description={group.description}
+                            </TableCell>
+                            <TableCell>
+                              {formatCurrencyGBP(group.planned)}
+                            </TableCell>
+                            <TableCell>
+                              {formatCurrencyGBP(group.actual)}
+                            </TableCell>
+                            <TableCell>
+                              <VarianceCell
+                                planned={group.planned}
+                                actual={group.actual}
                               />
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <CategoryBadge
-                              category={group.category}
-                              categoryColorMap={categoryColorMap}
-                            />
-                          </TableCell>
-                          <TableCell>
-                            {formatCurrencyGBP(group.planned)}
-                          </TableCell>
-                          <TableCell>
-                            {formatCurrencyGBP(group.actual)}
-                          </TableCell>
-                          <TableCell>
-                            <VarianceCell
-                              planned={group.planned}
-                              actual={group.actual}
-                            />
-                          </TableCell>
-                        </TableRow>,
-                        ...(expanded
-                          ? budgetLineTransactionRows(group.transactions)
-                          : []),
-                      ]
-                    })
-                  )}
-                </TableBody>
-              </Table>
-            </div>
+                            </TableCell>
+                          </TableRow>,
+                          ...(expanded
+                            ? budgetLineTransactionRows(group.transactions)
+                            : []),
+                        ]
+                      })
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-3">
+                {classified.budgetLines.length === 0 ? (
+                  <p className="text-center text-gray-500 dark:text-gray-400">
+                    No budget lines due or matched this month
+                  </p>
+                ) : (
+                  classified.budgetLines.map((group) => {
+                    const expandKey = `line:${group.description}`
+                    return (
+                      <BudgetLineCard
+                        key={group.description}
+                        description={group.description}
+                        category={group.category}
+                        categoryColorMap={categoryColorMap}
+                        planned={group.planned}
+                        actual={group.actual}
+                        transactions={group.transactions}
+                        expanded={expandedGroups.has(expandKey)}
+                        onToggle={() => toggleExpanded(expandKey)}
+                      />
+                    )
+                  })
+                )}
+              </div>
+            )}
           </section>
 
           <section>
@@ -353,68 +329,95 @@ export default function BudgetActual() {
               Category spending not matched to a specific budget line
               description.
             </p>
-            <div className="-mx-8 md:mx-0">
-              <Table striped theme={tableTheme}>
-                <TableHead>
-                  <TableRow>
-                    <TableHeadCell>Category</TableHeadCell>
-                    <TableHeadCell>Planned</TableHeadCell>
-                    <TableHeadCell>Actual</TableHeadCell>
-                    <TableHeadCell>Variance</TableHeadCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {classified.categories.length === 0 ? (
+            {isDesktop ? (
+              <div className="-mx-4 md:mx-0">
+                <Table striped theme={tableTheme}>
+                  <TableHead>
                     <TableRow>
-                      <TableCell colSpan={4} className="text-center">
-                        No category budget spending this month
-                      </TableCell>
+                      <TableHeadCell>Category</TableHeadCell>
+                      <TableHeadCell>Planned</TableHeadCell>
+                      <TableHeadCell>Actual</TableHeadCell>
+                      <TableHeadCell>Variance</TableHeadCell>
                     </TableRow>
-                  ) : (
-                    classified.categories.flatMap((group) => {
-                      const expandKey = `category:${group.categoryBudget.id}`
-                      const expanded = expandedGroups.has(expandKey)
+                  </TableHead>
+                  <TableBody>
+                    {classified.categories.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={4} className="text-center">
+                          No category budget spending this month
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      classified.categories.flatMap((group) => {
+                        const expandKey = `category:${group.categoryBudget.id}`
+                        const expanded = expandedGroups.has(expandKey)
 
-                      return [
-                        <TableRow
-                          key={group.categoryBudget.id}
-                          className="bg-gray-50 dark:bg-gray-700"
-                        >
-                          <TableCell>
-                            <div className="flex items-center gap-1">
-                              <ExpandChevron
-                                expanded={expanded}
-                                transactionCount={group.transactions.length}
-                                onToggle={() => toggleExpanded(expandKey)}
+                        return [
+                          <TableRow
+                            key={group.categoryBudget.id}
+                            className="bg-gray-50 dark:bg-gray-700"
+                          >
+                            <TableCell>
+                              <div className="flex items-center gap-1">
+                                <ExpandChevron
+                                  expanded={expanded}
+                                  transactionCount={group.transactions.length}
+                                  onToggle={() => toggleExpanded(expandKey)}
+                                />
+                                <ColoredBadge
+                                  label={group.categoryBudget.category.name}
+                                  colorMap={categoryColorMap}
+                                  colorKey={group.categoryBudget.category.id}
+                                />
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              {formatCurrencyGBP(group.planned)}
+                            </TableCell>
+                            <TableCell>
+                              {formatCurrencyGBP(group.actual)}
+                            </TableCell>
+                            <TableCell>
+                              <VarianceCell
+                                planned={group.planned}
+                                actual={group.actual}
                               />
-                              <CategoryBadge
-                                category={group.categoryBudget.category}
-                                categoryColorMap={categoryColorMap}
-                              />
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            {formatCurrencyGBP(group.planned)}
-                          </TableCell>
-                          <TableCell>
-                            {formatCurrencyGBP(group.actual)}
-                          </TableCell>
-                          <TableCell>
-                            <VarianceCell
-                              planned={group.planned}
-                              actual={group.actual}
-                            />
-                          </TableCell>
-                        </TableRow>,
-                        ...(expanded
-                          ? categoryTransactionRows(group.transactions)
-                          : []),
-                      ]
-                    })
-                  )}
-                </TableBody>
-              </Table>
-            </div>
+                            </TableCell>
+                          </TableRow>,
+                          ...(expanded
+                            ? categoryTransactionRows(group.transactions)
+                            : []),
+                        ]
+                      })
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-3">
+                {classified.categories.length === 0 ? (
+                  <p className="text-center text-gray-500 dark:text-gray-400">
+                    No category budget spending this month
+                  </p>
+                ) : (
+                  classified.categories.map((group) => {
+                    const expandKey = `category:${group.categoryBudget.id}`
+                    return (
+                      <CategoryBudgetActualCard
+                        key={group.categoryBudget.id}
+                        categoryBudget={group.categoryBudget}
+                        categoryColorMap={categoryColorMap}
+                        planned={group.planned}
+                        actual={group.actual}
+                        transactions={group.transactions}
+                        expanded={expandedGroups.has(expandKey)}
+                        onToggle={() => toggleExpanded(expandKey)}
+                      />
+                    )
+                  })
+                )}
+              </div>
+            )}
           </section>
 
           <section>
@@ -424,41 +427,39 @@ export default function BudgetActual() {
             <p className="mb-2 text-sm text-gray-500 dark:text-gray-400 md:mb-4">
               Transactions with no matching budget line or category budget.
             </p>
-            <div className="-mx-8 md:mx-0">
-              <Table striped theme={tableTheme}>
-                <TableHead>
-                  <TableRow>
-                    <TableHeadCell>Description</TableHeadCell>
-                    <TableHeadCell>Category</TableHeadCell>
-                    <TableHeadCell>Date</TableHeadCell>
-                    <TableHeadCell>Amount</TableHeadCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {classified.unplanned.transactions.length === 0 ? (
+            {isDesktop ? (
+              <div className="-mx-4 md:mx-0">
+                <Table striped theme={tableTheme}>
+                  <TableHead>
                     <TableRow>
-                      <TableCell colSpan={4} className="text-center">
-                        No unplanned spending this month
-                      </TableCell>
+                      <TableHeadCell>Description</TableHeadCell>
+                      <TableHeadCell>Category</TableHeadCell>
+                      <TableHeadCell>Date</TableHeadCell>
+                      <TableHeadCell>Amount</TableHeadCell>
                     </TableRow>
-                  ) : (
-                    classified.unplanned.transactions
-                      .sort(
-                        (a, b) =>
-                          parseISO(b.date).getTime() -
-                          parseISO(a.date).getTime(),
-                      )
-                      .map((transaction) => (
+                  </TableHead>
+                  <TableBody>
+                    {sortedUnplanned.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={4} className="text-center">
+                          No unplanned spending this month
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      sortedUnplanned.map((transaction) => (
                         <TableRow key={transaction.id}>
                           <TableCell>
-                            <DescriptionCell
-                              description={transaction.description}
-                            />
+                            <TruncatedText text={transaction.description} />
                           </TableCell>
                           <TableCell>
-                            <CategoryBadge
-                              category={transaction.category}
-                              categoryColorMap={categoryColorMap}
+                            <ColoredBadge
+                              label={
+                                transaction.category?.name ?? "Uncategorised"
+                              }
+                              colorMap={categoryColorMap}
+                              colorKey={
+                                transaction.category?.id ?? "uncategorised"
+                              }
                             />
                           </TableCell>
                           <TableCell>
@@ -469,13 +470,30 @@ export default function BudgetActual() {
                           </TableCell>
                         </TableRow>
                       ))
-                  )}
-                </TableBody>
-              </Table>
-            </div>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-3">
+                {sortedUnplanned.length === 0 ? (
+                  <p className="text-center text-gray-500 dark:text-gray-400">
+                    No unplanned spending this month
+                  </p>
+                ) : (
+                  sortedUnplanned.map((transaction) => (
+                    <UnplannedTransactionCard
+                      key={transaction.id}
+                      transaction={transaction}
+                      categoryColorMap={categoryColorMap}
+                    />
+                  ))
+                )}
+              </div>
+            )}
           </section>
         </>
       )}
-    </div>
+    </Page>
   )
 }

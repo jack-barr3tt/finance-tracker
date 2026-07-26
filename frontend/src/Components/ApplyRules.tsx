@@ -57,8 +57,22 @@ export default function ApplyRules() {
   }, [categories, decrypt, editTransaction, encrypt, userId])
 
   return (
-    <Button pill color="green" onClick={applyRules}>
-      Apply rules <FiRefreshCw className="ml-2" />
-    </Button>
+    <>
+      <Button
+        className="hidden md:inline-flex"
+        color="green"
+        onClick={applyRules}
+      >
+        Apply rules <FiRefreshCw className="ml-2" />
+      </Button>
+      <Button
+        className="size-8 p-0 md:hidden"
+        color="green"
+        aria-label="Apply rules"
+        onClick={applyRules}
+      >
+        <FiRefreshCw />
+      </Button>
+    </>
   )
 }

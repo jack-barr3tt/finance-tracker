@@ -7,6 +7,7 @@ import {
   SidebarItems,
   useThemeMode,
 } from "flowbite-react"
+import { useSidebar } from "../Hooks/useSidebar"
 import { useUser } from "../Hooks/useUser"
 import { useLocation, useNavigate } from "react-router-dom"
 import {
@@ -20,21 +21,16 @@ import {
 } from "react-icons/fi"
 
 type NavBarProps = {
-  isDesktopOpen: boolean
-  isMobileOpen: boolean
-  onCloseDesktop: () => void
-  onCloseMobile: () => void
   onOpenShortcuts: () => void
 }
 
-export default function NavBar(props: NavBarProps) {
+export default function NavBar({ onOpenShortcuts }: NavBarProps) {
   const {
-    isDesktopOpen,
-    isMobileOpen,
-    onCloseDesktop,
-    onCloseMobile,
-    onOpenShortcuts,
-  } = props
+    showDesktopSidebar: isDesktopOpen,
+    showMobileSidebar: isMobileOpen,
+    closeDesktopSidebar: onCloseDesktop,
+    closeMobileSidebar: onCloseMobile,
+  } = useSidebar()
   const { userId } = useUser()
   const location = useLocation()
   const navigate = useNavigate()

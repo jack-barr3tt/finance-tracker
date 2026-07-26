@@ -1,5 +1,3 @@
-import { HR } from "flowbite-react"
-import { useUser } from "../../Hooks/useUser"
 import {
   getGetUserIdBudgetTransactionsBudgetTransactionIdQueryKey,
   getGetUserIdBudgetTransactionsQueryKey,
@@ -11,9 +9,11 @@ import {
 import { useCallback, useMemo, useState } from "react"
 import { useQueryClient } from "@tanstack/react-query"
 import { useData } from "../../Hooks/useData"
+import { useUser } from "../../Hooks/useUser"
 import BudgetTable from "../../Components/BudgetTable"
 import CategoryBudgetTable from "../../Components/CategoryBudgetTable"
 import BudgetPie from "../../Components/BudgetPie"
+import Page from "../../Components/Page"
 
 export default function BudgetPlanning() {
   const { userId } = useUser()
@@ -84,11 +84,7 @@ export default function BudgetPlanning() {
   )
 
   return (
-    <div className="flex flex-col gap-2 px-8 pb-8 md:gap-4 md:px-16 md:pb-16">
-      <h1 className="text-3xl font-bold">Budget planning</h1>
-
-      <HR />
-
+    <Page title="Budget planning">
       <div className="flex flex-col gap-8 2xl:flex-row">
         <div className="2xl:w-1/2">
           <BudgetPie
@@ -150,6 +146,6 @@ export default function BudgetPlanning() {
           </div>
         </div>
       </div>
-    </div>
+    </Page>
   )
 }

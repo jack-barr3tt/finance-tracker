@@ -95,7 +95,7 @@ export default function BalanceGraph() {
   }, [balanceSummary, colorMap, isDark, lineBorders])
 
   return (
-    <Card className="flex flex-col w-1/2 min-h-full">
+    <Card className="flex min-h-full w-full flex-col">
       <div className="flex flex-col justify-between flex-1 gap-4">
         <h1 className="w-full text-xl font-medium text-center">
           Balance over Time

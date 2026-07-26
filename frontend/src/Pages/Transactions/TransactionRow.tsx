@@ -1,6 +1,6 @@
 import { Badge, Button, TableCell, TableRow, Tooltip } from "flowbite-react"
 import { format, parseISO } from "date-fns"
-import { forwardRef, memo } from "react"
+import { forwardRef, memo, MouseEvent } from "react"
 import { FiEdit, FiTrash } from "react-icons/fi"
 import { Transaction } from "../../API"
 import { formatCurrencyGBP } from "../../utils"
@@ -13,7 +13,10 @@ type TransactionRowProps = {
   accountColorMap: Record<string, ColorPair>
   categoryColorMap: Record<string, ColorPair>
   onEdit: (transactionId: string) => void
-  onDelete: (transactionId: string) => void
+  onDelete: (
+    transactionId: string,
+    event: MouseEvent<HTMLButtonElement>,
+  ) => void
   "data-index"?: number
 }
 
@@ -94,16 +97,18 @@ const TransactionRow = memo(
         <TableCell className={transactionTableCellClass.actions}>
           <div className="flex flex-row items-center justify-end invisible gap-2 group-hover/trnscrow:visible">
             <Button
-              className="p-0 size-8"
+              className="p-0 shrink-0 size-8"
               color="light"
               onClick={() => onEdit(transaction.id)}
             >
               <FiEdit />
             </Button>
             <Button
-              className="p-0 size-8"
+              className="p-0 shrink-0 size-8"
               color="light"
-              onClick={() => onDelete(transaction.id)}
+              onClick={(event: MouseEvent<HTMLButtonElement>) =>
+                onDelete(transaction.id, event)
+              }
             >
               <FiTrash />
             </Button>

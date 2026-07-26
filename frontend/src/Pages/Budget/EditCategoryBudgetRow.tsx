@@ -6,26 +6,13 @@ import {
   ThemeProvider,
   createTheme,
 } from "flowbite-react"
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useMemo } from "react"
 import { FiSave, FiX } from "react-icons/fi"
-import {
-  CategoryBudget,
-  PeriodUnit,
-  getGetUserIdCategoryBudgetsQueryKey,
-  useGetUserIdCategoryBudgetsCategoryBudgetId,
-  useGetUserIdCategories,
-  usePatchUserIdCategoryBudgetsCategoryBudgetId,
-  usePostUserIdCategoryBudgets,
-} from "../../API"
-import { useUser } from "../../Hooks/useUser"
 import SearchSelect from "../../Components/SearchSelect"
-import { useQueryClient } from "@tanstack/react-query"
-import { useAsyncMemo } from "../../Hooks/useAsyncMemo"
-import { decryptCategory, decryptCategoryBudget } from "../../Security/data"
-import {
-  isSegmentActiveToday,
-  todayDateInputValue,
-} from "../../budget/plannedAmount"
+import BudgetRepeatFields from "../../Components/BudgetRepeatFields"
+import BudgetPeriodFields from "../../Components/BudgetPeriodFields"
+import { CategoryBudget } from "../../API"
+import { useCategoryBudgetEditor } from "./useCategoryBudgetEditor"
 
 type EditCategoryBudgetRowProps = {
   categoryBudgetId?: string
@@ -38,150 +25,11 @@ export default function EditCategoryBudgetRow(
 ) {
   const { categoryBudgetId, cancelCallback, existingCategoryBudgets } = props
 
-  const { userId, decrypt } = useUser()
-  const queryClient = useQueryClient()
-  const { data: encCategories } = useGetUserIdCategories(userId)
-  const categories = useAsyncMemo(
-    async () =>
-      (
-        await Promise.all(
-          encCategories?.map((cat) => decryptCategory(cat, decrypt)) ?? [],
-        )
-      ).sort((a, b) => a.name.localeCompare(b.name)),
-    [decrypt, encCategories],
-  )
-
-  const { mutateAsync: addCategoryBudget } = usePostUserIdCategoryBudgets()
-  const { mutateAsync: editCategoryBudget } =
-    usePatchUserIdCategoryBudgetsCategoryBudgetId()
-  const { data: categoryBudget } = useGetUserIdCategoryBudgetsCategoryBudgetId(
-    userId,
-    categoryBudgetId || "",
-    {
-      query: { enabled: !!categoryBudgetId },
-    },
-  )
-
-  const [categorySearch, setCategorySearch] = useState<string | undefined>(
-    undefined,
-  )
-  const [amount, setAmount] = useState("")
-  const [selectedCategory, setSelectedCategory] = useState<string | undefined>(
-    undefined,
-  )
-  const [repeatUntil, setRepeatUntil] = useState<PeriodUnit>("month")
-  const [repeatEvery, setRepeatEvery] = useState("")
-  const [startsOn, setStartsOn] = useState(todayDateInputValue())
-  const [endsOn, setEndsOn] = useState("")
-  const [effectiveFrom, setEffectiveFrom] = useState(todayDateInputValue())
-
-  useEffect(() => {
-    ;(async () => {
-      if (categoryBudget) {
-        const decrypted = await decryptCategoryBudget(categoryBudget, decrypt)
-        setAmount(decrypted.amount.toString())
-        setSelectedCategory(decrypted.category.id)
-        setRepeatUntil(decrypted.repeat_until)
-        setRepeatEvery(decrypted.repeat_every.toString())
-        setStartsOn(decrypted.starts_on)
-        setEndsOn(decrypted.ends_on ?? "")
-        setEffectiveFrom(decrypted.starts_on)
-      }
-    })()
-  }, [decrypt, categoryBudget])
-
-  const takenCategoryIds = useMemo(() => {
-    const ids = new Set(
-      existingCategoryBudgets
-        .filter(
-          (cb) =>
-            !cb.deleted_at &&
-            cb.id !== categoryBudgetId &&
-            isSegmentActiveToday(cb),
-        )
-        .map((cb) => cb.category.id),
-    )
-    return ids
-  }, [categoryBudgetId, existingCategoryBudgets])
-
-  const resetForm = useCallback(() => {
-    setAmount("")
-    setSelectedCategory(undefined)
-    setRepeatUntil("month")
-    setRepeatEvery("")
-    setStartsOn(todayDateInputValue())
-    setEndsOn("")
-    setEffectiveFrom(todayDateInputValue())
-    setCategorySearch("")
-  }, [])
-
-  const handleAdd = useCallback(async () => {
-    if (!selectedCategory || !amount || !repeatEvery || !startsOn) return
-
-    await addCategoryBudget({
-      id: userId,
-      data: {
-        category_id: selectedCategory,
-        amount: parseFloat(amount),
-        repeat_until: repeatUntil,
-        repeat_every: parseFloat(repeatEvery),
-        starts_on: startsOn,
-        ends_on: endsOn || undefined,
-      },
-    })
-    queryClient.invalidateQueries({
-      queryKey: getGetUserIdCategoryBudgetsQueryKey(userId),
-    })
-    resetForm()
-    cancelCallback?.()
-  }, [
-    addCategoryBudget,
-    amount,
-    cancelCallback,
-    endsOn,
-    queryClient,
-    repeatEvery,
-    repeatUntil,
-    resetForm,
-    selectedCategory,
-    startsOn,
-    userId,
-  ])
-
-  const handleEdit = useCallback(async () => {
-    if (!categoryBudgetId || !amount || !repeatEvery || !effectiveFrom) return
-
-    await editCategoryBudget({
-      id: userId,
-      categoryBudgetId,
-      data: {
-        category_id: selectedCategory,
-        amount: parseFloat(amount),
-        repeat_until: repeatUntil,
-        repeat_every: parseFloat(repeatEvery),
-        effective_from: effectiveFrom,
-        ends_on: endsOn || undefined,
-      },
-    })
-    queryClient.invalidateQueries({
-      queryKey: getGetUserIdCategoryBudgetsQueryKey(userId),
-    })
-    resetForm()
-    cancelCallback?.()
-  }, [
-    amount,
-    cancelCallback,
+  const editor = useCategoryBudgetEditor({
     categoryBudgetId,
-    editCategoryBudget,
-    effectiveFrom,
-    endsOn,
-    queryClient,
-    repeatEvery,
-    repeatUntil,
-    resetForm,
-    selectedCategory,
-    userId,
-  ])
+    existingCategoryBudgets,
+    onClose: cancelCallback,
+  })
 
   const tableTheme = useMemo(
     () =>
@@ -207,106 +55,55 @@ export default function EditCategoryBudgetRow(
     [],
   )
 
-  const doneFn = useMemo(
-    () => (categoryBudgetId ? handleEdit : handleAdd),
-    [handleAdd, handleEdit, categoryBudgetId],
-  )
-
-  if (!categories) return null
+  if (!editor.isReady) return null
 
   return (
     <ThemeProvider theme={tableTheme}>
       <TableRow>
         <TableCell>
           <SearchSelect
-            value={selectedCategory}
-            options={categories
-              .filter(
-                (category) =>
-                  (!categorySearch ||
-                    category.name
-                      .toLowerCase()
-                      .includes(categorySearch.toLowerCase())) &&
-                  !takenCategoryIds.has(category.id),
-              )
-              .map((category) => ({
-                label: category.name,
-                value: category.id,
-              }))}
+            value={editor.selectedCategory}
+            options={editor.categoryOptions}
             placeholder="Select category"
-            onSearchChange={setCategorySearch}
-            onValueChange={setSelectedCategory}
+            onSearchChange={editor.setCategorySearch}
+            onValueChange={editor.setSelectedCategory}
           />
         </TableCell>
         <TableCell>
           <TextInput
             placeholder="Limit"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            onKeyUp={(e) => e.key === "Enter" && doneFn()}
+            value={editor.amount}
+            onChange={(e) => editor.setAmount(e.target.value)}
+            onKeyUp={(e) => e.key === "Enter" && editor.handleSave()}
           />
         </TableCell>
         <TableCell>
-          <div className="flex flex-row gap-1">
-            <TextInput
-              placeholder="Every"
-              value={repeatEvery}
-              onChange={(e) => setRepeatEvery(e.target.value)}
-              onKeyUp={(e) => e.key === "Enter" && doneFn()}
-              className="flex-1"
-            />
-            <SearchSelect
-              value={repeatUntil}
-              options={[
-                { label: "Day(s)", value: "day" },
-                { label: "Week(s)", value: "week" },
-                { label: "Month(s)", value: "month" },
-                { label: "Year(s)", value: "year" },
-              ]}
-              onValueChange={(value) => setRepeatUntil(value as PeriodUnit)}
-              onSearchChange={() => {}}
-              showSearch={false}
-            />
-          </div>
+          <BudgetRepeatFields
+            repeatEvery={editor.repeatEvery}
+            repeatUntil={editor.repeatUntil}
+            onRepeatEveryChange={editor.setRepeatEvery}
+            onRepeatUntilChange={editor.setRepeatUntil}
+            onEnter={editor.handleSave}
+          />
         </TableCell>
         <TableCell>
-          <div className="flex flex-col gap-1">
-            {categoryBudgetId ? (
-              <>
-                <TextInput
-                  type="date"
-                  title="Effective from"
-                  value={effectiveFrom}
-                  onChange={(e) => setEffectiveFrom(e.target.value)}
-                />
-                <TextInput
-                  type="date"
-                  title="Ends on (optional)"
-                  value={endsOn}
-                  onChange={(e) => setEndsOn(e.target.value)}
-                />
-              </>
-            ) : (
-              <>
-                <TextInput
-                  type="date"
-                  title="Starts on"
-                  value={startsOn}
-                  onChange={(e) => setStartsOn(e.target.value)}
-                />
-                <TextInput
-                  type="date"
-                  title="Ends on (optional)"
-                  value={endsOn}
-                  onChange={(e) => setEndsOn(e.target.value)}
-                />
-              </>
-            )}
-          </div>
+          <BudgetPeriodFields
+            isEditMode={editor.isEditMode}
+            startsOn={editor.startsOn}
+            endsOn={editor.endsOn}
+            effectiveFrom={editor.effectiveFrom}
+            onStartsOnChange={editor.setStartsOn}
+            onEndsOnChange={editor.setEndsOn}
+            onEffectiveFromChange={editor.setEffectiveFrom}
+          />
         </TableCell>
         <TableCell>
           <div className="flex flex-row items-center justify-end gap-2">
-            <Button className="p-0 size-8" color="light" onClick={doneFn}>
+            <Button
+              className="p-0 size-8"
+              color="light"
+              onClick={editor.handleSave}
+            >
               <FiSave />
             </Button>
             <Button

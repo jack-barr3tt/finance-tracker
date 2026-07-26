@@ -160,31 +160,31 @@ export default function BudgetPie(props: BudgetPieProps) {
         <h1 className="text-xl font-medium">Monthly Budget Overview</h1>
 
         <div className="flex flex-col items-center justify-center w-full gap-8 lg:flex-row">
-          <div className="flex flex-row w-full gap-4 overflow-x-auto lg:flex-col lg:order-1 lg:w-auto">
-            <div className="flex flex-col items-center lg:items-start p-4 bg-gray-50 dark:bg-gray-800 rounded-lg min-w-[140px] flex-1 lg:flex-none">
-              <span className="text-sm font-medium text-gray-500 dark:text-gray-400 whitespace-nowrap">
+          <div className="flex flex-col w-full gap-1 lg:gap-4 lg:order-1 lg:w-auto">
+            <div className="flex flex-row items-center justify-between gap-2 px-3 py-2 lg:flex-col lg:items-start lg:justify-start lg:p-4 bg-gray-50 dark:bg-gray-800 rounded-lg lg:min-w-[140px]">
+              <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
                 Monthly Income
               </span>
-              <span className="text-xl font-bold text-green-600 lg:text-2xl dark:text-green-400">
+              <span className="text-lg font-bold text-green-600 lg:text-2xl dark:text-green-400">
                 {formatCurrencyGBP(chartData.monthlyIncome)}
               </span>
             </div>
 
-            <div className="flex flex-col items-center lg:items-start p-4 bg-gray-50 dark:bg-gray-800 rounded-lg min-w-[140px] flex-1 lg:flex-none">
-              <span className="text-sm font-medium text-gray-500 dark:text-gray-400 whitespace-nowrap">
+            <div className="flex flex-row items-center justify-between gap-2 px-3 py-2 lg:flex-col lg:items-start lg:justify-start lg:p-4 bg-gray-50 dark:bg-gray-800 rounded-lg lg:min-w-[140px]">
+              <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
                 Monthly Outgoings
               </span>
-              <span className="text-xl font-bold text-red-600 lg:text-2xl dark:text-red-400">
+              <span className="text-lg font-bold text-red-600 lg:text-2xl dark:text-red-400">
                 {formatCurrencyGBP(chartData.totalOutgoings)}
               </span>
             </div>
 
-            <div className="flex flex-col items-center lg:items-start p-4 bg-gray-50 dark:bg-gray-800 rounded-lg min-w-[140px] flex-1 lg:flex-none">
-              <span className="text-sm font-medium text-gray-500 dark:text-gray-400 whitespace-nowrap">
+            <div className="flex flex-row items-center justify-between gap-2 px-3 py-2 lg:flex-col lg:items-start lg:justify-start lg:p-4 bg-gray-50 dark:bg-gray-800 rounded-lg lg:min-w-[140px]">
+              <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
                 Monthly Remaining
               </span>
               <span
-                className={`text-xl lg:text-2xl font-bold ${
+                className={`text-lg lg:text-2xl font-bold ${
                   chartData.remaining >= 0
                     ? "text-green-600 dark:text-green-400"
                     : "text-red-600 dark:text-red-400"

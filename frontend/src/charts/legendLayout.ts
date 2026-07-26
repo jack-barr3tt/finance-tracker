@@ -37,25 +37,12 @@ export function applyLegendLayout(chart: ECharts): boolean {
   const legendHeight = measureLegendHeight(chart)
   if (legendHeight <= 0) return false
 
-  const chartHeight = chart.getHeight()
   const bottomPadding = legendHeight + LEGEND_GAP
   const option = chart.getOption()
-  const series = option.series as
-    Array<{ type?: string; center?: [unknown, unknown] }> | undefined
+  const series = option.series as Array<{ type?: string }> | undefined
   const firstSeries = series?.[0]
 
-  if (firstSeries?.type === "pie") {
-    const centerY = (chartHeight - bottomPadding) / 2
-    const currentY = firstSeries.center?.[1]
-
-    if (typeof currentY === "number" && Math.abs(currentY - centerY) < 1)
-      return false
-
-    chart.setOption({
-      series: [{ center: ["50%", centerY] }],
-    })
-    return true
-  }
+  if (firstSeries?.type === "pie") return false
 
   const grid = option.grid as
     | { bottom?: number | string }
