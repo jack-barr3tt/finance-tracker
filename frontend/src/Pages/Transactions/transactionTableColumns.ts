@@ -10,6 +10,8 @@ import { formatCurrencyGBP } from "../../utils"
 
 export const TRANSACTION_TABLE_COLUMN_COUNT = 6
 
+const MD_MEDIA_QUERY = "(min-width: 768px)"
+
 export function needsStripeOffsetRow(input: {
   startIndex: number
   showAdd: boolean
@@ -28,8 +30,6 @@ export const transactionTableCellClass = {
   amount: "whitespace-nowrap",
   actions: "p-0 px-[18px] py-[10px]",
 } as const
-
-const MD_MEDIA_QUERY = "(min-width: 768px)"
 
 const ACTION_BUTTON_SIZE = 32 // Tailwind size-8
 const ACTION_BUTTON_GAP = 8 // Tailwind gap-2

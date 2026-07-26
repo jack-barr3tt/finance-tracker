@@ -48,6 +48,7 @@ import { HOTKEYS_BY_ID } from "../Hotkeys/hotkeys"
 import { transactionMatchesSearch } from "../utils/transactionSearch"
 import { useScrollContainer } from "../Hooks/useScrollContainer"
 import { useMediaQuery } from "../Hooks/useMediaQuery"
+import { useContainerQueryVisibility } from "../Hooks/useContainerQueryVisibility"
 import {
   TRANSACTION_TABLE_COLUMN_COUNT,
   useTransactionTableColumnWidths,
@@ -60,7 +61,7 @@ import TransactionEditModal from "./Transactions/TransactionEditModal"
 import TransactionSearchOverlay from "./Transactions/TransactionSearchOverlay"
 
 export default function Transactions() {
-  const isDesktop = useMediaQuery("(min-width: 768px)")
+  const isDesktopViewport = useMediaQuery("(min-width: 768px)")
   const { userId, decrypt } = useUser()
   const {
     summaryDateQuery,
@@ -195,13 +196,18 @@ export default function Transactions() {
   )
   const searchInputRef = useRef<HTMLInputElement>(null)
   const tableRef = useRef<HTMLTableElement>(null)
+  const tableSectionRef = useRef<HTMLDivElement>(null)
+  const cardSectionRef = useRef<HTMLDivElement>(null)
+
+  const tableVisible = useContainerQueryVisibility(tableSectionRef)
+  const cardVisible = useContainerQueryVisibility(cardSectionRef)
 
   const { columnWidths } = useTransactionTableColumnWidths({
     tableRef,
     accounts,
     categories,
     transactions: allTransactions,
-    enabled: isDesktop,
+    enabled: tableVisible,
   })
 
   const {
@@ -213,7 +219,7 @@ export default function Transactions() {
   } = useVirtualizedTransactionList({
     scrollContainerRef,
     rowCount: visibleTransactions.length,
-    enabled: isDesktop && showVirtualizedRows,
+    enabled: tableVisible && showVirtualizedRows,
     remeasureKey: editingTransactionId,
     layoutKey: showAdd,
   })
@@ -227,7 +233,7 @@ export default function Transactions() {
   } = useVirtualizedTransactionCardList({
     scrollContainerRef,
     rowCount: visibleTransactions.length,
-    enabled: !isDesktop && showVirtualizedRows,
+    enabled: cardVisible && showVirtualizedRows,
     layoutKey: showAdd,
   })
 
@@ -290,7 +296,7 @@ export default function Transactions() {
   useHotkey(
     HOTKEYS_BY_ID.focusTransactionSearch.combo,
     () => {
-      if (isDesktop) searchInputRef.current?.focus()
+      if (isDesktopViewport) searchInputRef.current?.focus()
       else setShowSearchOverlay(true)
     },
     { preventDefault: true },
@@ -353,7 +359,7 @@ export default function Transactions() {
         onCancel={() => setDeleteConfirmId(undefined)}
       />
 
-      {!isDesktop && (
+      {!isDesktopViewport && (
         <TransactionSearchOverlay
           show={showSearchOverlay}
           onClose={() => setShowSearchOverlay(false)}
@@ -362,7 +368,7 @@ export default function Transactions() {
         />
       )}
 
-      {!isDesktop && (showAdd || editingTransactionId) && (
+      {(showAdd || editingTransactionId) && cardVisible && (
         <TransactionEditModal
           show
           transactionId={editingTransactionId}
@@ -431,8 +437,8 @@ export default function Transactions() {
         </div>
       </div>
 
-      {!isDesktop && (
-        <div className="flex flex-wrap items-center gap-3 md:hidden">
+      <div className="@container -mx-4 md:mx-0">
+        <div className="flex flex-wrap items-center gap-3 px-4 md:hidden @max-2xl:flex md:px-0">
           <div className="flex items-center gap-2">
             <span className="text-sm text-gray-500 dark:text-gray-400">
               Account
@@ -454,10 +460,8 @@ export default function Transactions() {
             />
           </div>
         </div>
-      )}
 
-      {isDesktop ? (
-        <div className="-mx-4 md:mx-0">
+        <div ref={tableSectionRef} className="hidden md:block @max-2xl:hidden">
           <Table
             ref={tableRef}
             striped
@@ -580,8 +584,11 @@ export default function Transactions() {
             </TableBodyWithButton>
           </Table>
         </div>
-      ) : (
-        <div className="flex flex-col gap-2">
+
+        <div
+          ref={cardSectionRef}
+          className="flex flex-col gap-2 px-4 md:hidden @max-2xl:flex md:px-0"
+        >
           {emptyStateMessage && (
             <p
               className={`text-center ${
@@ -623,7 +630,7 @@ export default function Transactions() {
                 </div>
               ))}
         </div>
-      )}
+      </div>
 
       {!isSearchActive && (
         <InView
