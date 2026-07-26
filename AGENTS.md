@@ -13,6 +13,13 @@ This project is a personal finance tracker with a Go/Fiber backend and a Vite Re
 - Use `yarn` in `frontend` to match the existing lockfile.
 - When changing UI behavior or layout, verify the result in the browser using the Cursor browser tool (`cursor-ide-browser` MCP). Navigate to the running dev server (typically `http://localhost:5173`), take snapshots or screenshots, and interact with the page to confirm the change works and looks right. Prefer this over guessing from code alone, especially for redirects, modals, filters, and other visual or interaction-heavy changes.
 
+### Component style
+
+- Prefer `export default function ComponentName()` — do not assign a component to a `const` and export that const. When a component needs a ref (React 18), use `export default forwardRef(function ComponentName(...))` and pass `ref` normally; do not invent renamed ref props like `cardRef`.
+- Component files use PascalCase (e.g. `ActualDisplay.tsx`). Hook files use camelCase (e.g. `useBudgetTransactionEditor.ts`).
+- For responsive table/card layouts, reuse the existing Transactions patterns: `useMediaQuery("(min-width: 768px)")`, `DataCard`, `FormEditModal`, `ColoredBadge`, `TruncatedText`. Mirror that layout behaviour on other pages; do not build generic table/card frameworks.
+- Avoid thin wrapper abstractions that do not earn their keep — e.g. passthrough layout components, shared breakpoint constant files, one-line helper modules, or hooks extracted only to dedupe similar data-fetching logic across editors. Inline at the call site when the code is simple and local.
+
 ## Backend
 
 - Treat `backend/schema/openapi.yaml` as the API contract. Keep handler behavior, generated Go types, and frontend generated types in sync with schema changes.

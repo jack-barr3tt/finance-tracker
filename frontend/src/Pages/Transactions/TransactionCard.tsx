@@ -1,8 +1,9 @@
-import { Badge, Card } from "flowbite-react"
 import { format, parseISO } from "date-fns"
-import { forwardRef, memo } from "react"
+import { forwardRef } from "react"
 import { Transaction } from "../../API"
 import { formatCurrencyGBP } from "../../utils"
+import ColoredBadge from "../../Components/ColoredBadge"
+import DataCard from "../../Components/DataCard"
 
 type ColorPair = { fill?: string; text?: string }
 
@@ -14,27 +15,13 @@ type TransactionCardProps = {
   "data-index"?: number
 }
 
-const TransactionCard = memo(
-  forwardRef<HTMLDivElement, TransactionCardProps>(function TransactionCard(
+export default forwardRef<HTMLDivElement, TransactionCardProps>(
+  function TransactionCard(
     { transaction, accountColorMap, categoryColorMap, onEdit, ...rest },
     ref,
   ) {
     return (
-      <Card
-        ref={ref}
-        role="button"
-        tabIndex={0}
-        theme={{ root: { children: "p-4" } }}
-        className="cursor-pointer bg-white transition-colors hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700/50"
-        onClick={() => onEdit(transaction.id)}
-        onKeyDown={(event) => {
-          if (event.key === "Enter" || event.key === " ") {
-            event.preventDefault()
-            onEdit(transaction.id)
-          }
-        }}
-        {...rest}
-      >
+      <DataCard ref={ref} onClick={() => onEdit(transaction.id)} {...rest}>
         <div className="flex flex-col gap-2">
           <div className="flex items-start justify-between gap-3">
             <span className="text-sm text-gray-500 dark:text-gray-400">
@@ -50,31 +37,19 @@ const TransactionCard = memo(
           </p>
 
           <div className="flex flex-wrap items-center gap-2">
-            <Badge
-              style={{
-                backgroundColor: accountColorMap[transaction.account.id]?.fill,
-                color: accountColorMap[transaction.account.id]?.text,
-              }}
-            >
-              {transaction.account.name}
-            </Badge>
-            <Badge
-              style={{
-                backgroundColor:
-                  categoryColorMap[transaction.category?.id || "uncategorised"]
-                    ?.fill,
-                color:
-                  categoryColorMap[transaction.category?.id || "uncategorised"]
-                    ?.text,
-              }}
-            >
-              {transaction.category?.name || "Uncategorised"}
-            </Badge>
+            <ColoredBadge
+              label={transaction.account.name}
+              colorMap={accountColorMap}
+              colorKey={transaction.account.id}
+            />
+            <ColoredBadge
+              label={transaction.category?.name || "Uncategorised"}
+              colorMap={categoryColorMap}
+              colorKey={transaction.category?.id || "uncategorised"}
+            />
           </div>
         </div>
-      </Card>
+      </DataCard>
     )
-  }),
+  },
 )
-
-export default TransactionCard

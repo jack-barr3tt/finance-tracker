@@ -1,22 +1,25 @@
 import {
-  Badge,
   Button,
   Table,
   TableCell,
   TableHead,
   TableHeadCell,
   TableRow,
-  Tooltip,
 } from "flowbite-react"
 import { FiEdit, FiPlus, FiTrash } from "react-icons/fi"
 import EditBudgetTransactionRow from "../Pages/Budget/EditBudgetTransactionRow"
+import BudgetTransactionCard from "../Pages/Budget/BudgetTransactionCard"
+import BudgetTransactionEditModal from "../Pages/Budget/BudgetTransactionEditModal"
 import TableBodyWithButton from "./TableBodyWithButton"
+import ColoredBadge from "./ColoredBadge"
+import TruncatedText from "./TruncatedText"
 import { BudgetTransaction } from "../API"
 import {
   formatSegmentDateRange,
   isSegmentActiveToday,
 } from "../budget/plannedAmount"
 import { formatRepeat, toMonthlyAmount, formatCurrencyGBP } from "../utils"
+import { useMediaQuery } from "../Hooks/useMediaQuery"
 
 type BudgetTableProps = {
   budgetTransactions: BudgetTransaction[]
@@ -27,6 +30,20 @@ type BudgetTableProps = {
   onEditChange: (id: string | undefined) => void
   onDelete: (id: string) => void
   isOutgoings?: boolean
+}
+
+const tableTheme = {
+  root: {
+    wrapper: "overflow-x-auto md:rounded-md custom-scrollbar",
+  },
+  body: {
+    cell: {
+      base: "px-3 py-2 md:px-6 md:py-4",
+    },
+  },
+  head: {
+    cell: { base: "px-3 py-2 md:px-6 md:py-4" },
+  },
 }
 
 export default function BudgetTable(props: BudgetTableProps) {
@@ -40,6 +57,8 @@ export default function BudgetTable(props: BudgetTableProps) {
     onDelete,
     isOutgoings = false,
   } = props
+
+  const isDesktop = useMediaQuery("(min-width: 768px)")
 
   const activeBudgetTransactions = budgetTransactions
     .filter((bt) => !bt.deleted_at && isSegmentActiveToday(bt))
@@ -57,24 +76,69 @@ export default function BudgetTable(props: BudgetTableProps) {
       return monthlyB - monthlyA
     })
 
+  const closeModal = () => {
+    onShowAddChange(false)
+    onEditChange(undefined)
+  }
+
+  const isEditingInThisTable =
+    !!editingBudgetTransactionId &&
+    activeBudgetTransactions.some((bt) => bt.id === editingBudgetTransactionId)
+
+  if (!isDesktop) {
+    return (
+      <>
+        {(showAdd || isEditingInThisTable) && (
+          <BudgetTransactionEditModal
+            show
+            budgetTransactionId={editingBudgetTransactionId}
+            isOutgoings={isOutgoings}
+            onClose={closeModal}
+            onDelete={
+              editingBudgetTransactionId
+                ? () => onDelete(editingBudgetTransactionId)
+                : undefined
+            }
+          />
+        )}
+
+        <div className="flex flex-col gap-3">
+          {activeBudgetTransactions.length === 0 && !showAdd ? (
+            <p className="text-center text-gray-500 dark:text-gray-400">
+              No budget transactions found
+            </p>
+          ) : (
+            activeBudgetTransactions.map((budgetTransaction) => (
+              <BudgetTransactionCard
+                key={budgetTransaction.id}
+                budgetTransaction={budgetTransaction}
+                categoryColorMap={categoryColorMap}
+                isOutgoings={isOutgoings}
+                onEdit={onEditChange}
+              />
+            ))
+          )}
+        </div>
+
+        {!showAdd && (
+          <div className="mt-3 flex justify-center">
+            <Button
+              className="size-8 p-0"
+              color="light"
+              aria-label="Add budget line"
+              onClick={() => onShowAddChange(true)}
+            >
+              <FiPlus />
+            </Button>
+          </div>
+        )}
+      </>
+    )
+  }
+
   return (
     <div className="-mx-4 md:mx-0">
-      <Table
-        striped
-        theme={{
-          root: {
-            wrapper: "overflow-x-auto md:rounded-md custom-scrollbar",
-          },
-          body: {
-            cell: {
-              base: "px-3 py-2 md:px-6 md:py-4",
-            },
-          },
-          head: {
-            cell: { base: "px-3 py-2 md:px-6 md:py-4" },
-          },
-        }}
-      >
+      <Table striped theme={tableTheme}>
         <TableHead>
           <TableRow>
             <TableHeadCell>Category</TableHeadCell>
@@ -129,52 +193,22 @@ export default function BudgetTable(props: BudgetTableProps) {
                   >
                     <TableCell theme={{ base: "max-sm:p-0" }}>
                       <div className="flex items-center">
-                        <Badge
-                          style={{
-                            backgroundColor:
-                              categoryColorMap[
-                                budgetTransaction.category?.id ||
-                                  "uncategorised"
-                              ]?.fill,
-                            color:
-                              categoryColorMap[
-                                budgetTransaction.category?.id ||
-                                  "uncategorised"
-                              ]?.text,
-                          }}
+                        <ColoredBadge
+                          label={
+                            budgetTransaction.category?.name || "Uncategorised"
+                          }
+                          colorMap={categoryColorMap}
+                          colorKey={
+                            budgetTransaction.category?.id || "uncategorised"
+                          }
                           className="w-8 h-8 -mx-2 md:h-5 md:w-fit"
-                        >
-                          <span className="hidden md:block">
-                            {budgetTransaction.category?.name ||
-                              "Uncategorised"}
-                          </span>
-                        </Badge>
+                        />
                       </div>
                     </TableCell>
                     <TableCell>
-                      {budgetTransaction.description ? (
-                        <>
-                          <span className="hidden xl:block">
-                            {budgetTransaction.description}
-                          </span>
-                          <span className="xl:hidden">
-                            {budgetTransaction.description.length > 30 ? (
-                              <Tooltip
-                                content={budgetTransaction.description}
-                                placement="top"
-                              >
-                                {budgetTransaction.description.slice(0, 30)}...
-                              </Tooltip>
-                            ) : (
-                              budgetTransaction.description
-                            )}
-                          </span>
-                        </>
-                      ) : (
-                        <span className="italic text-gray-400">
-                          No description
-                        </span>
-                      )}
+                      <TruncatedText
+                        text={budgetTransaction.description ?? ""}
+                      />
                     </TableCell>
                     <TableCell>
                       {formatCurrencyGBP(

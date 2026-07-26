@@ -1,5 +1,4 @@
 import {
-  Badge,
   Button,
   Table,
   TableCell,
@@ -9,13 +8,17 @@ import {
 } from "flowbite-react"
 import { FiEdit, FiPlus, FiTrash } from "react-icons/fi"
 import EditCategoryBudgetRow from "../Pages/Budget/EditCategoryBudgetRow"
+import CategoryBudgetCard from "../Pages/Budget/CategoryBudgetCard"
+import CategoryBudgetEditModal from "../Pages/Budget/CategoryBudgetEditModal"
 import TableBodyWithButton from "./TableBodyWithButton"
+import ColoredBadge from "./ColoredBadge"
 import { CategoryBudget } from "../API"
 import {
   formatSegmentDateRange,
   isSegmentActiveToday,
 } from "../budget/plannedAmount"
 import { formatCurrencyGBP, formatRepeat, toMonthlyAmount } from "../utils"
+import { useMediaQuery } from "../Hooks/useMediaQuery"
 
 type CategoryBudgetTableProps = {
   categoryBudgets: CategoryBudget[]
@@ -25,6 +28,20 @@ type CategoryBudgetTableProps = {
   onShowAddChange: (show: boolean) => void
   onEditChange: (id: string | undefined) => void
   onDelete: (id: string) => void
+}
+
+const tableTheme = {
+  root: {
+    wrapper: "overflow-x-auto md:rounded-md custom-scrollbar",
+  },
+  body: {
+    cell: {
+      base: "px-3 py-2 md:px-6 md:py-4",
+    },
+  },
+  head: {
+    cell: { base: "px-3 py-2 md:px-6 md:py-4" },
+  },
 }
 
 export default function CategoryBudgetTable(props: CategoryBudgetTableProps) {
@@ -37,6 +54,8 @@ export default function CategoryBudgetTable(props: CategoryBudgetTableProps) {
     onEditChange,
     onDelete,
   } = props
+
+  const isDesktop = useMediaQuery("(min-width: 768px)")
 
   const activeCategoryBudgets = categoryBudgets
     .filter((cb) => !cb.deleted_at && isSegmentActiveToday(cb))
@@ -51,24 +70,68 @@ export default function CategoryBudgetTable(props: CategoryBudgetTableProps) {
       return monthlyB - monthlyA
     })
 
+  const closeModal = () => {
+    onShowAddChange(false)
+    onEditChange(undefined)
+  }
+
+  const isEditingInThisTable =
+    !!editingCategoryBudgetId &&
+    activeCategoryBudgets.some((cb) => cb.id === editingCategoryBudgetId)
+
+  if (!isDesktop) {
+    return (
+      <>
+        {(showAdd || isEditingInThisTable) && (
+          <CategoryBudgetEditModal
+            show
+            categoryBudgetId={editingCategoryBudgetId}
+            existingCategoryBudgets={categoryBudgets}
+            onClose={closeModal}
+            onDelete={
+              editingCategoryBudgetId
+                ? () => onDelete(editingCategoryBudgetId)
+                : undefined
+            }
+          />
+        )}
+
+        <div className="flex flex-col gap-3">
+          {activeCategoryBudgets.length === 0 && !showAdd ? (
+            <p className="text-center text-gray-500 dark:text-gray-400">
+              No category budgets found
+            </p>
+          ) : (
+            activeCategoryBudgets.map((categoryBudget) => (
+              <CategoryBudgetCard
+                key={categoryBudget.id}
+                categoryBudget={categoryBudget}
+                categoryColorMap={categoryColorMap}
+                onEdit={onEditChange}
+              />
+            ))
+          )}
+        </div>
+
+        {!showAdd && (
+          <div className="mt-3 flex justify-center">
+            <Button
+              className="size-8 p-0"
+              color="light"
+              aria-label="Add category budget"
+              onClick={() => onShowAddChange(true)}
+            >
+              <FiPlus />
+            </Button>
+          </div>
+        )}
+      </>
+    )
+  }
+
   return (
     <div className="-mx-4 md:mx-0">
-      <Table
-        striped
-        theme={{
-          root: {
-            wrapper: "overflow-x-auto md:rounded-md custom-scrollbar",
-          },
-          body: {
-            cell: {
-              base: "px-3 py-2 md:px-6 md:py-4",
-            },
-          },
-          head: {
-            cell: { base: "px-3 py-2 md:px-6 md:py-4" },
-          },
-        }}
-      >
+      <Table striped theme={tableTheme}>
         <TableHead>
           <TableRow>
             <TableHeadCell>Category</TableHeadCell>
@@ -119,21 +182,12 @@ export default function CategoryBudgetTable(props: CategoryBudgetTableProps) {
                   <TableRow key={categoryBudget.id} className="group/budgetrow">
                     <TableCell theme={{ base: "max-sm:p-0" }}>
                       <div className="flex items-center">
-                        <Badge
-                          style={{
-                            backgroundColor:
-                              categoryColorMap[categoryBudget.category.id]
-                                ?.fill,
-                            color:
-                              categoryColorMap[categoryBudget.category.id]
-                                ?.text,
-                          }}
+                        <ColoredBadge
+                          label={categoryBudget.category.name}
+                          colorMap={categoryColorMap}
+                          colorKey={categoryBudget.category.id}
                           className="w-8 h-8 -mx-2 md:h-5 md:w-fit"
-                        >
-                          <span className="hidden md:block">
-                            {categoryBudget.category.name}
-                          </span>
-                        </Badge>
+                        />
                       </div>
                     </TableCell>
                     <TableCell>

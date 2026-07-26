@@ -1,41 +1,40 @@
 import { Label, TextInput } from "flowbite-react"
 import { MouseEvent } from "react"
 import SearchSelect from "../../Components/SearchSelect"
-import CalendarDatePicker from "../../Components/CalendarDatePicker"
 import FormEditModal from "../../Components/FormEditModal"
-import { useTransactionEditor } from "./useTransactionEditor"
+import BudgetRepeatFields from "../../Components/BudgetRepeatFields"
+import BudgetPeriodFields from "../../Components/BudgetPeriodFields"
+import { useBudgetTransactionEditor } from "./useBudgetTransactionEditor"
 
-type TransactionEditModalProps = {
+type BudgetTransactionEditModalProps = {
   show: boolean
-  transactionId?: string
-  defaultAccountId?: string
-  defaultCategoryId?: string
+  budgetTransactionId?: string
+  isOutgoings?: boolean
   onClose: () => void
   onDelete?: (event: MouseEvent<HTMLButtonElement>) => void
 }
 
-export default function TransactionEditModal(props: TransactionEditModalProps) {
+export default function BudgetTransactionEditModal(
+  props: BudgetTransactionEditModalProps,
+) {
   const {
     show,
-    transactionId,
-    defaultAccountId,
-    defaultCategoryId,
+    budgetTransactionId,
+    isOutgoings = false,
     onClose,
     onDelete,
   } = props
 
-  const editor = useTransactionEditor({
-    transactionId,
-    defaultAccountId,
-    defaultCategoryId,
+  const editor = useBudgetTransactionEditor({
+    budgetTransactionId,
+    isOutgoings,
     onClose,
-    enableHotkeys: show,
   })
 
   return (
     <FormEditModal
       show={show}
-      title={editor.isEditMode ? "Edit transaction" : "Add transaction"}
+      title={editor.isEditMode ? "Edit budget line" : "Add budget line"}
       isLoading={!editor.isReady}
       isEditMode={editor.isEditMode}
       onClose={onClose}
@@ -44,22 +43,6 @@ export default function TransactionEditModal(props: TransactionEditModalProps) {
       saveDisabled={!editor.isReady}
     >
       <form className="flex flex-col gap-4">
-        <div>
-          <Label className="mb-1 block text-sm font-medium">Date</Label>
-          <CalendarDatePicker value={editor.date} onChange={editor.setDate} />
-        </div>
-
-        <div>
-          <Label className="mb-1 block text-sm font-medium">Account</Label>
-          <SearchSelect
-            value={editor.selectedAccount}
-            options={editor.accountOptions}
-            placeholder="Select account"
-            onSearchChange={editor.setAccountSearch}
-            onValueChange={editor.setSelectedAccount}
-          />
-        </div>
-
         <div>
           <Label className="mb-1 block text-sm font-medium">Category</Label>
           <SearchSelect
@@ -86,6 +69,32 @@ export default function TransactionEditModal(props: TransactionEditModalProps) {
             placeholder="Amount"
             value={editor.amount}
             onChange={(e) => editor.setAmount(e.target.value)}
+          />
+        </div>
+
+        <div>
+          <Label className="mb-1 block text-sm font-medium">Frequency</Label>
+          <BudgetRepeatFields
+            layout="stacked"
+            repeatEvery={editor.repeatEvery}
+            repeatUntil={editor.repeatUntil}
+            onRepeatEveryChange={editor.setRepeatEvery}
+            onRepeatUntilChange={editor.setRepeatUntil}
+            onEnter={editor.handleSave}
+          />
+        </div>
+
+        <div>
+          <Label className="mb-1 block text-sm font-medium">Period</Label>
+          <BudgetPeriodFields
+            layout="stacked"
+            isEditMode={editor.isEditMode}
+            startsOn={editor.startsOn}
+            endsOn={editor.endsOn}
+            effectiveFrom={editor.effectiveFrom}
+            onStartsOnChange={editor.setStartsOn}
+            onEndsOnChange={editor.setEndsOn}
+            onEffectiveFromChange={editor.setEffectiveFrom}
           />
         </div>
       </form>
