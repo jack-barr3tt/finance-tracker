@@ -7,7 +7,7 @@ Pick one setup:
 - **Bundled database (Easy)** - Postgres runs in Docker alongside the app
 - **External database (Advanced)** - Use your existing Postgres instance
 
-The API runs on port `8080` and the app UI on port `3002`.
+The API runs on port `8080` and the app UI on port `3000`.
 
 ## Bundled database
 
@@ -54,7 +54,7 @@ services:
     depends_on:
       - api
     ports:
-      - "3002:80"
+      - "3000:80"
     restart: unless-stopped
 
 volumes:
@@ -84,7 +84,7 @@ docker compose up -d
 
 ### 5. Open the app
 
-Go to [http://localhost:3002](http://localhost:3002) and create your account.
+Go to [http://localhost:3000](http://localhost:3000) and create your account.
 
 Sign-up is enabled by default. After creating your account, set `ENABLE_SIGNUP=false` in `.env` and run `docker compose up -d` again to disable it.
 
@@ -126,7 +126,7 @@ services:
   web:
     image: ghcr.io/jack-barr3tt/finance-tracker-frontend:latest
     ports:
-      - "3002:80"
+      - "3000:80"
     restart: unless-stopped
 ```
 
@@ -155,6 +155,6 @@ docker compose up -d
 
 ### 6. Open the app
 
-Go to [http://localhost:3002](http://localhost:3002) and create your account.
+Go to [http://localhost:3000](http://localhost:3000) and create your account.
 
 Sign-up is enabled by default. After creating your account, set `ENABLE_SIGNUP=false` in `.env` and run `docker compose up -d` again to disable it.
