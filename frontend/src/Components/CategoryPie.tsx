@@ -180,8 +180,8 @@ export default function CategoryPie() {
   const option = view === "pie" ? pieOption : lineOption
 
   return (
-    <Card className="w-1/2">
-      <div className="flex flex-col items-center gap-4">
+    <Card className="@container w-full">
+      <div className="flex flex-col w-full gap-4">
         <div className="flex items-center justify-between w-full gap-4">
           <h1 className="text-xl font-medium">Spending by Category</h1>
           <ButtonGroup>
@@ -206,32 +206,32 @@ export default function CategoryPie() {
           </ButtonGroup>
         </div>
 
-        <div className="flex flex-col items-center justify-center w-full gap-8 xl:flex-row">
-          <div className="flex flex-col w-full gap-1 xl:gap-4 xl:order-1 xl:w-auto">
-            <div className="flex flex-row items-center justify-between gap-2 px-3 py-2 xl:flex-col xl:items-start xl:justify-start xl:p-4 bg-gray-50 dark:bg-gray-800 rounded-lg xl:min-w-[140px]">
+        <div className="flex flex-col w-full gap-8 @xl:flex-row @xl:items-start">
+          <div className="flex flex-col w-full shrink-0 gap-1 @xl:order-1 @xl:w-auto @xl:gap-4">
+            <div className="flex flex-row items-center justify-between gap-2 rounded-lg bg-gray-50 px-3 py-2 @xl:flex-col @xl:items-start @xl:justify-start @xl:min-w-[140px] @xl:p-4 dark:bg-gray-800">
               <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
                 Income
               </span>
-              <span className="text-lg font-bold text-green-600 xl:text-2xl dark:text-green-400">
+              <span className="text-lg font-bold text-green-600 @xl:text-2xl dark:text-green-400">
                 {formatCurrencyGBP(totals?.income ?? 0)}
               </span>
             </div>
 
-            <div className="flex flex-row items-center justify-between gap-2 px-3 py-2 xl:flex-col xl:items-start xl:justify-start xl:p-4 bg-gray-50 dark:bg-gray-800 rounded-lg xl:min-w-[140px]">
+            <div className="flex flex-row items-center justify-between gap-2 rounded-lg bg-gray-50 px-3 py-2 @xl:flex-col @xl:items-start @xl:justify-start @xl:min-w-[140px] @xl:p-4 dark:bg-gray-800">
               <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
                 Outgoings
               </span>
-              <span className="text-lg font-bold text-red-600 xl:text-2xl dark:text-red-400">
+              <span className="text-lg font-bold text-red-600 @xl:text-2xl dark:text-red-400">
                 {formatCurrencyGBP(totals?.outgoing ?? 0)}
               </span>
             </div>
 
-            <div className="flex flex-row items-center justify-between gap-2 px-3 py-2 xl:flex-col xl:items-start xl:justify-start xl:p-4 bg-gray-50 dark:bg-gray-800 rounded-lg xl:min-w-[140px]">
+            <div className="flex flex-row items-center justify-between gap-2 rounded-lg bg-gray-50 px-3 py-2 @xl:flex-col @xl:items-start @xl:justify-start @xl:min-w-[140px] @xl:p-4 dark:bg-gray-800">
               <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
                 Net
               </span>
               <span
-                className={`text-lg xl:text-2xl font-bold ${
+                className={`text-lg font-bold @xl:text-2xl ${
                   (totals?.net ?? 0) >= 0
                     ? "text-green-600 dark:text-green-400"
                     : "text-red-600 dark:text-red-400"
@@ -242,7 +242,7 @@ export default function CategoryPie() {
             </div>
           </div>
 
-          <div className="w-full xl:w-96 h-96 xl:order-2">
+          <div className="h-96 w-full min-w-0 @xl:order-2 @xl:flex-1">
             <EChart option={option} />
           </div>
         </div>
