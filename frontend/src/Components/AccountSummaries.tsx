@@ -12,29 +12,31 @@ export default function AccountSummaries() {
         <p className="text-gray-500">No accounts found</p>
       ) : (
         <>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:flex 2xl:flex-wrap">
+          <div className="grid w-full grid-cols-[repeat(auto-fit,minmax(16rem,1fr))] gap-4">
             {accountSummary?.accounts.map((account) => (
-              <Card className="h-30">
-                <div className="grid grid-cols-2 gap-2 -m-2 auto-cols-auto md:m-0">
-                  <h1 className="order-3 font-medium md:order-1">
+              <Card key={account.account.id} className="h-30">
+                <div className="flex flex-col gap-1">
+                  <h2 className="truncate text-sm font-light text-gray-600 dark:text-gray-400">
+                    {account.account.bank.name}
+                  </h2>
+                  <h3 className="truncate font-medium">
                     {account.account.name}
-                  </h1>
-                  <h2 className="font-light">{account.account.bank.name}</h2>
-                  <p className="order-first col-span-1 row-span-2 text-3xl md:text-4xl md:order-3 md:col-span-2 md:row-span-1">
+                  </h3>
+                  <p className="text-3xl md:text-4xl">
                     {formatCurrencyGBP(account.balance)}
                   </p>
                 </div>
               </Card>
             ))}
 
-            <div className="flex flex-row items-center justify-start">
-              <Card className="h-30">
-                <div className="flex flex-row items-center gap-4 text-2xl md:text-3xl">
-                  <h1 className="font-medium">Total:</h1>
-                  <p>{formatCurrencyGBP(accountSummary?.total ?? 0)}</p>
-                </div>
-              </Card>
-            </div>
+            <Card className="h-30">
+              <div className="flex flex-col gap-1">
+                <h3 className="text-[2rem] font-light leading-[1.5]">Total</h3>
+                <p className="text-3xl md:text-4xl">
+                  {formatCurrencyGBP(accountSummary?.total ?? 0)}
+                </p>
+              </div>
+            </Card>
           </div>
         </>
       )}
