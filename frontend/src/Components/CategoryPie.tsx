@@ -207,31 +207,31 @@ export default function CategoryPie() {
         </div>
 
         <div className="flex flex-col items-center justify-center w-full gap-8 xl:flex-row">
-          <div className="flex flex-row w-full gap-4 overflow-x-auto xl:flex-col xl:order-1 xl:w-auto">
-            <div className="flex flex-col items-center xl:items-start p-4 bg-gray-50 dark:bg-gray-800 rounded-lg min-w-[140px] flex-1 xl:flex-none">
-              <span className="text-sm font-medium text-gray-500 dark:text-gray-400 whitespace-nowrap">
+          <div className="flex flex-col w-full gap-1 xl:gap-4 xl:order-1 xl:w-auto">
+            <div className="flex flex-row items-center justify-between gap-2 px-3 py-2 xl:flex-col xl:items-start xl:justify-start xl:p-4 bg-gray-50 dark:bg-gray-800 rounded-lg xl:min-w-[140px]">
+              <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
                 Income
               </span>
-              <span className="text-xl font-bold text-green-600 xl:text-2xl dark:text-green-400">
+              <span className="text-lg font-bold text-green-600 xl:text-2xl dark:text-green-400">
                 {formatCurrencyGBP(totals?.income ?? 0)}
               </span>
             </div>
 
-            <div className="flex flex-col items-center xl:items-start p-4 bg-gray-50 dark:bg-gray-800 rounded-lg min-w-[140px] flex-1 xl:flex-none">
-              <span className="text-sm font-medium text-gray-500 dark:text-gray-400 whitespace-nowrap">
+            <div className="flex flex-row items-center justify-between gap-2 px-3 py-2 xl:flex-col xl:items-start xl:justify-start xl:p-4 bg-gray-50 dark:bg-gray-800 rounded-lg xl:min-w-[140px]">
+              <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
                 Outgoings
               </span>
-              <span className="text-xl font-bold text-red-600 xl:text-2xl dark:text-red-400">
+              <span className="text-lg font-bold text-red-600 xl:text-2xl dark:text-red-400">
                 {formatCurrencyGBP(totals?.outgoing ?? 0)}
               </span>
             </div>
 
-            <div className="flex flex-col items-center xl:items-start p-4 bg-gray-50 dark:bg-gray-800 rounded-lg min-w-[140px] flex-1 xl:flex-none">
-              <span className="text-sm font-medium text-gray-500 dark:text-gray-400 whitespace-nowrap">
+            <div className="flex flex-row items-center justify-between gap-2 px-3 py-2 xl:flex-col xl:items-start xl:justify-start xl:p-4 bg-gray-50 dark:bg-gray-800 rounded-lg xl:min-w-[140px]">
+              <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
                 Net
               </span>
               <span
-                className={`text-xl xl:text-2xl font-bold ${
+                className={`text-lg xl:text-2xl font-bold ${
                   (totals?.net ?? 0) >= 0
                     ? "text-green-600 dark:text-green-400"
                     : "text-red-600 dark:text-red-400"
