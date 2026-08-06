@@ -1,3 +1,5 @@
+name: finance-tracker
+
 services:
   api:
     image: ${REGISTRY}/finance-tracker-api:${IMAGE_TAG}
