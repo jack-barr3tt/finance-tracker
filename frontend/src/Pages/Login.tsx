@@ -38,6 +38,7 @@ export default function Login() {
       >
         <h1 className="w-full text-2xl font-medium text-center">Login</h1>
         <TextInput
+          autoFocus
           type="email"
           placeholder="Email"
           value={email}
