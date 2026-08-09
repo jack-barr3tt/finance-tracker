@@ -34,7 +34,7 @@ type UploadModalProps = {
 export default function UploadModal(props: UploadModalProps) {
   const { show, onClose } = props
 
-  const { userId, decrypt, encrypt } = useUser()
+  const { userId, decrypt, encrypt, computeDedupeHash } = useUser()
   const queryClient = useQueryClient()
 
   const { accounts } = useData()
@@ -58,9 +58,17 @@ export default function UploadModal(props: UploadModalProps) {
     setIsUploading(true)
 
     try {
+      let summary
       switch (account.bank.short_name) {
         case "nationwide":
-          await parseNationwide(file, userId, accountId, encrypt, decrypt)
+          summary = await parseNationwide(
+            file,
+            userId,
+            accountId,
+            encrypt,
+            decrypt,
+            computeDedupeHash,
+          )
           break
         case "t212": {
           const t212Accounts = accounts?.filter(
@@ -77,28 +85,53 @@ export default function UploadModal(props: UploadModalProps) {
               "Trading 212 Portfolio and Uninvested Cash accounts are required.",
             )
           }
-          await parseTrading212(
+          summary = await parseTrading212(
             file,
             userId,
             portfolioAccountId,
             uninvestedAccountId,
             encrypt,
             decrypt,
+            computeDedupeHash,
           )
           break
         }
         case "barclaycard": {
-          await parseBarclaycard(file, userId, accountId, encrypt, decrypt)
+          summary = await parseBarclaycard(
+            file,
+            userId,
+            accountId,
+            encrypt,
+            decrypt,
+            computeDedupeHash,
+          )
           break
         }
         case "monzo": {
-          await parseMonzo(file, userId, accountId, encrypt, decrypt)
+          summary = await parseMonzo(
+            file,
+            userId,
+            accountId,
+            encrypt,
+            decrypt,
+            computeDedupeHash,
+          )
           break
         }
         default:
           throw new Error(
             `CSV import is not supported for ${account.bank.name}.`,
           )
+      }
+
+      if (summary.skippedDuplicates > 0) {
+        toast.success(
+          `Imported ${summary.imported} transaction${summary.imported === 1 ? "" : "s"}, skipped ${summary.skippedDuplicates} duplicate${summary.skippedDuplicates === 1 ? "" : "s"}.`,
+        )
+      } else {
+        toast.success(
+          `Imported ${summary.imported} transaction${summary.imported === 1 ? "" : "s"}.`,
+        )
       }
 
       queryClient.invalidateQueries({
@@ -122,6 +155,7 @@ export default function UploadModal(props: UploadModalProps) {
   }, [
     accountId,
     accounts,
+    computeDedupeHash,
     decrypt,
     encrypt,
     file,

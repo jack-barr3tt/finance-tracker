@@ -5,6 +5,7 @@ import {
   postUserIdTransactionsBulk,
   postUserIdTransactionsBulkDelete,
   postUserIdTransactionsBulkFinalise,
+  TransactionBulkResponse,
   TransactionCreateRequest,
 } from "../API"
 import { formatError } from "../utils/formatError"
@@ -22,6 +23,12 @@ type BaseTransactionData = {
   amount: number
   description: string
   account_id?: string
+  externalId?: string
+}
+
+export type ImportSummary = {
+  imported: number
+  skippedDuplicates: number
 }
 
 export function parseCSV<T>(
@@ -30,9 +37,10 @@ export function parseCSV<T>(
   accountId: string,
   encrypt: (text: string) => Promise<string>,
   decrypt: (text: string) => Promise<string>,
+  computeDedupeHash: (input: string) => Promise<string>,
   handler: (data: T) => BaseTransactionData | BaseTransactionData[],
   config?: Partial<Papa.ParseLocalConfig<T, File>>,
-): Promise<boolean> {
+): Promise<ImportSummary> {
   return new Promise((resolve, reject) => {
     hashFile(file).then((hash) => {
       getUserIdCategories(userId).then((categories) => {
@@ -50,7 +58,7 @@ export function parseCSV<T>(
             ),
           })),
         ).then((categories) => {
-          const requests: Promise<unknown>[] = []
+          const requests: Promise<TransactionBulkResponse>[] = []
 
           const applyRule = (
             description: string,
@@ -92,12 +100,19 @@ export function parseCSV<T>(
                                 data.description,
                                 data.account_id || accountId,
                               )
+                              const dateStr = format(data.date, "yyyy-MM-dd")
+                              const dedupeSource =
+                                data.externalId || data.description
+                              const dedupe_hash = await computeDedupeHash(
+                                `${data.amount.toFixed(2)}|${dateStr}|${dedupeSource}`,
+                              )
                               return {
-                                date: format(data.date, "yyyy-MM-dd"),
+                                date: dateStr,
                                 amount: data.amount,
                                 account_id: data.account_id || accountId,
                                 description: await encrypt(description),
                                 category_id,
+                                dedupe_hash,
                               }
                             })
                           })
@@ -129,9 +144,22 @@ export function parseCSV<T>(
                 await postUserIdTransactionsBulkFinalise(userId, {
                   hash,
                 })
+
+                return results.reduce<ImportSummary>(
+                  (summary, result) => {
+                    if (result.status !== "fulfilled") return summary
+                    return {
+                      imported: summary.imported + (result.value.imported ?? 0),
+                      skippedDuplicates:
+                        summary.skippedDuplicates +
+                        (result.value.skipped_duplicates ?? 0),
+                    }
+                  },
+                  { imported: 0, skippedDuplicates: 0 },
+                )
               }),
             )
-            .then(() => resolve(true))
+            .then(resolve)
             .catch((error) =>
               reject(
                 new Error(formatError(error, "Failed to import transactions.")),

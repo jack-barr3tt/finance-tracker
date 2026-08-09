@@ -1,5 +1,5 @@
 import { parse, startOfDay } from "date-fns"
-import { parseCSV } from "./base"
+import { ImportSummary, parseCSV } from "./base"
 import { prependToFile } from "../utils"
 
 type BarclaycardRow = {
@@ -18,7 +18,8 @@ export async function parseBarclaycard(
   accountId: string,
   encrypt: (text: string) => Promise<string>,
   decrypt: (text: string) => Promise<string>,
-): Promise<boolean> {
+  computeDedupeHash: (input: string) => Promise<string>,
+): Promise<ImportSummary> {
   const getAmount = (str: string): number => {
     const match = str.match(/-?[\d.,]+/)
     return match ? parseFloat(match[0].replace(/,/g, "")) : 0
@@ -35,6 +36,7 @@ export async function parseBarclaycard(
     accountId,
     encrypt,
     decrypt,
+    computeDedupeHash,
     (data) => ({
       date: parse(data.Date, "dd MMM yy", startOfDay(new Date())),
       amount: -(getAmount(data.In) + getAmount(data.Out)),

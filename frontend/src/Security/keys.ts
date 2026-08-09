@@ -19,6 +19,42 @@ export async function encryptWithKey(
   return out
 }
 
+export async function deriveDedupeKey(
+  masterKey: CryptoKey,
+): Promise<CryptoKey> {
+  const raw = await crypto.subtle.exportKey("raw", masterKey)
+  const hmacKeyMaterial = await crypto.subtle.importKey(
+    "raw",
+    raw,
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"],
+  )
+  const subkeyBytes = await crypto.subtle.sign(
+    "HMAC",
+    hmacKeyMaterial,
+    new TextEncoder().encode("finance-tracker:dedupe:v1"),
+  )
+  return crypto.subtle.importKey(
+    "raw",
+    subkeyBytes,
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"],
+  )
+}
+
+export async function hmacHex(key: CryptoKey, input: string): Promise<string> {
+  const sig = await crypto.subtle.sign(
+    "HMAC",
+    key,
+    new TextEncoder().encode(input),
+  )
+  return Array.from(new Uint8Array(sig))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("")
+}
+
 export async function decryptWithKey(
   ciphertext: Uint8Array,
   key: CryptoKey,

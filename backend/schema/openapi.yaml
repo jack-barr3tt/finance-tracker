@@ -246,6 +246,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/TransactionCreateResponse"
+        "409":
+          description: A transaction with the same dedupe_hash already exists for this account
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Conflict"
     get:
       security:
         - BearerAuth: []
@@ -366,6 +372,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/NotFound"
+        "409":
+          description: A transaction with the same dedupe_hash already exists for this account
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Conflict"
     delete:
       security:
         - BearerAuth: []
@@ -1217,11 +1229,17 @@ components:
         date:
           type: string
           format: date
+        dedupe_hash:
+          type: string
+          description: >-
+            Client-computed HMAC fingerprint used to detect duplicate
+            imports/entries for the same account. Unique per account_id.
       required:
         - account_id
         - amount
         - description
         - date
+        - dedupe_hash
     TransactionEditRequest:
       type: object
       properties:
@@ -1237,6 +1255,11 @@ components:
         date:
           type: string
           format: date
+        dedupe_hash:
+          type: string
+          description: >-
+            Client-computed HMAC fingerprint used to detect duplicate
+            imports/entries for the same account. Unique per account_id.
     TransactionBulkCreateRequest:
       type: object
       properties:
@@ -1503,6 +1526,10 @@ components:
       properties:
         message:
           type: string
+        imported:
+          type: integer
+        skipped_duplicates:
+          type: integer
       required:
         - message
     BudgetTransactionCreateResponse:

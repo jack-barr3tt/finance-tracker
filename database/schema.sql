@@ -58,8 +58,9 @@ CREATE TABLE IF NOT EXISTS "transaction" (
   date DATE NOT NULL,
   file_id UUID REFERENCES "file"(id) ON DELETE CASCADE,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  txn_hash TEXT UNIQUE NOT NULL
+  dedupe_hash TEXT
 );
+CREATE UNIQUE INDEX IF NOT EXISTS transaction_account_dedupe_hash_key ON "transaction" (account_id, dedupe_hash);
 CREATE TABLE IF NOT EXISTS "budget_transaction" (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   category_id UUID REFERENCES "category"(id) ON DELETE CASCADE,
@@ -93,17 +94,3 @@ ADD CONSTRAINT category_budget_no_overlap EXCLUDE USING gist (
   ) WITH &&
 )
 WHERE (deleted_at IS NULL);
-CREATE OR REPLACE FUNCTION update_txn_hash() RETURNS TRIGGER AS $$ BEGIN NEW.txn_hash := encode(
-    digest(
-      NEW.account_id::text || NEW.amount::text || NEW.description || NEW.date::text,
-      'sha256'
-    ),
-    'hex'
-  );
-RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-CREATE TRIGGER trg_update_txn_hash BEFORE
-INSERT
-  OR
-UPDATE ON transaction FOR EACH ROW EXECUTE FUNCTION update_txn_hash();
