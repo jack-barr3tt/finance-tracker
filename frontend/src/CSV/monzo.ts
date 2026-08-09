@@ -1,5 +1,5 @@
 import { parse, startOfDay } from "date-fns"
-import { parseCSV } from "./base"
+import { ImportSummary, parseCSV } from "./base"
 
 type MonzoRow = {
   Date: string
@@ -16,7 +16,8 @@ export async function parseMonzo(
   accountId: string,
   encrypt: (text: string) => Promise<string>,
   decrypt: (text: string) => Promise<string>,
-): Promise<boolean> {
+  computeDedupeHash: (input: string) => Promise<string>,
+): Promise<ImportSummary> {
   const getAmount = (str: string): number => {
     const match = str.match(/-?[\d.,]+/)
     return match ? parseFloat(match[0].replace(/,/g, "")) : 0
@@ -41,6 +42,7 @@ export async function parseMonzo(
     accountId,
     encrypt,
     decrypt,
+    computeDedupeHash,
     (data) => {
       const amount = getAmount(data.Amount)
       if (amount === 0) return []

@@ -81,6 +81,8 @@ export interface TransactionCreateRequest {
   category_id?: string;
   description: string;
   date: string;
+  /** Client-computed HMAC fingerprint used to detect duplicate imports/entries for the same account. Unique per account_id. */
+  dedupe_hash: string;
 }
 
 export interface TransactionEditRequest {
@@ -89,6 +91,8 @@ export interface TransactionEditRequest {
   category_id?: string;
   description?: string;
   date?: string;
+  /** Client-computed HMAC fingerprint used to detect duplicate imports/entries for the same account. Unique per account_id. */
+  dedupe_hash?: string;
 }
 
 export interface TransactionBulkCreateRequest {
@@ -213,6 +217,8 @@ export interface TransactionDeleteResponse {
 
 export interface TransactionBulkResponse {
   message: string;
+  imported?: number;
+  skipped_duplicates?: number;
 }
 
 export interface BudgetTransactionCreateResponse {
@@ -1111,7 +1117,7 @@ export const postUserIdTransactions = (
   
 
 
-export const getPostUserIdTransactionsMutationOptions = <TError = ErrorType<unknown>,
+export const getPostUserIdTransactionsMutationOptions = <TError = ErrorType<Conflict>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postUserIdTransactions>>, TError,{id: string;data: BodyType<TransactionCreateRequest>}, TContext>, request?: SecondParameter<typeof customFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof postUserIdTransactions>>, TError,{id: string;data: BodyType<TransactionCreateRequest>}, TContext> => {
 
@@ -1138,9 +1144,9 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type PostUserIdTransactionsMutationResult = NonNullable<Awaited<ReturnType<typeof postUserIdTransactions>>>
     export type PostUserIdTransactionsMutationBody = BodyType<TransactionCreateRequest>
-    export type PostUserIdTransactionsMutationError = ErrorType<unknown>
+    export type PostUserIdTransactionsMutationError = ErrorType<Conflict>
 
-    export const usePostUserIdTransactions = <TError = ErrorType<unknown>,
+    export const usePostUserIdTransactions = <TError = ErrorType<Conflict>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postUserIdTransactions>>, TError,{id: string;data: BodyType<TransactionCreateRequest>}, TContext>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof postUserIdTransactions>>,
@@ -1433,7 +1439,7 @@ export const patchUserIdTransactionsTransactionId = (
   
 
 
-export const getPatchUserIdTransactionsTransactionIdMutationOptions = <TError = ErrorType<NotFound>,
+export const getPatchUserIdTransactionsTransactionIdMutationOptions = <TError = ErrorType<NotFound | Conflict>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchUserIdTransactionsTransactionId>>, TError,{id: string;transactionId: string;data: BodyType<TransactionEditRequest>}, TContext>, request?: SecondParameter<typeof customFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof patchUserIdTransactionsTransactionId>>, TError,{id: string;transactionId: string;data: BodyType<TransactionEditRequest>}, TContext> => {
 
@@ -1460,9 +1466,9 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type PatchUserIdTransactionsTransactionIdMutationResult = NonNullable<Awaited<ReturnType<typeof patchUserIdTransactionsTransactionId>>>
     export type PatchUserIdTransactionsTransactionIdMutationBody = BodyType<TransactionEditRequest>
-    export type PatchUserIdTransactionsTransactionIdMutationError = ErrorType<NotFound>
+    export type PatchUserIdTransactionsTransactionIdMutationError = ErrorType<NotFound | Conflict>
 
-    export const usePatchUserIdTransactionsTransactionId = <TError = ErrorType<NotFound>,
+    export const usePatchUserIdTransactionsTransactionId = <TError = ErrorType<NotFound | Conflict>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchUserIdTransactionsTransactionId>>, TError,{id: string;transactionId: string;data: BodyType<TransactionEditRequest>}, TContext>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof patchUserIdTransactionsTransactionId>>,

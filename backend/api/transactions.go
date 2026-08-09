@@ -25,8 +25,13 @@ func (s Server) PostUserIdTransactions(c *fiber.Ctx, userId string) error {
 
 	var id string
 
-	err = s.DB.QueryRow(c.Context(), "INSERT INTO transaction (account_id, category_id, amount, description, date) VALUES ($1, $2, $3, $4, $5) RETURNING id", body.AccountId, body.CategoryId, body.Amount, body.Description, timeFromOpenAPIDate(body.Date)).Scan(&id)
+	err = s.DB.QueryRow(c.Context(), "INSERT INTO transaction (account_id, category_id, amount, description, date, dedupe_hash) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id", body.AccountId, body.CategoryId, body.Amount, body.Description, timeFromOpenAPIDate(body.Date), body.DedupeHash).Scan(&id)
 	if err != nil {
+		if isUniqueViolation(err) {
+			return c.Status(fiber.StatusConflict).JSON(Conflict{
+				Message: "A transaction with the same details already exists for this account",
+			})
+		}
 		return DBError(c, err)
 	}
 
@@ -228,10 +233,15 @@ func (s *Server) PatchUserIdTransactionsTransactionId(c *fiber.Ctx, id string, t
 
 	tag, err := s.DB.Exec(c.Context(), `
 		UPDATE transaction 
-		SET account_id = $1, category_id = $2, amount = $3, description = $4, date = $5
-		WHERE id = $6
-	`, body.AccountId, body.CategoryId, body.Amount, body.Description, nullableDateParam(body.Date), transactionId)
+		SET account_id = $1, category_id = $2, amount = $3, description = $4, date = $5, dedupe_hash = COALESCE($6, dedupe_hash)
+		WHERE id = $7
+	`, body.AccountId, body.CategoryId, body.Amount, body.Description, nullableDateParam(body.Date), body.DedupeHash, transactionId)
 	if err != nil {
+		if isUniqueViolation(err) {
+			return c.Status(fiber.StatusConflict).JSON(Conflict{
+				Message: "A transaction with the same details already exists for this account",
+			})
+		}
 		return DBError(c, err)
 	}
 
@@ -319,14 +329,24 @@ func (s *Server) PostUserIdTransactionsBulk(c *fiber.Ctx, id string) error {
 		})
 	}
 
+	imported := 0
+	skippedDuplicates := 0
+
 	for _, transaction := range body.Transactions {
-		_, err = tx.Exec(
+		tag, err := tx.Exec(
 			c.Context(),
-			"INSERT INTO transaction (account_id, category_id, amount, description, date, file_id) VALUES ($1, $2, $3, $4, $5, $6)",
-			transaction.AccountId, transaction.CategoryId, transaction.Amount, transaction.Description, timeFromOpenAPIDate(transaction.Date), *fileId,
+			`INSERT INTO transaction (account_id, category_id, amount, description, date, file_id, dedupe_hash)
+			VALUES ($1, $2, $3, $4, $5, $6, $7)
+			ON CONFLICT (account_id, dedupe_hash) DO NOTHING`,
+			transaction.AccountId, transaction.CategoryId, transaction.Amount, transaction.Description, timeFromOpenAPIDate(transaction.Date), *fileId, transaction.DedupeHash,
 		)
 		if err != nil {
 			return DBError(c, err)
+		}
+		if tag.RowsAffected() > 0 {
+			imported++
+		} else {
+			skippedDuplicates++
 		}
 	}
 
@@ -335,7 +355,9 @@ func (s *Server) PostUserIdTransactionsBulk(c *fiber.Ctx, id string) error {
 	}
 
 	return c.Status(fiber.StatusOK).JSON(TransactionBulkResponse{
-		Message: "Upload completed",
+		Message:           "Upload completed",
+		Imported:          &imported,
+		SkippedDuplicates: &skippedDuplicates,
 	})
 }
 

@@ -12,7 +12,9 @@ import { Spinner } from "flowbite-react"
 import { useGetUserId, usePostLogin } from "../API"
 import {
   decryptMasterKey,
+  deriveDedupeKey,
   exportMasterKey,
+  hmacHex,
   importMasterKey,
 } from "../Security/keys"
 
@@ -40,6 +42,7 @@ interface UserValue {
   logout: () => void
   decrypt: DecryptFunction
   encrypt: (data: string) => Promise<string>
+  computeDedupeHash: (input: string) => Promise<string>
 }
 
 const UserContext = createContext<UserValue | undefined>(undefined)
@@ -139,6 +142,15 @@ export function UserProvider(props: { children: ReactNode }) {
     [key],
   )
 
+  const computeDedupeHash = useCallback(
+    async (input: string) => {
+      if (!key) throw new Error("No key available for dedupe hashing")
+      const dedupeKey = await deriveDedupeKey(key)
+      return hmacHex(dedupeKey, input)
+    },
+    [key],
+  )
+
   useEffect(() => {
     if (isSessionReady && isError) {
       logout()
@@ -194,6 +206,7 @@ export function UserProvider(props: { children: ReactNode }) {
     logout,
     decrypt,
     encrypt,
+    computeDedupeHash,
   }
 
   return (

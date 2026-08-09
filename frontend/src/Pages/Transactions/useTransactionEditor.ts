@@ -1,5 +1,6 @@
 import { format, parseISO } from "date-fns"
 import { useCallback, useEffect, useMemo, useState } from "react"
+import { toast } from "sonner"
 import {
   getGetUserIdSummaryAccountsQueryKey,
   getGetUserIdSummaryBalanceQueryKey,
@@ -18,6 +19,7 @@ import { useAsyncMemo } from "../../Hooks/useAsyncMemo"
 import { decryptAccount, decryptCategory } from "../../Security/data"
 import { useHotkey } from "@tanstack/react-hotkeys"
 import { HOTKEYS_BY_ID } from "../../Hotkeys/hotkeys"
+import { formatError } from "../../utils/formatError"
 
 type UseTransactionEditorInput = {
   transactionId?: string
@@ -36,7 +38,7 @@ export function useTransactionEditor(input: UseTransactionEditorInput) {
     enableHotkeys = true,
   } = input
 
-  const { userId, decrypt, encrypt } = useUser()
+  const { userId, decrypt, encrypt, computeDedupeHash } = useUser()
   const queryClient = useQueryClient()
   const { data: encAccounts } = useGetUserIdAccounts(userId)
   const accounts = useAsyncMemo(
@@ -124,16 +126,27 @@ export function useTransactionEditor(input: UseTransactionEditorInput) {
   const handleAdd = useCallback(async () => {
     if (!date || !selectedAccount || !selectedCategory || !amount) return
 
-    await addTransaction({
-      id: userId,
-      data: {
-        account_id: selectedAccount,
-        category_id: selectedCategory,
-        description: await encrypt(description),
-        amount: parseFloat(amount),
-        date: format(date, "yyyy-MM-dd"),
-      },
-    })
+    try {
+      const dateStr = format(date, "yyyy-MM-dd")
+      const dedupeHash = await computeDedupeHash(
+        `${parseFloat(amount).toFixed(2)}|${dateStr}|${description}`,
+      )
+
+      await addTransaction({
+        id: userId,
+        data: {
+          account_id: selectedAccount,
+          category_id: selectedCategory,
+          description: await encrypt(description),
+          amount: parseFloat(amount),
+          date: dateStr,
+          dedupe_hash: dedupeHash,
+        },
+      })
+    } catch (error) {
+      toast.error(formatError(error, "Failed to add transaction."))
+      return
+    }
     queryClient.invalidateQueries({
       queryKey: getGetUserIdTransactionsInfiniteQueryKey(userId),
     })
@@ -151,6 +164,7 @@ export function useTransactionEditor(input: UseTransactionEditorInput) {
   }, [
     addTransaction,
     amount,
+    computeDedupeHash,
     date,
     description,
     encrypt,
@@ -165,17 +179,28 @@ export function useTransactionEditor(input: UseTransactionEditorInput) {
   const handleEdit = useCallback(async () => {
     if (!transactionId || !date || !selectedAccount || !amount) return
 
-    await editTransaction({
-      id: userId,
-      transactionId,
-      data: {
-        account_id: selectedAccount,
-        category_id: selectedCategory,
-        description: await encrypt(description),
-        amount: parseFloat(amount),
-        date: format(date, "yyyy-MM-dd"),
-      },
-    })
+    try {
+      const dateStr = format(date, "yyyy-MM-dd")
+      const dedupeHash = await computeDedupeHash(
+        `${parseFloat(amount).toFixed(2)}|${dateStr}|${description}`,
+      )
+
+      await editTransaction({
+        id: userId,
+        transactionId,
+        data: {
+          account_id: selectedAccount,
+          category_id: selectedCategory,
+          description: await encrypt(description),
+          amount: parseFloat(amount),
+          date: dateStr,
+          dedupe_hash: dedupeHash,
+        },
+      })
+    } catch (error) {
+      toast.error(formatError(error, "Failed to save transaction."))
+      return
+    }
     queryClient.invalidateQueries({
       queryKey: getGetUserIdTransactionsInfiniteQueryKey(userId),
     })
@@ -198,6 +223,7 @@ export function useTransactionEditor(input: UseTransactionEditorInput) {
     onClose?.()
   }, [
     amount,
+    computeDedupeHash,
     date,
     description,
     editTransaction,
