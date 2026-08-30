@@ -23,6 +23,7 @@ import { useQueryClient } from "@tanstack/react-query"
 import { parseTrading212 } from "../CSV/trading212"
 import { parseBarclaycard } from "../CSV/barclaycard"
 import { parseMonzo } from "../CSV/monzo"
+import { parseTescoBank } from "../CSV/tescobank"
 import { useData } from "../Hooks/useData"
 import { formatError } from "../utils/formatError"
 
@@ -109,6 +110,17 @@ export default function UploadModal(props: UploadModalProps) {
         }
         case "monzo": {
           summary = await parseMonzo(
+            file,
+            userId,
+            accountId,
+            encrypt,
+            decrypt,
+            computeDedupeHash,
+          )
+          break
+        }
+        case "tescobank": {
+          summary = await parseTescoBank(
             file,
             userId,
             accountId,
