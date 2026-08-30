@@ -162,7 +162,7 @@ export async function exportMasterKey(key: CryptoKey): Promise<string> {
 
 export async function importMasterKey(jwkJson: string): Promise<CryptoKey> {
   const jwk = JSON.parse(jwkJson) as JsonWebKey
-  return crypto.subtle.importKey("jwk", jwk, { name: "AES-GCM" }, false, [
+  return crypto.subtle.importKey("jwk", jwk, { name: "AES-GCM" }, true, [
     "encrypt",
     "decrypt",
   ])
