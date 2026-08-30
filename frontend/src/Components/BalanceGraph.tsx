@@ -1,5 +1,5 @@
 import type { EChartsOption } from "echarts"
-import { format, parseISO } from "date-fns"
+import { format, isBefore, parseISO, startOfDay } from "date-fns"
 import { Card, useThemeMode } from "flowbite-react"
 import { useMemo } from "react"
 import EChart from "../charts/EChart"
@@ -34,13 +34,20 @@ export default function BalanceGraph() {
         data: balanceSummary?.total.map((item) => item.balance) || [],
         borderColor: colorMap ? colorMap["total"]?.border : lineBorders[0],
       },
-      ...(balanceSummary?.accounts.map((account, i) => ({
-        label: account.account.name,
-        data: account.balance.map((item) => item.balance),
-        borderColor: colorMap
-          ? colorMap[account.account.id].border
-          : lineBorders[i + 1],
-      })) || []),
+      ...(balanceSummary?.accounts.map((account, i) => {
+        const openedAt = startOfDay(parseISO(account.account.opened_at))
+        return {
+          label: account.account.name,
+          data: account.balance.map((item) =>
+            isBefore(startOfDay(parseISO(item.date)), openedAt)
+              ? null
+              : item.balance,
+          ),
+          borderColor: colorMap
+            ? colorMap[account.account.id].border
+            : lineBorders[i + 1],
+        }
+      }) || []),
     ].sort((a, b) => a.label.localeCompare(b.label))
 
     const baseOption = getChartBaseOption(isDark)
@@ -54,7 +61,8 @@ export default function BalanceGraph() {
         axisPointer: {
           type: "cross",
         },
-        valueFormatter: (value) => formatCurrencyGBP(value as number),
+        valueFormatter: (value) =>
+          typeof value === "number" ? formatCurrencyGBP(value) : "-",
       },
       legend: {
         ...getLineChartLegendOption(isDark),
