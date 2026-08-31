@@ -1,17 +1,21 @@
 import { Card } from "flowbite-react"
-import { forwardRef, KeyboardEvent, ReactNode } from "react"
+import { KeyboardEvent, ReactNode, Ref } from "react"
 
 type DataCardProps = {
+  ref?: Ref<HTMLDivElement>
   onClick: () => void
   children: ReactNode
   className?: string
   "data-index"?: number
 }
 
-export default forwardRef<HTMLDivElement, DataCardProps>(function DataCard(
-  { onClick, children, className, ...rest },
+export default function DataCard({
   ref,
-) {
+  onClick,
+  children,
+  className,
+  ...rest
+}: DataCardProps) {
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     if (event.key === "Enter" || event.key === " ") {
       event.preventDefault()
@@ -33,4 +37,4 @@ export default forwardRef<HTMLDivElement, DataCardProps>(function DataCard(
       {children}
     </Card>
   )
-})
+}

@@ -13,7 +13,7 @@ import { TransactionVirtualizer } from "./useVirtualizedTransactionList"
 type ColorPair = { fill?: string; text?: string }
 
 type VirtualizedTransactionRowsProps = {
-  virtualListStartRef: RefObject<HTMLTableRowElement>
+  virtualListStartRef: RefObject<HTMLTableRowElement | null>
   showAdd: boolean
   paddingTop: number
   paddingBottom: number

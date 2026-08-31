@@ -1,4 +1,4 @@
-import { FormEvent, useCallback, useState } from "react"
+import { useActionState } from "react"
 import { useUser } from "../Hooks/useUser"
 import { Link, Navigate, useNavigate } from "react-router-dom"
 import { Button, TextInput } from "flowbite-react"
@@ -7,23 +7,22 @@ import { FiArrowRight } from "react-icons/fi"
 const signupEnabled = import.meta.env.VITE_ENABLE_SIGNUP === "true"
 
 export default function Login() {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-
   const { login, userId, isSessionReady } = useUser()
   const navigate = useNavigate()
 
-  const handleSubmit = useCallback(
-    async (e: FormEvent<HTMLFormElement>) => {
-      e.preventDefault()
+  const [error, submit, isPending] = useActionState(
+    async (_prev: string | null, formData: FormData) => {
+      const email = String(formData.get("email") ?? "")
+      const password = String(formData.get("password") ?? "")
 
       if (await login(email, password)) {
         navigate("/transactions")
-      } else {
-        alert("Login failed")
+        return null
       }
+
+      return "Login failed"
     },
-    [login, email, password, navigate],
+    null,
   )
 
   if (isSessionReady && userId) {
@@ -33,26 +32,27 @@ export default function Login() {
   return (
     <div className="flex items-center justify-center pt-32">
       <form
-        onSubmit={handleSubmit}
+        action={submit}
         className="flex flex-col items-center gap-4 p-8 border border-gray-200 shadow-sm dark:border-gray-700 dark:bg-neutral-800 rounded-xl"
       >
         <h1 className="w-full text-2xl font-medium text-center">Login</h1>
         <TextInput
           autoFocus
+          name="email"
           type="email"
           placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
           className="w-64"
+          required
         />
         <TextInput
+          name="password"
           type="password"
           placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
           className="w-64"
+          required
         />
-        <Button className="w-full gap-1" type="submit">
+        {error && <p className="w-full text-sm text-red-600">{error}</p>}
+        <Button className="w-full gap-1" type="submit" disabled={isPending}>
           Submit <FiArrowRight />
         </Button>
         {signupEnabled && (

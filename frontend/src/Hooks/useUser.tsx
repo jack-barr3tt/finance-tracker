@@ -209,7 +209,5 @@ export function UserProvider(props: { children: ReactNode }) {
     computeDedupeHash,
   }
 
-  return (
-    <UserContext.Provider value={value}>{props.children}</UserContext.Provider>
-  )
+  return <UserContext value={value}>{props.children}</UserContext>
 }

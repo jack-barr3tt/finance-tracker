@@ -8,7 +8,7 @@ type ColorPair = { fill?: string; text?: string }
 export type TransactionCardVirtualizer = Virtualizer<HTMLElement, Element>
 
 type VirtualizedTransactionCardsProps = {
-  virtualListStartRef: RefObject<HTMLDivElement>
+  virtualListStartRef: RefObject<HTMLDivElement | null>
   paddingTop: number
   paddingBottom: number
   virtualItems: VirtualItem[]

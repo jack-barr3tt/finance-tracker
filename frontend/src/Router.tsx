@@ -70,14 +70,14 @@ function AppRoutes() {
         <SidebarProvider>
           <div className="flex min-h-0 flex-1 flex-col md:flex-row">
             <NavBar onOpenShortcuts={() => setShowShortcuts(true)} />
-            <ScrollContainerContext.Provider value={scrollContainerRef}>
+            <ScrollContainerContext value={scrollContainerRef}>
               <main
                 ref={scrollContainerRef}
                 className="relative min-h-0 flex-1 overflow-y-auto"
               >
                 {routes}
               </main>
-            </ScrollContainerContext.Provider>
+            </ScrollContainerContext>
           </div>
         </SidebarProvider>
       ) : (

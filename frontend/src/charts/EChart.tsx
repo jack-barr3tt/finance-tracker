@@ -1,6 +1,6 @@
 import type { ECharts, EChartsOption } from "echarts"
 import ReactECharts from "echarts-for-react"
-import { useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import echarts from "./echartsCore"
 import { bindLegendIsolate } from "./legendIsolate"
 import { applyLegendLayout, getLegendLayoutKey } from "./legendLayout"
@@ -38,7 +38,7 @@ export default function EChart({ option, className }: EChartProps) {
     setReady(true)
   }
 
-  function syncLegend(chart: ECharts) {
+  const syncLegend = useCallback((chart: ECharts) => {
     const key = getLegendLayoutKey(chart)
     if (layoutKeyRef.current === key) {
       markReady()
@@ -56,7 +56,7 @@ export default function EChart({ option, className }: EChartProps) {
       layoutKeyRef.current = getLegendLayoutKey(chart)
       markReady()
     })
-  }
+  }, [])
 
   useEffect(() => {
     const container = containerRef.current
@@ -86,12 +86,12 @@ export default function EChart({ option, className }: EChartProps) {
       observer.disconnect()
       cleanupRef.current?.()
     }
-  }, [])
+  }, [syncLegend])
 
   useEffect(() => {
     layoutKeyRef.current = ""
     if (chartRef.current) syncLegend(chartRef.current)
-  }, [option])
+  }, [option, syncLegend])
 
   return (
     <div
