@@ -1,22 +1,18 @@
-import type { EChartsOption } from "echarts"
 import Color from "color"
-import { format, parseISO } from "date-fns"
 import { Button, ButtonGroup, Card, useThemeMode } from "flowbite-react"
+import { format, parseISO } from "date-fns"
 import { useMemo, useState } from "react"
 import { LuChartLine, LuChartPie } from "react-icons/lu"
-import EChart from "../charts/EChart"
-import {
-  getChartBaseOption,
-  getDoughnutLegendOption,
-  getDoughnutSeriesOption,
-  getLineChartAxesOption,
-  getLineChartGridOption,
-  getLineChartLegendOption,
-} from "../charts/theme"
-import { formatCurrencyGBP, getBrightColors } from "../utils"
+import { useGetUserIdSummaryTotals } from "../API"
+import { defineGbpDonutChart } from "../charts/defineGbpDonutChart"
+import type { GbpDonutSlice } from "../charts/defineGbpDonutChart"
+import { defineGbpLineChart } from "../charts/defineGbpLineChart"
+import type { GbpLineRow } from "../charts/defineGbpLineChart"
+import FinanceChart from "../charts/FinanceChart"
+import { useLegendIsolateVisible } from "../charts/useLegendIsolateVisible"
 import { useData } from "../Hooks/useData"
 import { useUser } from "../Hooks/useUser"
-import { useGetUserIdSummaryTotals } from "../API"
+import { formatCurrencyGBP, getBrightColors } from "../utils"
 
 type ChartView = "pie" | "line"
 
@@ -50,12 +46,11 @@ export default function CategoryPie() {
     [spendingCategoryIds.size],
   )
 
-  const pieOption = useMemo<EChartsOption>(() => {
+  const pieSlices = useMemo<GbpDonutSlice[]>(() => {
     const spendingCategories =
       categorySummaries?.filter((cat) => cat.total < 0) || []
-    const baseOption = getChartBaseOption(isDark)
 
-    const data = spendingCategories.map((cat, index) => {
+    return spendingCategories.map((cat, index) => {
       const categoryId = cat.category?.id || "uncategorised"
       const fill = colorMap ? colorMap[categoryId]?.fill : pieFills[index]
       const border = colorMap ? colorMap[categoryId]?.border : pieBorders[index]
@@ -64,35 +59,13 @@ export default function CategoryPie() {
       return {
         name: cat.category?.name || "Uncategorised",
         value: -cat.total,
-        itemStyle: {
-          color: isDark ? c.alpha(0.25).string() : c.string(),
-          borderColor: border,
-          borderWidth: 2,
-        },
+        fill: isDark ? c.alpha(0.25).string() : c.string(),
+        border,
       }
     })
-
-    return {
-      ...baseOption,
-      tooltip: {
-        ...baseOption.tooltip,
-        trigger: "item",
-        valueFormatter: (value) => formatCurrencyGBP(value as number),
-      },
-      legend: {
-        ...getDoughnutLegendOption(isDark),
-        data: data.map((item) => item.name),
-      },
-      series: [
-        {
-          ...getDoughnutSeriesOption(),
-          data,
-        },
-      ],
-    }
   }, [categorySummaries, colorMap, isDark, pieBorders, pieFills])
 
-  const lineOption = useMemo<EChartsOption>(() => {
+  const lineChart = useMemo(() => {
     const spendingSeries =
       categorySpendingSummary?.categories.filter((series) => {
         const categoryId = series.category?.id || "uncategorised"
@@ -119,65 +92,46 @@ export default function CategoryPie() {
       })
       .sort((a, b) => a.label.localeCompare(b.label))
 
-    const baseOption = getChartBaseOption(isDark)
-    const axesOption = getLineChartAxesOption(isDark)
+    const rows: GbpLineRow[] = datasets.flatMap((dataset) =>
+      dates.map((date, index) => ({
+        date,
+        series: dataset.label,
+        value: dataset.data[index] ?? 0,
+      })),
+    )
 
     return {
-      ...baseOption,
-      tooltip: {
-        ...baseOption.tooltip,
-        trigger: "axis",
-        axisPointer: {
-          type: "cross",
-        },
-        valueFormatter: (value) => formatCurrencyGBP(value as number),
-      },
-      legend: {
-        ...getLineChartLegendOption(isDark),
-        data: datasets.map((dataset) => dataset.label),
-        selectedMode: true,
-      },
-      grid: getLineChartGridOption(),
-      xAxis: {
-        ...axesOption.xAxis,
-        type: "category",
-        boundaryGap: false,
-        data: dates,
-      },
-      yAxis: {
-        ...axesOption.yAxis,
-        type: "value",
-        min: 0,
-        axisLabel: {
-          ...(typeof axesOption.yAxis === "object" &&
-          !Array.isArray(axesOption.yAxis)
-            ? axesOption.yAxis.axisLabel
-            : {}),
-          formatter: (value: number) => formatCurrencyGBP(value),
-        },
-      },
-      series: datasets.map((dataset) => ({
-        name: dataset.label,
-        type: "line",
-        showSymbol: false,
-        data: dataset.data,
-        lineStyle: {
-          color: dataset.borderColor,
-        },
-        itemStyle: {
-          color: dataset.borderColor,
-        },
-      })),
+      rows,
+      dates,
+      seriesNames: datasets.map((dataset) => dataset.label),
+      seriesColors: datasets.map((dataset) => dataset.borderColor),
+      yMax: Math.max(1, ...rows.map((row) => row.value ?? 0)),
     }
-  }, [
-    categorySpendingSummary,
-    colorMap,
-    isDark,
-    pieBorders,
-    spendingCategoryIds,
-  ])
+  }, [categorySpendingSummary, colorMap, pieBorders, spendingCategoryIds])
 
-  const option = view === "pie" ? pieOption : lineOption
+  const pieSeriesNames = useMemo(
+    () => pieSlices.map((slice) => slice.name),
+    [pieSlices],
+  )
+  const pieLegend = useLegendIsolateVisible(pieSeriesNames)
+  const lineLegend = useLegendIsolateVisible(lineChart.seriesNames)
+
+  const pieDefinition = useMemo(
+    () => defineGbpDonutChart(pieSlices, pieLegend.visibleSet),
+    [pieLegend.visibleSet, pieSlices],
+  )
+  const lineDefinition = useMemo(
+    () =>
+      defineGbpLineChart({
+        rows: lineChart.rows,
+        dates: lineChart.dates,
+        yDomain: [0, lineChart.yMax],
+        seriesNames: lineChart.seriesNames,
+        seriesColors: lineChart.seriesColors,
+        visible: lineLegend.visibleSet,
+      }),
+    [lineChart, lineLegend.visibleSet],
+  )
 
   return (
     <Card className="@container w-full">
@@ -242,8 +196,32 @@ export default function CategoryPie() {
             </div>
           </div>
 
-          <div className="h-96 w-full min-w-0 @xl:order-2 @xl:flex-1">
-            <EChart option={option} />
+          <div className="flex h-96 w-full min-w-0 flex-col gap-2 @xl:order-2 @xl:flex-1">
+            {view === "pie" ? (
+              <FinanceChart
+                definition={pieDefinition}
+                visible={pieLegend.visible}
+                legendItems={pieSlices.map((slice) => ({
+                  name: slice.name,
+                  color: slice.border,
+                }))}
+                ariaLabel="Spending by category"
+                legendAriaLabel="Category visibility"
+                onItemClick={pieLegend.onItemClick}
+              />
+            ) : (
+              <FinanceChart
+                definition={lineDefinition}
+                visible={lineLegend.visible}
+                legendItems={lineChart.seriesNames.map((name, index) => ({
+                  name,
+                  color: lineChart.seriesColors[index],
+                }))}
+                ariaLabel="Spending by category over time"
+                legendAriaLabel="Category visibility"
+                onItemClick={lineLegend.onItemClick}
+              />
+            )}
           </div>
         </div>
       </div>

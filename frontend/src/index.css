@@ -19,6 +19,21 @@
 }
 
 @layer components {
+  .finance-chart {
+    --ts-chart-tooltip-background: #ffffff;
+    --ts-chart-tooltip-color: #111827;
+    --ts-chart-tooltip-border: 1px solid #e5e7eb;
+    --ts-chart-crosshair-label-halo: #ffffff;
+  }
+
+  .dark .finance-chart,
+  .dark.finance-chart {
+    --ts-chart-tooltip-background: #1f2937;
+    --ts-chart-tooltip-color: #f9fafb;
+    --ts-chart-tooltip-border: 1px solid #374151;
+    --ts-chart-crosshair-label-halo: #1f2937;
+  }
+
   .custom-scrollbar {
     @apply [&::-webkit-scrollbar]:h-2
     [&::-webkit-scrollbar-track]:bg-gray-100 [&::-webkit-scrollbar-track]:dark:bg-gray-900

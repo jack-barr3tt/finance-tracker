@@ -1,20 +1,14 @@
-import type { EChartsOption } from "echarts"
+import { Card } from "flowbite-react"
 import { format, isBefore, parseISO, startOfDay } from "date-fns"
-import { Card, useThemeMode } from "flowbite-react"
 import { useMemo } from "react"
-import EChart from "../charts/EChart"
-import {
-  getChartBaseOption,
-  getLineChartAxesOption,
-  getLineChartGridOption,
-  getLineChartLegendOption,
-} from "../charts/theme"
-import { formatCurrencyGBP, getBrightColors } from "../utils"
+import FinanceChart from "../charts/FinanceChart"
+import { defineGbpLineChart } from "../charts/defineGbpLineChart"
+import type { GbpLineRow } from "../charts/defineGbpLineChart"
+import { useLegendIsolateVisible } from "../charts/useLegendIsolateVisible"
 import { useData } from "../Hooks/useData"
+import { getBrightColors } from "../utils"
 
 export default function BalanceGraph() {
-  const { computedMode } = useThemeMode()
-  const isDark = computedMode === "dark"
   const { balanceSummary, accountColorMap: colorMap } = useData()
 
   const { borders: lineBorders } = useMemo(
@@ -22,8 +16,8 @@ export default function BalanceGraph() {
     [balanceSummary?.accounts.length],
   )
 
-  const option = useMemo<EChartsOption>(() => {
-    const dates =
+  const { rows, dates, seriesNames, seriesColors, yDomain } = useMemo(() => {
+    const nextDates =
       balanceSummary?.total.map((item) =>
         format(parseISO(item.date), "dd MMM yyyy"),
       ) || []
@@ -50,57 +44,45 @@ export default function BalanceGraph() {
       }) || []),
     ].sort((a, b) => a.label.localeCompare(b.label))
 
-    const baseOption = getChartBaseOption(isDark)
-    const axesOption = getLineChartAxesOption(isDark)
+    const nextRows: GbpLineRow[] = datasets.flatMap((dataset) =>
+      nextDates.map((date, index) => ({
+        date,
+        series: dataset.label,
+        value: dataset.data[index] ?? null,
+      })),
+    )
+
+    const values = nextRows
+      .map((row) => row.value)
+      .filter((value): value is number => value != null)
 
     return {
-      ...baseOption,
-      tooltip: {
-        ...baseOption.tooltip,
-        trigger: "axis",
-        axisPointer: {
-          type: "cross",
-        },
-        valueFormatter: (value) =>
-          typeof value === "number" ? formatCurrencyGBP(value) : "-",
-      },
-      legend: {
-        ...getLineChartLegendOption(isDark),
-        data: datasets.map((dataset) => dataset.label),
-        selectedMode: true,
-      },
-      grid: getLineChartGridOption(),
-      xAxis: {
-        ...axesOption.xAxis,
-        type: "category",
-        boundaryGap: false,
-        data: dates,
-      },
-      yAxis: {
-        ...axesOption.yAxis,
-        type: "value",
-        axisLabel: {
-          ...(typeof axesOption.yAxis === "object" &&
-          !Array.isArray(axesOption.yAxis)
-            ? axesOption.yAxis.axisLabel
-            : {}),
-          formatter: (value: number) => formatCurrencyGBP(value),
-        },
-      },
-      series: datasets.map((dataset) => ({
-        name: dataset.label,
-        type: "line",
-        showSymbol: false,
-        data: dataset.data,
-        lineStyle: {
-          color: dataset.borderColor,
-        },
-        itemStyle: {
-          color: dataset.borderColor,
-        },
-      })),
+      rows: nextRows,
+      dates: nextDates,
+      seriesNames: datasets.map((dataset) => dataset.label),
+      seriesColors: datasets.map((dataset) => dataset.borderColor),
+      yDomain: [
+        values.length > 0 ? Math.min(...values) : 0,
+        values.length > 0 ? Math.max(...values) : 1,
+      ] as const,
     }
-  }, [balanceSummary, colorMap, isDark, lineBorders])
+  }, [balanceSummary, colorMap, lineBorders])
+
+  const { visible, visibleSet, onItemClick } =
+    useLegendIsolateVisible(seriesNames)
+
+  const definition = useMemo(
+    () =>
+      defineGbpLineChart({
+        rows,
+        dates,
+        yDomain,
+        seriesNames,
+        seriesColors,
+        visible: visibleSet,
+      }),
+    [dates, rows, seriesColors, seriesNames, visibleSet, yDomain],
+  )
 
   return (
     <Card className="flex min-h-full w-full flex-col">
@@ -108,8 +90,18 @@ export default function BalanceGraph() {
         <h1 className="w-full text-xl font-medium text-center">
           Balance over Time
         </h1>
-        <div className="w-full h-96">
-          <EChart option={option} />
+        <div className="flex h-96 w-full flex-col gap-2">
+          <FinanceChart
+            definition={definition}
+            visible={visible}
+            legendItems={seriesNames.map((name, index) => ({
+              name,
+              color: seriesColors[index],
+            }))}
+            ariaLabel="Balance over time"
+            legendAriaLabel="Account visibility"
+            onItemClick={onItemClick}
+          />
         </div>
       </div>
     </Card>

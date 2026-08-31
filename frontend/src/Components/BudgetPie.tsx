@@ -1,15 +1,12 @@
-import type { EChartsOption } from "echarts"
 import Color from "color"
-import { Card, useThemeMode } from "flowbite-react"
+import { Card } from "flowbite-react"
 import { useMemo } from "react"
 import { BudgetTransaction, CategoryBudget } from "../API"
-import EChart from "../charts/EChart"
-import {
-  getChartBaseOption,
-  getDoughnutLegendOption,
-  getDoughnutSeriesOption,
-} from "../charts/theme"
 import { isSegmentActiveToday } from "../budget/plannedAmount"
+import { defineGbpDonutChart } from "../charts/defineGbpDonutChart"
+import type { GbpDonutSlice } from "../charts/defineGbpDonutChart"
+import FinanceChart from "../charts/FinanceChart"
+import { useLegendIsolateVisible } from "../charts/useLegendIsolateVisible"
 import { formatCurrencyGBP, toMonthlyAmount } from "../utils"
 
 type BudgetPieProps = {
@@ -23,8 +20,6 @@ type BudgetPieProps = {
 
 export default function BudgetPie(props: BudgetPieProps) {
   const { budgetTransactions, categoryBudgets, categoryColorMap } = props
-  const { computedMode } = useThemeMode()
-  const isDark = computedMode === "dark"
 
   const chartData = useMemo(() => {
     const activeBudgetTransactions = budgetTransactions.filter(
@@ -87,72 +82,43 @@ export default function BudgetPie(props: BudgetPieProps) {
     const totalOutgoings = categories.reduce((sum, item) => sum + item.value, 0)
     const remaining = monthlyIncome - totalOutgoings
 
-    const labels = categories.map((cat) => cat.name)
-    const data = categories.map((cat) => cat.value)
-    const backgroundColors = categories.map((cat) =>
-      Color(cat.fill).alpha(0.25).string(),
-    )
-    const borderColors = categories.map((cat) => cat.border)
+    const slices: GbpDonutSlice[] = categories.map((cat) => ({
+      name: cat.name,
+      value: cat.value,
+      fill: Color(cat.fill).alpha(0.25).string(),
+      border: cat.border,
+      exploded: false,
+    }))
 
     if (remaining > 0) {
-      labels.push("Remaining")
-      data.push(remaining)
-      backgroundColors.push(Color("#10B981").alpha(0.25).string())
-      borderColors.push("#059669")
+      slices.push({
+        name: "Remaining",
+        value: remaining,
+        fill: Color("#10B981").alpha(0.25).string(),
+        border: "#059669",
+        exploded: true,
+      })
     }
 
     return {
-      labels,
-      data,
-      backgroundColors,
-      borderColors,
+      slices,
       monthlyIncome,
       totalOutgoings,
       remaining,
     }
   }, [budgetTransactions, categoryBudgets, categoryColorMap])
 
-  const option = useMemo<EChartsOption>(() => {
-    const baseOption = getChartBaseOption(isDark)
+  const seriesNames = useMemo(
+    () => chartData.slices.map((slice) => slice.name),
+    [chartData.slices],
+  )
+  const { visible, visibleSet, onItemClick } =
+    useLegendIsolateVisible(seriesNames)
 
-    const data = chartData.labels.map((label, index) => {
-      const isRemaining = label === "Remaining"
-      const fill = chartData.backgroundColors[index]
-      const border = chartData.borderColors[index]
-
-      return {
-        name: label,
-        value: chartData.data[index],
-        selected: isRemaining,
-        selectedOffset: isRemaining ? 20 : 0,
-        itemStyle: {
-          color: fill,
-          borderColor: border,
-          borderWidth: 2,
-        },
-      }
-    })
-
-    return {
-      ...baseOption,
-      tooltip: {
-        ...baseOption.tooltip,
-        trigger: "item",
-        valueFormatter: (value) => formatCurrencyGBP(value as number),
-      },
-      legend: {
-        ...getDoughnutLegendOption(isDark),
-        data: chartData.labels,
-      },
-      series: [
-        {
-          ...getDoughnutSeriesOption(),
-          selectedMode: false,
-          data,
-        },
-      ],
-    }
-  }, [chartData, isDark])
+  const definition = useMemo(
+    () => defineGbpDonutChart(chartData.slices, visibleSet),
+    [chartData.slices, visibleSet],
+  )
 
   return (
     <Card className="w-full">
@@ -195,8 +161,18 @@ export default function BudgetPie(props: BudgetPieProps) {
             </div>
           </div>
 
-          <div className="w-full lg:w-96 h-96 lg:order-2">
-            <EChart option={option} />
+          <div className="flex h-96 w-full flex-col gap-2 lg:order-2 lg:w-96">
+            <FinanceChart
+              definition={definition}
+              visible={visible}
+              legendItems={chartData.slices.map((slice) => ({
+                name: slice.name,
+                color: slice.border,
+              }))}
+              ariaLabel="Monthly budget overview"
+              legendAriaLabel="Budget category visibility"
+              onItemClick={onItemClick}
+            />
           </div>
         </div>
       </div>
