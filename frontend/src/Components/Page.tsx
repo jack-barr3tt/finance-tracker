@@ -25,7 +25,7 @@ export default function Page({ title, headerActions, children }: PageProps) {
   return (
     <div className="flex flex-col gap-2 px-4 pt-4 pb-8 md:gap-4 md:pb-16 md:px-16 md:pt-8">
       {showTitleRow && (
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-4">
           {showDesktopToggle && (
             <Button
               color="light"
@@ -49,22 +49,18 @@ export default function Page({ title, headerActions, children }: PageProps) {
             </Button>
           )}
           {title && (
-            <div className="flex-1 min-w-0">
-              {headerActions ? (
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                  <h1 className="text-3xl font-semibold">{title}</h1>
-                  <div className="hidden sm:block">{headerActions}</div>
-                </div>
-              ) : (
-                <h1 className="text-3xl font-semibold">{title}</h1>
-              )}
+            <h1 className="min-w-0 flex-1 text-3xl font-semibold">{title}</h1>
+          )}
+          {headerActions && (
+            <div className="order-last flex w-full justify-end sm:order-none sm:w-auto">
+              {headerActions}
             </div>
           )}
           <PrivacyToggleButton />
         </div>
       )}
-      {headerActions && (
-        <div className="flex justify-end sm:hidden">{headerActions}</div>
+      {headerActions && !showTitleRow && (
+        <div className="flex justify-end">{headerActions}</div>
       )}
       {(title || headerActions) && <HR />}
       {children}

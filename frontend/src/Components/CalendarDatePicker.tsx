@@ -234,7 +234,7 @@ export default function CalendarDatePicker(props: CalendarDatePickerProps) {
           <div
             ref={refs.setFloating}
             style={floatingStyles}
-            className="z-[9999] w-[18rem]"
+            className="z-[9999] w-[min(18rem,calc(100vw-1rem))]"
             {...getFloatingProps()}
           >
             <Card
