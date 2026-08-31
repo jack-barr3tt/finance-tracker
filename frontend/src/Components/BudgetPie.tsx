@@ -9,6 +9,7 @@ import {
   getDoughnutLegendOption,
   getDoughnutSeriesOption,
   formatChartCurrency,
+  formatShadedPieTooltipName,
 } from "../charts/theme"
 import { isSegmentActiveToday } from "../budget/plannedAmount"
 import { formatCurrencyGBP, toMonthlyAmount } from "../utils"
@@ -144,12 +145,8 @@ export default function BudgetPie(props: BudgetPieProps) {
       tooltip: {
         ...baseOption.tooltip,
         trigger: "item",
-        valueFormatter: (value) => formatChartCurrency(value, shaded),
-        ...(shaded
-          ? {
-              formatter: (params: { name: string }) => params.name,
-            }
-          : {}),
+        valueFormatter: (value: unknown) => formatChartCurrency(value, shaded),
+        formatter: shaded ? formatShadedPieTooltipName : undefined,
       },
       legend: {
         ...getDoughnutLegendOption(isDark),

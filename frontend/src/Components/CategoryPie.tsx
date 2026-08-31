@@ -13,6 +13,7 @@ import {
   getLineChartGridOption,
   getLineChartLegendOption,
   formatChartCurrency,
+  formatShadedPieTooltipName,
 } from "../charts/theme"
 import { formatCurrencyGBP, getBrightColors } from "../utils"
 import { useData } from "../Hooks/useData"
@@ -81,12 +82,8 @@ export default function CategoryPie() {
       tooltip: {
         ...baseOption.tooltip,
         trigger: "item",
-        valueFormatter: (value) => formatChartCurrency(value, shaded),
-        ...(shaded
-          ? {
-              formatter: (params: { name: string }) => params.name,
-            }
-          : {}),
+        valueFormatter: (value: unknown) => formatChartCurrency(value, shaded),
+        formatter: shaded ? formatShadedPieTooltipName : undefined,
       },
       legend: {
         ...getDoughnutLegendOption(isDark),
@@ -139,13 +136,13 @@ export default function CategoryPie() {
         axisPointer: {
           type: "cross",
           label: {
-            formatter: (params) =>
+            formatter: (params: { axisDimension: string; value: unknown }) =>
               params.axisDimension === "y"
                 ? formatChartCurrency(params.value, shaded)
                 : String(params.value),
           },
         },
-        valueFormatter: (value) => formatChartCurrency(value, shaded),
+        valueFormatter: (value: unknown) => formatChartCurrency(value, shaded),
       },
       legend: {
         ...getLineChartLegendOption(isDark),

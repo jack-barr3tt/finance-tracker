@@ -1,5 +1,5 @@
 import { Button } from "flowbite-react"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState, type MouseEvent } from "react"
 import { FiEye, FiEyeOff } from "react-icons/fi"
 import { usePrivacy } from "../Hooks/usePrivacy"
 
@@ -41,7 +41,7 @@ export default function PrivacyToggleButton() {
       title={label}
       aria-label={label}
       aria-pressed={!shaded}
-      onContextMenu={(event) => event.preventDefault()}
+      onContextMenu={(event: MouseEvent) => event.preventDefault()}
       onPointerDown={() => {
         if (!shaded) {
           hide()

@@ -103,6 +103,14 @@ export function formatChartCurrency(value: unknown, shaded: boolean): string {
   return formatCurrencyGBP(value)
 }
 
+export function formatShadedPieTooltipName(params: unknown): string {
+  if (Array.isArray(params)) {
+    const first = params[0] as { name?: string } | undefined
+    return first?.name ?? ""
+  }
+  return (params as { name?: string }).name ?? ""
+}
+
 export function getLineChartGridOption(): EChartsOption["grid"] {
   return {
     left: "3%",

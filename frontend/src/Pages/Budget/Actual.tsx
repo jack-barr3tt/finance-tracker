@@ -197,9 +197,7 @@ export default function BudgetActual() {
                 Actual (matched)
               </p>
               <p className="text-2xl font-semibold">
-                <PrivacyCover>
-                  {formatCurrencyGBP(summary.actual)}
-                </PrivacyCover>
+                <PrivacyCover>{formatCurrencyGBP(summary.actual)}</PrivacyCover>
               </p>
               <VarianceCell planned={summary.planned} actual={summary.actual} />
             </div>

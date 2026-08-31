@@ -64,13 +64,13 @@ export default function BalanceGraph() {
         axisPointer: {
           type: "cross",
           label: {
-            formatter: (params) =>
+            formatter: (params: { axisDimension: string; value: unknown }) =>
               params.axisDimension === "y"
                 ? formatChartCurrency(params.value, shaded)
                 : String(params.value),
           },
         },
-        valueFormatter: (value) => formatChartCurrency(value, shaded),
+        valueFormatter: (value: unknown) => formatChartCurrency(value, shaded),
       },
       legend: {
         ...getLineChartLegendOption(isDark),
