@@ -18,6 +18,7 @@ import { useHotkey } from "@tanstack/react-hotkeys"
 import { HOTKEYS_BY_ID } from "./Hotkeys/hotkeys"
 import { useMemo, useRef, useState } from "react"
 import { ScrollContainerContext } from "./Hooks/useScrollContainer"
+import { PrivacyProvider } from "./Hooks/usePrivacy"
 import { SidebarProvider } from "./Hooks/useSidebar"
 import { useUser } from "./Hooks/useUser"
 
@@ -68,17 +69,19 @@ function AppRoutes() {
       />
       {hasPrivateNav ? (
         <SidebarProvider>
-          <div className="flex min-h-0 flex-1 flex-col md:flex-row">
-            <NavBar onOpenShortcuts={() => setShowShortcuts(true)} />
-            <ScrollContainerContext value={scrollContainerRef}>
-              <main
-                ref={scrollContainerRef}
-                className="relative min-h-0 flex-1 overflow-y-auto"
-              >
-                {routes}
-              </main>
-            </ScrollContainerContext>
-          </div>
+          <PrivacyProvider>
+            <div className="flex min-h-0 flex-1 flex-col md:flex-row">
+              <NavBar onOpenShortcuts={() => setShowShortcuts(true)} />
+              <ScrollContainerContext value={scrollContainerRef}>
+                <main
+                  ref={scrollContainerRef}
+                  className="relative min-h-0 flex-1 overflow-y-auto"
+                >
+                  {routes}
+                </main>
+              </ScrollContainerContext>
+            </div>
+          </PrivacyProvider>
         </SidebarProvider>
       ) : (
         routes

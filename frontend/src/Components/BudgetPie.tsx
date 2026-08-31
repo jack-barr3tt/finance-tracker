@@ -8,9 +8,13 @@ import {
   getChartBaseOption,
   getDoughnutLegendOption,
   getDoughnutSeriesOption,
+  formatChartCurrency,
+  formatShadedPieTooltipName,
 } from "../charts/theme"
 import { isSegmentActiveToday } from "../budget/plannedAmount"
 import { formatCurrencyGBP, toMonthlyAmount } from "../utils"
+import { usePrivacy } from "../Hooks/usePrivacy"
+import PrivacyCover from "./PrivacyCover"
 
 type BudgetPieProps = {
   budgetTransactions: BudgetTransaction[]
@@ -25,6 +29,7 @@ export default function BudgetPie(props: BudgetPieProps) {
   const { budgetTransactions, categoryBudgets, categoryColorMap } = props
   const { computedMode } = useThemeMode()
   const isDark = computedMode === "dark"
+  const { shaded } = usePrivacy()
 
   const chartData = useMemo(() => {
     const activeBudgetTransactions = budgetTransactions.filter(
@@ -124,7 +129,9 @@ export default function BudgetPie(props: BudgetPieProps) {
         name: label,
         value: chartData.data[index],
         selected: isRemaining,
-        selectedOffset: isRemaining ? 20 : 0,
+        select: {
+          disabled: !isRemaining,
+        },
         itemStyle: {
           color: fill,
           borderColor: border,
@@ -138,7 +145,8 @@ export default function BudgetPie(props: BudgetPieProps) {
       tooltip: {
         ...baseOption.tooltip,
         trigger: "item",
-        valueFormatter: (value) => formatCurrencyGBP(value as number),
+        valueFormatter: (value: unknown) => formatChartCurrency(value, shaded),
+        formatter: shaded ? formatShadedPieTooltipName : undefined,
       },
       legend: {
         ...getDoughnutLegendOption(isDark),
@@ -147,12 +155,13 @@ export default function BudgetPie(props: BudgetPieProps) {
       series: [
         {
           ...getDoughnutSeriesOption(),
-          selectedMode: false,
+          selectedMode: "single",
+          selectedOffset: 20,
           data,
         },
       ],
     }
-  }, [chartData, isDark])
+  }, [chartData, isDark, shaded])
 
   return (
     <Card className="w-full">
@@ -166,7 +175,9 @@ export default function BudgetPie(props: BudgetPieProps) {
                 Monthly Income
               </span>
               <span className="text-lg font-bold text-green-600 lg:text-2xl dark:text-green-400">
-                {formatCurrencyGBP(chartData.monthlyIncome)}
+                <PrivacyCover>
+                  {formatCurrencyGBP(chartData.monthlyIncome)}
+                </PrivacyCover>
               </span>
             </div>
 
@@ -175,7 +186,9 @@ export default function BudgetPie(props: BudgetPieProps) {
                 Monthly Outgoings
               </span>
               <span className="text-lg font-bold text-red-600 lg:text-2xl dark:text-red-400">
-                {formatCurrencyGBP(chartData.totalOutgoings)}
+                <PrivacyCover>
+                  {formatCurrencyGBP(chartData.totalOutgoings)}
+                </PrivacyCover>
               </span>
             </div>
 
@@ -190,7 +203,9 @@ export default function BudgetPie(props: BudgetPieProps) {
                     : "text-red-600 dark:text-red-400"
                 }`}
               >
-                {formatCurrencyGBP(chartData.remaining)}
+                <PrivacyCover>
+                  {formatCurrencyGBP(chartData.remaining)}
+                </PrivacyCover>
               </span>
             </div>
           </div>
