@@ -2,6 +2,7 @@ import {
   autoUpdate,
   flip,
   FloatingPortal,
+  limitShift,
   offset,
   shift,
   useDismiss,
@@ -239,7 +240,12 @@ export default function SummaryRangeFilter() {
     open: isOpen,
     onOpenChange: setIsOpen,
     placement: "bottom-end",
-    middleware: [offset(8), flip(), shift({ padding: 8 })],
+    strategy: "fixed",
+    middleware: [
+      offset(8),
+      flip(),
+      shift({ padding: 8, limiter: limitShift() }),
+    ],
     whileElementsMounted: autoUpdate,
   })
   const dismiss = useDismiss(context)
@@ -248,13 +254,6 @@ export default function SummaryRangeFilter() {
     dismiss,
     role,
   ])
-
-  const setReference = useCallback(
-    (node: HTMLButtonElement | null) => {
-      refs.setReference(node)
-    },
-    [refs],
-  )
 
   const rangeLabel = useMemo(() => {
     if (summaryRangeSelection !== "custom") {
@@ -313,47 +312,48 @@ export default function SummaryRangeFilter() {
 
   return (
     <>
-      <ButtonGroup>
-        <Button
-          color="light"
-          disabled={!canShiftRange}
-          title="Previous range"
-          aria-label="Previous range"
-          onClick={() => shiftRange(-1)}
-        >
-          <FiChevronLeft />
-        </Button>
-        <Button
-          color="light"
-          ref={setReference}
-          className="min-w-48"
-          {...getReferenceProps({
-            onClick: () => setIsOpen((current) => !current),
-          })}
-        >
-          <span className="w-full text-center">{rangeLabel}</span>
-        </Button>
-        <Button
-          color="light"
-          disabled={!canShiftRange}
-          title="Next range"
-          aria-label="Next range"
-          onClick={() => shiftRange(1)}
-        >
-          <FiChevronRight />
-        </Button>
-      </ButtonGroup>
+      <div ref={refs.setReference}>
+        <ButtonGroup>
+          <Button
+            color="light"
+            disabled={!canShiftRange}
+            title="Previous range"
+            aria-label="Previous range"
+            onClick={() => shiftRange(-1)}
+          >
+            <FiChevronLeft />
+          </Button>
+          <Button
+            color="light"
+            className="min-w-48"
+            {...getReferenceProps({
+              onClick: () => setIsOpen((current) => !current),
+            })}
+          >
+            <span className="w-full text-center">{rangeLabel}</span>
+          </Button>
+          <Button
+            color="light"
+            disabled={!canShiftRange}
+            title="Next range"
+            aria-label="Next range"
+            onClick={() => shiftRange(1)}
+          >
+            <FiChevronRight />
+          </Button>
+        </ButtonGroup>
+      </div>
 
       {isOpen && (
         <FloatingPortal>
           <div
             ref={refs.setFloating}
             style={floatingStyles}
-            className="z-50 w-[38rem] rounded-lg border border-gray-200 bg-white p-4 shadow-lg dark:border-gray-700 dark:bg-gray-800"
+            className="z-50 max-h-[calc(100dvh-1rem)] w-[min(38rem,calc(100vw-1rem))] overflow-y-auto rounded-lg border border-gray-200 bg-white p-4 shadow-lg dark:border-gray-700 dark:bg-gray-800"
             {...getFloatingProps()}
           >
-            <div className="grid grid-cols-[1fr_auto] gap-4">
-              <div className="flex min-w-72 flex-col gap-3">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-[1fr_auto]">
+              <div className="flex min-w-0 flex-col gap-3">
                 <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
                   Custom range
                 </h3>
@@ -391,21 +391,25 @@ export default function SummaryRangeFilter() {
                 </div>
               </div>
 
-              <div className="flex w-32 flex-col gap-2 border-l border-gray-200 pl-4 dark:border-gray-700">
+              <div className="flex w-full flex-col gap-2 border-t border-gray-200 pt-4 sm:w-32 sm:border-l sm:border-t-0 sm:pl-4 sm:pt-0 dark:border-gray-700">
                 <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
                   Presets
                 </h3>
-                {SUMMARY_PRESETS.map((preset) => (
-                  <Button
-                    key={preset.value}
-                    color={
-                      summaryRangeSelection === preset.value ? "blue" : "light"
-                    }
-                    onClick={() => selectPresetRange(preset)}
-                  >
-                    {preset.title}
-                  </Button>
-                ))}
+                <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-col">
+                  {SUMMARY_PRESETS.map((preset) => (
+                    <Button
+                      key={preset.value}
+                      color={
+                        summaryRangeSelection === preset.value
+                          ? "blue"
+                          : "light"
+                      }
+                      onClick={() => selectPresetRange(preset)}
+                    >
+                      {preset.title}
+                    </Button>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
