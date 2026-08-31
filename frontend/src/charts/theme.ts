@@ -3,6 +3,7 @@ import type {
   LegendComponentOption,
   PieSeriesOption,
 } from "echarts"
+import { formatCurrencyGBP } from "../utils"
 
 const LIGHT_TEXT = "#6B7280"
 const DARK_TEXT = "#9CA3AF"
@@ -94,6 +95,12 @@ export function getLineChartLegendOption(
   isDark: boolean,
 ): LegendComponentOption {
   return getWrappedLegendOption(isDark)
+}
+
+export function formatChartCurrency(value: unknown, shaded: boolean): string {
+  if (shaded) return "••••"
+  if (typeof value !== "number") return "-"
+  return formatCurrencyGBP(value)
 }
 
 export function getLineChartGridOption(): EChartsOption["grid"] {

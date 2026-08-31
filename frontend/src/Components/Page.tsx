@@ -2,6 +2,7 @@ import { Button, HR } from "flowbite-react"
 import type { ReactNode } from "react"
 import { FiChevronRight, FiMenu } from "react-icons/fi"
 import { useSidebar } from "../Hooks/useSidebar"
+import PrivacyToggleButton from "./PrivacyToggleButton"
 
 type PageProps = {
   title?: string
@@ -59,6 +60,7 @@ export default function Page({ title, headerActions, children }: PageProps) {
               )}
             </div>
           )}
+          <PrivacyToggleButton />
         </div>
       )}
       {headerActions && (

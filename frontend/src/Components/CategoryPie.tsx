@@ -12,17 +12,21 @@ import {
   getLineChartAxesOption,
   getLineChartGridOption,
   getLineChartLegendOption,
+  formatChartCurrency,
 } from "../charts/theme"
 import { formatCurrencyGBP, getBrightColors } from "../utils"
 import { useData } from "../Hooks/useData"
 import { useUser } from "../Hooks/useUser"
 import { useGetUserIdSummaryTotals } from "../API"
+import { usePrivacy } from "../Hooks/usePrivacy"
+import PrivacyCover from "./PrivacyCover"
 
 type ChartView = "pie" | "line"
 
 export default function CategoryPie() {
   const { computedMode } = useThemeMode()
   const isDark = computedMode === "dark"
+  const { shaded } = usePrivacy()
   const { userId } = useUser()
   const [view, setView] = useState<ChartView>("pie")
   const {
@@ -77,7 +81,12 @@ export default function CategoryPie() {
       tooltip: {
         ...baseOption.tooltip,
         trigger: "item",
-        valueFormatter: (value) => formatCurrencyGBP(value as number),
+        valueFormatter: (value) => formatChartCurrency(value, shaded),
+        ...(shaded
+          ? {
+              formatter: (params: { name: string }) => params.name,
+            }
+          : {}),
       },
       legend: {
         ...getDoughnutLegendOption(isDark),
@@ -90,7 +99,7 @@ export default function CategoryPie() {
         },
       ],
     }
-  }, [categorySummaries, colorMap, isDark, pieBorders, pieFills])
+  }, [categorySummaries, colorMap, isDark, pieBorders, pieFills, shaded])
 
   const lineOption = useMemo<EChartsOption>(() => {
     const spendingSeries =
@@ -129,8 +138,14 @@ export default function CategoryPie() {
         trigger: "axis",
         axisPointer: {
           type: "cross",
+          label: {
+            formatter: (params) =>
+              params.axisDimension === "y"
+                ? formatChartCurrency(params.value, shaded)
+                : String(params.value),
+          },
         },
-        valueFormatter: (value) => formatCurrencyGBP(value as number),
+        valueFormatter: (value) => formatChartCurrency(value, shaded),
       },
       legend: {
         ...getLineChartLegendOption(isDark),
@@ -153,7 +168,7 @@ export default function CategoryPie() {
           !Array.isArray(axesOption.yAxis)
             ? axesOption.yAxis.axisLabel
             : {}),
-          formatter: (value: number) => formatCurrencyGBP(value),
+          formatter: (value: number) => formatChartCurrency(value, shaded),
         },
       },
       series: datasets.map((dataset) => ({
@@ -175,6 +190,7 @@ export default function CategoryPie() {
     isDark,
     pieBorders,
     spendingCategoryIds,
+    shaded,
   ])
 
   const option = view === "pie" ? pieOption : lineOption
@@ -213,7 +229,9 @@ export default function CategoryPie() {
                 Income
               </span>
               <span className="text-lg font-bold text-green-600 @xl:text-2xl dark:text-green-400">
-                {formatCurrencyGBP(totals?.income ?? 0)}
+                <PrivacyCover>
+                  {formatCurrencyGBP(totals?.income ?? 0)}
+                </PrivacyCover>
               </span>
             </div>
 
@@ -222,7 +240,9 @@ export default function CategoryPie() {
                 Outgoings
               </span>
               <span className="text-lg font-bold text-red-600 @xl:text-2xl dark:text-red-400">
-                {formatCurrencyGBP(totals?.outgoing ?? 0)}
+                <PrivacyCover>
+                  {formatCurrencyGBP(totals?.outgoing ?? 0)}
+                </PrivacyCover>
               </span>
             </div>
 
@@ -237,7 +257,9 @@ export default function CategoryPie() {
                     : "text-red-600 dark:text-red-400"
                 }`}
               >
-                {formatCurrencyGBP(totals?.net ?? 0)}
+                <PrivacyCover>
+                  {formatCurrencyGBP(totals?.net ?? 0)}
+                </PrivacyCover>
               </span>
             </div>
           </div>

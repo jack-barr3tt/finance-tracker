@@ -8,13 +8,16 @@ import {
   getLineChartAxesOption,
   getLineChartGridOption,
   getLineChartLegendOption,
+  formatChartCurrency,
 } from "../charts/theme"
-import { formatCurrencyGBP, getBrightColors } from "../utils"
+import { getBrightColors } from "../utils"
 import { useData } from "../Hooks/useData"
+import { usePrivacy } from "../Hooks/usePrivacy"
 
 export default function BalanceGraph() {
   const { computedMode } = useThemeMode()
   const isDark = computedMode === "dark"
+  const { shaded } = usePrivacy()
   const { balanceSummary, accountColorMap: colorMap } = useData()
 
   const { borders: lineBorders } = useMemo(
@@ -60,9 +63,14 @@ export default function BalanceGraph() {
         trigger: "axis",
         axisPointer: {
           type: "cross",
+          label: {
+            formatter: (params) =>
+              params.axisDimension === "y"
+                ? formatChartCurrency(params.value, shaded)
+                : String(params.value),
+          },
         },
-        valueFormatter: (value) =>
-          typeof value === "number" ? formatCurrencyGBP(value) : "-",
+        valueFormatter: (value) => formatChartCurrency(value, shaded),
       },
       legend: {
         ...getLineChartLegendOption(isDark),
@@ -84,7 +92,7 @@ export default function BalanceGraph() {
           !Array.isArray(axesOption.yAxis)
             ? axesOption.yAxis.axisLabel
             : {}),
-          formatter: (value: number) => formatCurrencyGBP(value),
+          formatter: (value: number) => formatChartCurrency(value, shaded),
         },
       },
       series: datasets.map((dataset) => ({
@@ -100,7 +108,7 @@ export default function BalanceGraph() {
         },
       })),
     }
-  }, [balanceSummary, colorMap, isDark, lineBorders])
+  }, [balanceSummary, colorMap, isDark, lineBorders, shaded])
 
   return (
     <Card className="flex min-h-full w-full flex-col">

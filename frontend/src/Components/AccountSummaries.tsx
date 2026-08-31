@@ -1,6 +1,7 @@
 import { Card } from "flowbite-react"
 import { useData } from "../Hooks/useData"
 import { formatCurrencyGBP } from "../utils"
+import PrivacyCover from "./PrivacyCover"
 
 export default function AccountSummaries() {
   const { accountSummary } = useData()
@@ -22,7 +23,9 @@ export default function AccountSummaries() {
                     {account.account.name}
                   </h3>
                   <p className="text-3xl md:text-4xl">
-                    {formatCurrencyGBP(account.balance)}
+                    <PrivacyCover>
+                      {formatCurrencyGBP(account.balance)}
+                    </PrivacyCover>
                   </p>
                 </div>
               </Card>
@@ -32,7 +35,9 @@ export default function AccountSummaries() {
               <div className="flex flex-col gap-1">
                 <h3 className="text-[2rem] font-light leading-[1.5]">Total</h3>
                 <p className="text-3xl md:text-4xl">
-                  {formatCurrencyGBP(accountSummary?.total ?? 0)}
+                  <PrivacyCover>
+                    {formatCurrencyGBP(accountSummary?.total ?? 0)}
+                  </PrivacyCover>
                 </p>
               </div>
             </Card>

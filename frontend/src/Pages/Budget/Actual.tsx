@@ -21,6 +21,7 @@ import { useMediaQuery } from "../../Hooks/useMediaQuery"
 import { classifyBudgetSpending } from "../../budget/classifySpending"
 import { Transaction } from "../../API"
 import { formatCurrencyGBP } from "../../utils"
+import PrivacyCover from "../../Components/PrivacyCover"
 import BudgetLineCard from "./BudgetLineCard"
 import CategoryBudgetActualCard from "./CategoryBudgetActualCard"
 import UnplannedTransactionCard from "./UnplannedTransactionCard"
@@ -186,7 +187,9 @@ export default function BudgetActual() {
                 Planned (matched to budget lines & categories)
               </p>
               <p className="text-2xl font-semibold">
-                {formatCurrencyGBP(summary.planned)}
+                <PrivacyCover>
+                  {formatCurrencyGBP(summary.planned)}
+                </PrivacyCover>
               </p>
             </div>
             <div className="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
@@ -194,7 +197,9 @@ export default function BudgetActual() {
                 Actual (matched)
               </p>
               <p className="text-2xl font-semibold">
-                {formatCurrencyGBP(summary.actual)}
+                <PrivacyCover>
+                  {formatCurrencyGBP(summary.actual)}
+                </PrivacyCover>
               </p>
               <VarianceCell planned={summary.planned} actual={summary.actual} />
             </div>
@@ -203,7 +208,9 @@ export default function BudgetActual() {
                 Unplanned spending
               </p>
               <p className="text-2xl font-semibold">
-                {formatCurrencyGBP(summary.unplanned)}
+                <PrivacyCover>
+                  {formatCurrencyGBP(summary.unplanned)}
+                </PrivacyCover>
               </p>
             </div>
             <div className="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
@@ -211,7 +218,9 @@ export default function BudgetActual() {
                 Total actual (all spending)
               </p>
               <p className="text-2xl font-semibold">
-                {formatCurrencyGBP(summary.totalActual)}
+                <PrivacyCover>
+                  {formatCurrencyGBP(summary.totalActual)}
+                </PrivacyCover>
               </p>
               <VarianceCell
                 planned={summary.planned}
