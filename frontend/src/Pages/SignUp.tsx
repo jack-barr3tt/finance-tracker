@@ -1,4 +1,4 @@
-import { FormEvent, useCallback, useState } from "react"
+import { useActionState } from "react"
 import { useUser } from "../Hooks/useUser"
 import { Link, Navigate, useNavigate } from "react-router-dom"
 import { usePostSignup } from "../API"
@@ -9,22 +9,20 @@ import { generateKeySalt } from "../Security/keys"
 const signupEnabled = import.meta.env.VITE_ENABLE_SIGNUP === "true"
 
 export default function SignUp() {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [passwordConfirmation, setPasswordConfirmation] = useState("")
-
   const { mutateAsync: signUp } = usePostSignup()
-
   const { login } = useUser()
   const navigate = useNavigate()
 
-  const handleSubmit = useCallback(
-    async (e: FormEvent<HTMLFormElement>) => {
-      e.preventDefault()
+  const [error, submit, isPending] = useActionState(
+    async (_prev: string | null, formData: FormData) => {
+      const email = String(formData.get("email") ?? "")
+      const password = String(formData.get("password") ?? "")
+      const passwordConfirmation = String(
+        formData.get("passwordConfirmation") ?? "",
+      )
 
       if (password !== passwordConfirmation) {
-        alert("Passwords do not match")
-        return
+        return "Passwords do not match"
       }
 
       const { salt, master_key } = await generateKeySalt(password)
@@ -33,20 +31,20 @@ export default function SignUp() {
         await signUp({
           data: {
             email,
-            password: password,
+            password,
             salt,
             master_key,
           },
         })
 
         await login(email, password)
-
         navigate("/transactions")
+        return null
       } catch {
-        alert("Sign up failed")
+        return "Sign up failed"
       }
     },
-    [email, login, navigate, password, passwordConfirmation, signUp],
+    null,
   )
 
   if (!signupEnabled) {
@@ -56,34 +54,35 @@ export default function SignUp() {
   return (
     <div className="flex items-center justify-center pt-32">
       <form
-        onSubmit={handleSubmit}
+        action={submit}
         className="flex flex-col items-center gap-4 p-8 border border-gray-200 shadow-sm dark:border-gray-700 dark:bg-neutral-800 rounded-xl"
       >
         <h1 className="w-full text-2xl font-medium text-center">Sign Up</h1>
         <TextInput
           type="email"
+          name="email"
           placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
           className="w-64"
           autoFocus
           autoComplete="email"
+          required
         />
         <TextInput
           type="password"
+          name="password"
           placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
           className="w-64"
+          required
         />
         <TextInput
           type="password"
+          name="passwordConfirmation"
           placeholder="Confirm password"
-          value={passwordConfirmation}
-          onChange={(e) => setPasswordConfirmation(e.target.value)}
           className="w-64"
+          required
         />
-        <Button type="submit" className="w-64 gap-1">
+        {error && <p className="w-full text-sm text-red-600">{error}</p>}
+        <Button type="submit" className="w-64 gap-1" disabled={isPending}>
           Submit <FiArrowRight />
         </Button>
         <p className="text-sm">

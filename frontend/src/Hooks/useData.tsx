@@ -328,5 +328,5 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     ],
   )
 
-  return <DataContext.Provider value={value}>{children}</DataContext.Provider>
+  return <DataContext value={value}>{children}</DataContext>
 }

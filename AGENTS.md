@@ -15,7 +15,7 @@ This project is a personal finance tracker with a Go/Fiber backend and a Vite Re
 
 ### Component style
 
-- Prefer `export default function ComponentName()` — do not assign a component to a `const` and export that const. When a component needs a ref (React 18), use `export default forwardRef(function ComponentName(...))` and pass `ref` normally; do not invent renamed ref props like `cardRef`.
+- Prefer `export default function ComponentName()` — do not assign a component to a `const` and export that const. When a component needs a ref, accept `ref` as a normal prop and pass it through; do not use `forwardRef` or invent renamed ref props like `cardRef`.
 - Component files use PascalCase (e.g. `ActualDisplay.tsx`). Hook files use camelCase (e.g. `useBudgetTransactionEditor.ts`).
 - For responsive table/card layouts, reuse the existing Transactions patterns: `useMediaQuery("(min-width: 768px)")`, `DataCard`, `FormEditModal`, `ColoredBadge`, `TruncatedText`. Mirror that layout behaviour on other pages; do not build generic table/card frameworks.
 - Avoid thin wrapper abstractions that do not earn their keep — e.g. passthrough layout components, shared breakpoint constant files, one-line helper modules, or hooks extracted only to dedupe similar data-fetching logic across editors. Inline at the call site when the code is simple and local.
