@@ -289,7 +289,9 @@ func (s *Server) PostUserIdTransactionsBulk(c *fiber.Ctx, id string) error {
 	}
 
 	if len(body.Transactions) == 0 {
-		return c.SendStatus(fiber.StatusBadRequest)
+		return c.Status(fiber.StatusBadRequest).JSON(TransactionBulkResponse{
+			Message: "No transactions to import",
+		})
 	}
 
 	tx, err := s.DB.Begin(c.Context())
