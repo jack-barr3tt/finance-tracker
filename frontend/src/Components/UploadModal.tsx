@@ -17,7 +17,7 @@ import {
   getGetUserIdTransactionsInfiniteQueryKey,
 } from "../API"
 import SearchSelect from "./SearchSelect"
-import { useCallback, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { parseNationwide } from "../CSV/nationwide"
 import { useQueryClient } from "@tanstack/react-query"
 import { parseTrading212 } from "../CSV/trading212"
@@ -30,22 +30,31 @@ import { formatError } from "../utils/formatError"
 type UploadModalProps = {
   show: boolean
   onClose: () => void
+  defaultAccountId?: string
 }
 
 export default function UploadModal(props: UploadModalProps) {
-  const { show, onClose } = props
+  const { show, onClose, defaultAccountId } = props
 
   const { userId, decrypt, encrypt, computeDedupeHash } = useUser()
   const queryClient = useQueryClient()
 
   const { accounts } = useData()
 
-  const [accountId, setAccountId] = useState<string | undefined>(undefined)
+  const [accountId, setAccountId] = useState<string | undefined>(
+    defaultAccountId,
+  )
   const [accountSearch, setAccountSearch] = useState<string | undefined>(
     undefined,
   )
   const [file, setFile] = useState<File | null>(null)
   const [isUploading, setIsUploading] = useState(false)
+
+  useEffect(() => {
+    if (!show) return
+    setAccountId(defaultAccountId)
+    setAccountSearch(undefined)
+  }, [show, defaultAccountId])
 
   const handleSubmit = useCallback(async () => {
     if (!file || !accountId || isUploading) return
