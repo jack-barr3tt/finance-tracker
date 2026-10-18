@@ -350,7 +350,11 @@ export default function Transactions() {
 
   return (
     <Page title="Transactions" headerActions={<SummaryRangeFilter />}>
-      <UploadModal show={showUpload} onClose={() => setShowUpload(false)} />
+      <UploadModal
+        show={showUpload}
+        onClose={() => setShowUpload(false)}
+        defaultAccountId={accountFilterId}
+      />
       <ConfirmDeleteModal
         show={!!deleteConfirmId}
         onConfirm={() => {
