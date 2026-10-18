@@ -58,7 +58,7 @@ export function parseCSV<T>(
             ),
           })),
         ).then((categories) => {
-          const requests: Promise<TransactionBulkResponse>[] = []
+          const requests: Promise<TransactionBulkResponse | null>[] = []
 
           const applyRule = (
             description: string,
@@ -84,41 +84,46 @@ export function parseCSV<T>(
 
           new Promise((resolveParse, rejectParse) => {
             Papa.parse(file, {
-              chunk: async (results: { data: T[] }) => {
+              chunk: (results: { data: T[] }) => {
                 requests.push(
-                  (async () =>
-                    postUserIdTransactionsBulk(userId, {
-                      hash,
-                      transactions: (await Promise.all(
-                        results.data
-                          .map((row) => {
-                            const data = handler(row)
-                            const list = Array.isArray(data) ? data : [data]
+                  (async () => {
+                    const transactions = (await Promise.all(
+                      results.data
+                        .map((row) => {
+                          const data = handler(row)
+                          const list = Array.isArray(data) ? data : [data]
 
-                            return list.map(async (data) => {
-                              const { description, category_id } = applyRule(
-                                data.description,
-                                data.account_id || accountId,
-                              )
-                              const dateStr = format(data.date, "yyyy-MM-dd")
-                              const dedupeSource =
-                                data.externalId || data.description
-                              const dedupe_hash = await computeDedupeHash(
-                                `${data.amount.toFixed(2)}|${dateStr}|${dedupeSource}`,
-                              )
-                              return {
-                                date: dateStr,
-                                amount: data.amount,
-                                account_id: data.account_id || accountId,
-                                description: await encrypt(description),
-                                category_id,
-                                dedupe_hash,
-                              }
-                            })
+                          return list.map(async (data) => {
+                            const { description, category_id } = applyRule(
+                              data.description,
+                              data.account_id || accountId,
+                            )
+                            const dateStr = format(data.date, "yyyy-MM-dd")
+                            const dedupeSource =
+                              data.externalId || data.description
+                            const dedupe_hash = await computeDedupeHash(
+                              `${data.amount.toFixed(2)}|${dateStr}|${dedupeSource}`,
+                            )
+                            return {
+                              date: dateStr,
+                              amount: data.amount,
+                              account_id: data.account_id || accountId,
+                              description: await encrypt(description),
+                              category_id,
+                              dedupe_hash,
+                            }
                           })
-                          .flat(),
-                      )) as TransactionCreateRequest[],
-                    }))(),
+                        })
+                        .flat(),
+                    )) as TransactionCreateRequest[]
+
+                    if (transactions.length === 0) return null
+
+                    return postUserIdTransactionsBulk(userId, {
+                      hash,
+                      transactions,
+                    })
+                  })(),
                 )
               },
               complete: resolveParse,
@@ -128,10 +133,6 @@ export function parseCSV<T>(
           })
             .then(() =>
               Promise.allSettled(requests).then(async (results) => {
-                if (results.length === 0) {
-                  throw new Error("No transactions to process")
-                }
-
                 if (results.some((result) => result.status === "rejected")) {
                   const failureMessage = getImportFailureMessage(results)
                   await postUserIdTransactionsBulkDelete(userId, {
@@ -141,20 +142,29 @@ export function parseCSV<T>(
                   throw new Error(failureMessage)
                 }
 
+                const uploads = results.flatMap((result) =>
+                  result.status === "fulfilled" && result.value
+                    ? [result.value]
+                    : [],
+                )
+
+                if (uploads.length === 0) {
+                  throw new Error(
+                    "This file doesn't contain any transactions to import.",
+                  )
+                }
+
                 await postUserIdTransactionsBulkFinalise(userId, {
                   hash,
                 })
 
-                return results.reduce<ImportSummary>(
-                  (summary, result) => {
-                    if (result.status !== "fulfilled") return summary
-                    return {
-                      imported: summary.imported + (result.value.imported ?? 0),
-                      skippedDuplicates:
-                        summary.skippedDuplicates +
-                        (result.value.skipped_duplicates ?? 0),
-                    }
-                  },
+                return uploads.reduce<ImportSummary>(
+                  (summary, upload) => ({
+                    imported: summary.imported + (upload.imported ?? 0),
+                    skippedDuplicates:
+                      summary.skippedDuplicates +
+                      (upload.skipped_duplicates ?? 0),
+                  }),
                   { imported: 0, skippedDuplicates: 0 },
                 )
               }),

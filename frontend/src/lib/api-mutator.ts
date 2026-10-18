@@ -60,19 +60,29 @@ export const customFetch = async <T>(
   })
 
   if (!response.ok) {
-    let message = response.statusText
+    let message = ""
     try {
-      const errorBody = await getBody<{
-        message?: string
-        error?: string
-        detail?: string
-      }>(response)
-      message =
-        errorBody.message ?? errorBody.error ?? errorBody.detail ?? message
+      const errorBody = await getBody<
+        string | { message?: string; error?: string; detail?: string }
+      >(response)
+      if (typeof errorBody === "string") {
+        message = errorBody.trim()
+      } else if (errorBody && typeof errorBody === "object") {
+        message = (
+          errorBody.message ||
+          errorBody.error ||
+          errorBody.detail ||
+          ""
+        ).trim()
+      }
     } catch {
-      // use statusText
+      // fall through to the status fallback
     }
-    throw new Error(message)
+    throw new Error(
+      message ||
+        response.statusText.trim() ||
+        `Request failed (${response.status})`,
+    )
   }
 
   if (response.status === 204) {
